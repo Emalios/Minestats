@@ -1,0 +1,15 @@
+{
+  "itemGroup.mystats": "Example Mod Tab",
+  "block.mystats.example_block": "Example Block",
+  "block.mystats.log_chest_block": "Log block",
+  "item.mystats.example_item": "Example Item",
+  "item.mystats.recorder_item": "Recorder",
+
+  "mystats.configuration.title": "My Stats Configs",
+  "mystats.configuration.section.mystats.common.toml": "My Stats Configs",
+  "mystats.configuration.section.mystats.common.toml.title": "My Stats Configs",
+  "mystats.configuration.items": "Item List",
+  "mystats.configuration.logDirtBlock": "Log Dirt Block",
+  "mystats.configuration.magicNumberIntroduction": "Magic Number Text",
+  "mystats.configuration.magicNumber": "Magic Number"
+}
