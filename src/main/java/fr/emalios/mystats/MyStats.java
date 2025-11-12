@@ -4,6 +4,8 @@ import fr.emalios.mystats.command.StatCommand;
 import fr.emalios.mystats.content.block.LogChestBlock;
 import fr.emalios.mystats.content.block.LogChestBlockEntity;
 import fr.emalios.mystats.content.item.RecorderItem;
+import fr.emalios.mystats.core.db.Database;
+import fr.emalios.mystats.core.db.DatabaseSchema;
 import fr.emalios.mystats.core.db.DatabaseWorker;
 import fr.emalios.mystats.core.stat.StatManager;
 import fr.emalios.mystats.screen.LogChestScreen;
@@ -50,6 +52,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.sql.SQLException;
 import java.util.function.Supplier;
 
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
@@ -165,21 +168,20 @@ public class MyStats {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
         try {
-            Class.forName("org.sqlite.JDBC");
-        } catch (ClassNotFoundException e) {
+            DatabaseSchema.createAll();
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        DatabaseWorker.init();
         LOGGER.info("[Minestats] Db loaded.");
-        StatManager.init();
         LOGGER.info("[Minestats] StatManager loaded.");
     }
 
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) {
+        Database.getInstance().close();
         DatabaseWorker.shutdown();
         LOGGER.info("[Minestats] Db unloaded.");
-        StatManager.shutdown();
+        StatManager.getInstance().shutdown();
         LOGGER.info("[Minestats] StatManager unloaded.");
     }
 

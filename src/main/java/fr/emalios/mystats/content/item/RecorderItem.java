@@ -1,5 +1,9 @@
 package fr.emalios.mystats.content.item;
 
+import fr.emalios.mystats.core.dao.InventoryDao;
+import fr.emalios.mystats.core.dao.SnapshotItemDao;
+import fr.emalios.mystats.core.db.Database;
+import fr.emalios.mystats.helper.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
@@ -12,6 +16,14 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
+import java.sql.SQLException;
+import java.time.Instant;
+import java.util.Map;
+
+/**
+ * A click with this item on a block that has an inventory will monitor his content
+ * If the block is already registered, it stops the monitoring
+ */
 public class RecorderItem extends Item {
 
     public RecorderItem(Properties props) {
@@ -22,6 +34,7 @@ public class RecorderItem extends Item {
     public InteractionResult useOn(UseOnContext context) {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
+        Database database = Database.getInstance();
 
         //We only want server side logic
         if (level.isClientSide()) return InteractionResult.PASS;
@@ -39,12 +52,39 @@ public class RecorderItem extends Item {
                 null // contexte / side : null si pas nécessaire
         );
         if (handler == null) return InteractionResult.PASS;
-        int slots = handler.getSlots();
-        System.out.println(state.getBlock().getName() + "has an inventory with " + slots + " slots.");
-        for (int i = 0; i < slots; i++) {
-            ItemStack stack = handler.getStackInSlot(i);
-            if(stack.isEmpty()) continue;
-            System.out.println(stack.getItem() + " * " + stack.getCount());
+        try {
+            //check if it's already monitored
+            var inventoryRecord = database.getInventoryDao().findByBlockId(
+                    context.getLevel().getDescription().getString(),
+                    pos.getX(), pos.getY(), pos.getZ()
+            );
+            if(inventoryRecord.isEmpty()) {
+                int playerId = database.getPlayerDao().insertIfNotExists(context.getPlayer().getName().getString());
+                int invId = database.getInventoryDao().insert(
+                        context.getLevel().getDescription().getString(),
+                        pos.getX(), pos.getY(), pos.getZ(),
+                        "ITEM");
+                //start monitoring for the block
+
+            } else {
+                //logic to remove blocks from db ?
+            }
+            /*
+            database.getPlayerInventoryDao().insert(playerId, invId);
+            int snapshotId = database.getInventorySnapshotDao().insert(invId, Instant.now().getEpochSecond());
+            SnapshotItemDao snapshotItemDao = database.getSnapshotItemDao();
+
+            Map<String, Integer> content = Utils.getInventoryContent(handler);
+            for (Map.Entry<String, Integer> entry : content.entrySet()) {
+                String s = entry.getKey();
+                Integer integer = entry.getValue();
+                snapshotItemDao.insert(snapshotId, s, integer);
+            }
+
+             */
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
         return InteractionResult.SUCCESS;
     }

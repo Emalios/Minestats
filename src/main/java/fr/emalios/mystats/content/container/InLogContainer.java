@@ -45,19 +45,6 @@ public class InLogContainer extends ItemStackHandler {
         return lvl != null && !lvl.isClientSide();
     }
 
-    private void log(ItemStack stack, int count, String mode) {
-        if(!this.isServerSide()) return;
-        System.out.println(mode + ": " + stack.getItem() + " *" + count);
-        StatManager.log(new Stat(
-                StatType.INSERT,
-                BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), // ex: "minecraft:iron_ingot"
-                UUID.randomUUID(), // for now
-                this.pos, // ex: "12,64,-5"
-                stack.getCount(),
-                Unit.ITEM,
-                Instant.now()
-        ));
-    }
 
     @Override
     public void setStackInSlot(int slot, ItemStack stack) {
@@ -79,10 +66,8 @@ public class InLogContainer extends ItemStackHandler {
         if(simulate) return item;
         //if item is empty every stack went inside the container
         if(item.isEmpty()) {
-            log(stack, stack.getCount(), "insert");
         } else {
             int count = stack.getCount() - item.getCount();
-            log(stack, count, "insert");
         }
         return item;
     }
