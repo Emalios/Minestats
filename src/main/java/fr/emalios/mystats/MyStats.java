@@ -1,5 +1,6 @@
 package fr.emalios.mystats;
 
+import fr.emalios.mystats.command.StatCommand;
 import fr.emalios.mystats.content.block.LogChestBlock;
 import fr.emalios.mystats.content.block.LogChestBlockEntity;
 import fr.emalios.mystats.content.item.RecorderItem;
@@ -17,6 +18,7 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import org.slf4j.Logger;
 
@@ -129,6 +131,9 @@ public class MyStats {
         //capability
         modEventBus.addListener(this::registerCapabilities);
         ModMenuTypes.register(modEventBus);
+        final IEventBus GAME_BUS = NeoForge.EVENT_BUS;
+
+        GAME_BUS.addListener(this::registerCommands);
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
@@ -180,6 +185,11 @@ public class MyStats {
 
     private void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, LOG_CHEST_BLOCK_ENTITY.get(), (o, direction) -> o.getItemHandler());
+    }
+
+    private void registerCommands(final RegisterCommandsEvent event) {
+        event.getDispatcher().register(StatCommand.register("minestats"));
+        event.getDispatcher().register(StatCommand.register("mystat"));
     }
 
     @EventBusSubscriber(modid = MODID, value = Dist.CLIENT)

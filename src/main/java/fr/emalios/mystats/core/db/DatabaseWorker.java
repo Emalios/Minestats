@@ -1,20 +1,21 @@
 package fr.emalios.mystats.core.db;
 
 import fr.emalios.mystats.core.stat.Stat;
-import fr.emalios.mystats.core.stat.Unit;
-import fr.emalios.mystats.core.stat.StatType;
+import org.sqlite.core.DB;
 
 import java.sql.*;
-import java.time.Instant;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Worker asynchrone responsable de la persistance des statistiques en base SQLite.
  * Utilise un thread unique pour sérialiser les écritures et éviter la contention.
  */
 public class DatabaseWorker {
+
+    private static final ReentrantLock DB_LOCK = new ReentrantLock();
 
     private static final ExecutorService EXECUTOR =
             Executors.newSingleThreadExecutor(r -> {
@@ -25,31 +26,13 @@ public class DatabaseWorker {
 
     private static Connection connection;
 
-    /**
-     * Initialise la base SQLite et crée les tables si nécessaire.
-     */
     public static void init() {
         try {
             connection = DriverManager.getConnection("jdbc:sqlite:mystats.db");
-            connection.setAutoCommit(false); // batch mode
-
-            try (Statement stmt = connection.createStatement()) {
-                stmt.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS stats (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        type TEXT NOT NULL,
-                        target_id TEXT NOT NULL,
-                        owner_uuid TEXT,
-                        source_id TEXT,
-                        count REAL NOT NULL,
-                        unit TEXT NOT NULL,
-                        timestamp INTEGER NOT NULL
-                    )
-                """);
-            }
-
-            connection.commit();
-
+            connection.setAutoCommit(false); // nécessaire pour batch mode
+            DB_LOCK.lock();
+            DatabaseManager.createTables(connection);
+            DB_LOCK.unlock();
             System.out.println("[MyStats] Database initialized successfully.");
 
         } catch (SQLException e) {
@@ -57,43 +40,56 @@ public class DatabaseWorker {
         }
     }
 
-    /**
-     * Soumet un batch d'entrées à insérer asynchronement.
-     */
     public static void submitBatch(Stat[] entries) {
         if (entries == null || entries.length == 0) return;
         EXECUTOR.submit(() -> insertBatch(entries));
     }
 
-    /**
-     * Insère un batch dans la base SQLite.
-     */
+    public static void showDbStructure() {
+        DB_LOCK.lock();
+        DatabaseManager.showDbStructures(connection);
+        DB_LOCK.unlock();
+    }
+
+    public static void deleteDb() {
+        //DB_LOCK.lock();
+        try {
+            DatabaseManager.deleteDb(connection);
+        } finally {
+            //DB_LOCK.unlock();
+        }
+    }
+
     private static void insertBatch(Stat[] entries) {
-        String sql = """
+        DB_LOCK.lock();
+        try {
+            String sql = """
             INSERT INTO stats (type, target_id, owner_uuid, source_id, count, unit, timestamp)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            for (Stat entry : entries) {
-                ps.setString(1, entry.getType().name());
-                ps.setString(2, entry.getTargetId());
-                ps.setString(3, entry.getOwnerId() != null ? entry.getOwnerId().toString() : null);
-                ps.setString(4, entry.getSourceId());
-                ps.setFloat(5, entry.getCount());
-                ps.setString(6, entry.getUnit().name());
-                ps.setLong(7, entry.getTimestamp().getEpochSecond());
-                ps.addBatch();
-            }
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                for (Stat entry : entries) {
+                    ps.setString(1, entry.getType().name());
+                    ps.setString(2, entry.getTargetId());
+                    ps.setString(3, entry.getOwnerId() != null ? entry.getOwnerId().toString() : null);
+                    ps.setString(4, entry.getSourceId());
+                    ps.setFloat(5, entry.getCount());
+                    ps.setString(6, entry.getUnit().name());
+                    ps.setLong(7, entry.getTimestamp().getEpochSecond());
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+                connection.commit();
 
-            ps.executeBatch();
-            connection.commit();
-
-        } catch (SQLException e) {
-            try {
+            } catch (SQLException e) {
                 connection.rollback();
-            } catch (SQLException ignored) {}
-            System.err.println("[MyStats] Database batch insert failed: " + e.getMessage());
+                System.err.println("[MyStats] Database batch insert failed: " + e.getMessage());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DB_LOCK.unlock();
         }
     }
 

@@ -21,7 +21,6 @@ public class Stat {
     /** Identifiant du propriétaire de la stat (ex: joueur, bloc, dimension, etc.) */
     private final UUID ownerId;
 
-    /** Identifiant du contexte ou de la source (ex: bloc surveillé, système, etc.) */
     private final String sourceId;
 
     /** Valeur quantitative de la mesure */
