@@ -3,6 +3,7 @@ package fr.emalios.mystats.content.item;
 import fr.emalios.mystats.core.dao.InventoryDao;
 import fr.emalios.mystats.core.dao.SnapshotItemDao;
 import fr.emalios.mystats.core.db.Database;
+import fr.emalios.mystats.core.stat.StatManager;
 import fr.emalios.mystats.helper.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
@@ -64,24 +65,14 @@ public class RecorderItem extends Item {
                         context.getLevel().getDescription().getString(),
                         pos.getX(), pos.getY(), pos.getZ(),
                         "ITEM");
+                //associate inventory to player
+                database.getPlayerInventoryDao().insert(playerId, invId);
                 //start monitoring for the block
-
+                System.out.println("Monitoring: " + inventoryRecord);
+                StatManager.getInstance().add(invId, handler);
             } else {
                 //logic to remove blocks from db ?
             }
-            /*
-            database.getPlayerInventoryDao().insert(playerId, invId);
-            int snapshotId = database.getInventorySnapshotDao().insert(invId, Instant.now().getEpochSecond());
-            SnapshotItemDao snapshotItemDao = database.getSnapshotItemDao();
-
-            Map<String, Integer> content = Utils.getInventoryContent(handler);
-            for (Map.Entry<String, Integer> entry : content.entrySet()) {
-                String s = entry.getKey();
-                Integer integer = entry.getValue();
-                snapshotItemDao.insert(snapshotId, s, integer);
-            }
-
-             */
 
         } catch (SQLException e) {
             throw new RuntimeException(e);

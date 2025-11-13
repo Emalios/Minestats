@@ -6,6 +6,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
+import java.sql.SQLException;
+
 @EventBusSubscriber(modid = MyStats.MODID)
 public class CustomServerTickEvent {
 
@@ -15,9 +17,14 @@ public class CustomServerTickEvent {
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
         counter++;
-        if(counter < 100) return;
+        if(counter < 300) return;
         counter = 0;
-        statManager.scan();
+        try {
+            System.out.println("SCANNING");
+            statManager.scan();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

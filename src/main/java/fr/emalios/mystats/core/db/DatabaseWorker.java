@@ -1,13 +1,10 @@
 package fr.emalios.mystats.core.db;
 
 import fr.emalios.mystats.core.stat.Stat;
-import org.sqlite.core.DB;
 
-import java.sql.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Worker asynchrone responsable de la persistance des statistiques en base SQLite.

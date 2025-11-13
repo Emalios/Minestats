@@ -1,13 +1,16 @@
 package fr.emalios.mystats.core.stat;
 
+import fr.emalios.mystats.core.SnapshotDao;
+import fr.emalios.mystats.core.dao.InventorySnapshotDao;
+import fr.emalios.mystats.core.dao.SnapshotItemDao;
 import fr.emalios.mystats.core.db.Database;
 import fr.emalios.mystats.core.db.DatabaseWorker;
+import fr.emalios.mystats.helper.Utils;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.time.Instant;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -20,7 +23,10 @@ public class StatManager {
     private final int BATCH_SIZE = 100;
     private final int FLUSH_INTERVAL_SECONDS = 5;
 
-    private final List<IItemHandler> monitored = new ArrayList<>();
+    private final Database db = Database.getInstance();
+    private final InventorySnapshotDao inventorySnapshotDao = db.getInventorySnapshotDao();
+    private final SnapshotItemDao snapshotItemDao = db.getSnapshotItemDao();
+    private final Map<Integer, IItemHandler> monitored = new HashMap<>();
     private final Queue<Stat> buffer = new ConcurrentLinkedQueue<>();
     private final ScheduledExecutorService scheduler =
             Executors.newSingleThreadScheduledExecutor(r -> {
@@ -45,6 +51,18 @@ public class StatManager {
         this.scheduler.shutdown();
     }
 
+    public void add(int inventoryId, IItemHandler handler) {
+        this.monitored.put(inventoryId, handler);
+    }
+
+    public boolean isMonitored(int inventoryId) {
+        return this.monitored.containsKey(inventoryId);
+    }
+
+    public void remove(int inventoryId) {
+        this.monitored.remove(inventoryId);
+    }
+
     /**
      * TODO: maybe a system to detect if the inventory has changed since last scan is possible
      * Method responsible to scan the content of every monitored blocks
@@ -53,8 +71,19 @@ public class StatManager {
      * - scan inventory content
      * - for each item create a snapshot item
      */
-    public void scan() {
-
+    public void scan() throws SQLException {
+        for (Integer inventoryId : this.monitored.keySet()) {
+            //create snapshot
+            int snapshotId = this.inventorySnapshotDao.insert(inventoryId, Instant.now().getEpochSecond());
+            //get inventory content
+            var content = Utils.getInventoryContent(this.monitored.get(inventoryId));
+            //put everything in db
+            for (Map.Entry<String, Integer> entry : content.entrySet()) {
+                String s = entry.getKey();
+                Integer integer = entry.getValue();
+                this.snapshotItemDao.insert(snapshotId, s, integer);
+            }
+        }
     }
 
     public void log(Stat entry) {
