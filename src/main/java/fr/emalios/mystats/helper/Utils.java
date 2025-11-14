@@ -21,7 +21,7 @@ public class Utils {
 
     public static Map<String, Double> makeStats(Map<Long, List<SnapshotItemDao.ItemRecord>> history) {
         List<Long> timestamps = new ArrayList<>(history.keySet());
-        Collections.sort(timestamps); // très important !
+        Collections.sort(timestamps);
 
         Map<String, List<Double>> ratesByItem = new HashMap<>(); // item -> liste de vitesses successives
 

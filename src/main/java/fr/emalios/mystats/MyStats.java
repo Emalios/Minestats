@@ -1,27 +1,21 @@
 package fr.emalios.mystats;
 
 import fr.emalios.mystats.command.StatCommand;
-import fr.emalios.mystats.content.block.LogChestBlock;
-import fr.emalios.mystats.content.block.LogChestBlockEntity;
+import fr.emalios.mystats.content.block.StatMonitorBlock;
 import fr.emalios.mystats.content.item.RecorderItem;
 import fr.emalios.mystats.core.db.Database;
 import fr.emalios.mystats.core.db.DatabaseSchema;
 import fr.emalios.mystats.core.db.DatabaseWorker;
 import fr.emalios.mystats.core.stat.StatManager;
-import fr.emalios.mystats.registries.StatCodec;
 import fr.emalios.mystats.registries.StatDataComponent;
 import fr.emalios.mystats.screen.LogChestScreen;
 import fr.emalios.mystats.screen.ModMenuTypes;
-import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
-import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import org.slf4j.Logger;
@@ -73,7 +67,7 @@ public class MyStats {
 
     public static final DeferredBlock<Block> LOG_CHEST_BLOCK = BLOCKS.registerBlock(
             "log_chest_block",
-            (x) -> new LogChestBlock()
+            (x) -> new StatMonitorBlock()
     );
 
     public static final Supplier<BlockEntityType<LogChestBlockEntity>> LOG_CHEST_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register(
@@ -173,6 +167,7 @@ public class MyStats {
         try {
             Database.getInstance().init();
             DatabaseSchema.createAll();
+            //TODO: insert inventories into StatManager
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

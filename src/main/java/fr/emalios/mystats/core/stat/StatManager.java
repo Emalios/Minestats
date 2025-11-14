@@ -1,11 +1,14 @@
 package fr.emalios.mystats.core.stat;
 
 import fr.emalios.mystats.core.SnapshotDao;
+import fr.emalios.mystats.core.dao.InventoryDao;
 import fr.emalios.mystats.core.dao.InventorySnapshotDao;
 import fr.emalios.mystats.core.dao.SnapshotItemDao;
 import fr.emalios.mystats.core.db.Database;
 import fr.emalios.mystats.core.db.DatabaseWorker;
 import fr.emalios.mystats.helper.Utils;
+import net.minecraft.core.Direction;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import java.sql.SQLException;
@@ -25,8 +28,9 @@ public class StatManager {
 
     private final Database db = Database.getInstance();
     private final InventorySnapshotDao inventorySnapshotDao = db.getInventorySnapshotDao();
+    private final InventoryDao inventoryDao = db.getInventoryDao();
     private final SnapshotItemDao snapshotItemDao = db.getSnapshotItemDao();
-    private final Map<Integer, IItemHandler> monitored = new HashMap<>();
+    private final Map<Integer, BlockCapabilityCache<IItemHandler,Direction>> monitored = new HashMap<>();
     private final Queue<Stat> buffer = new ConcurrentLinkedQueue<>();
     private final ScheduledExecutorService scheduler =
             Executors.newSingleThreadScheduledExecutor(r -> {
@@ -50,16 +54,12 @@ public class StatManager {
         this.scheduler.shutdown();
     }
 
-    public void add(int inventoryId, IItemHandler handler) {
+    public void add(int inventoryId, BlockCapabilityCache<IItemHandler,Direction> handler) {
         this.monitored.put(inventoryId, handler);
     }
 
     public boolean isMonitored(int inventoryId) {
         return this.monitored.containsKey(inventoryId);
-    }
-
-    public void remove(int inventoryId) {
-        this.monitored.remove(inventoryId);
     }
 
     /**
@@ -74,8 +74,14 @@ public class StatManager {
         for (Integer inventoryId : this.monitored.keySet()) {
             //create snapshot
             int snapshotId = this.inventorySnapshotDao.insert(inventoryId, Instant.now().getEpochSecond());
+            //check if inventory still exists
+            IItemHandler handler = this.monitored.get(inventoryId).getCapability();
+            if(handler == null) {
+                this.unmonitore(inventoryId);
+                continue;
+            };
             //get inventory content
-            var content = Utils.getInventoryContent(this.monitored.get(inventoryId));
+            var content = Utils.getInventoryContent(handler);
             //put everything in db
             for (Map.Entry<String, Integer> entry : content.entrySet()) {
                 String s = entry.getKey();
@@ -83,6 +89,11 @@ public class StatManager {
                 this.snapshotItemDao.insert(snapshotId, s, integer);
             }
         }
+    }
+
+    public void unmonitore(int inventoryId) throws SQLException {
+        this.monitored.remove(inventoryId);
+        this.inventoryDao.deleteById(inventoryId);
     }
 
     private synchronized void flush() {

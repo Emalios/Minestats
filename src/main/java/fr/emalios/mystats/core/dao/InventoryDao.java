@@ -27,6 +27,7 @@ public class InventoryDao {
         return world + ":" + x + ":" + y + ":" + z;
     }
 
+    //TODO: review block_id system
     public int insert(String world, int x, int y, int z, String type) throws SQLException {
         String sql = """
             INSERT INTO inventories (block_id, world, x, y, z, type)
@@ -49,6 +50,16 @@ public class InventoryDao {
             }
         }
         return -1;
+    }
+
+    public boolean deleteById(int id) throws SQLException {
+        String sql = "DELETE FROM inventories WHERE id = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            int rows = ps.executeUpdate();
+            connection.commit();
+            return rows > 0;
+        }
     }
 
     public int insertIfNotExists(String world, int x, int y, int z, String type) throws SQLException {

@@ -1,7 +1,6 @@
 package fr.emalios.mystats.screen;
 
 import fr.emalios.mystats.MyStats;
-import fr.emalios.mystats.content.block.LogChestBlockEntity;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;

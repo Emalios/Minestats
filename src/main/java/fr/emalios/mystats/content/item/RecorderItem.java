@@ -7,7 +7,9 @@ import fr.emalios.mystats.core.stat.StatManager;
 import fr.emalios.mystats.helper.Utils;
 import fr.emalios.mystats.registries.StatDataComponent;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -19,8 +21,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.HitResult;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -98,6 +102,8 @@ public class RecorderItem extends Item {
 
         BlockState state = level.getBlockState(pos);
 
+        //TODO: https://docs.neoforged.net/docs/1.21.1/datastorage/capabilities/#block-capability-caching
+
         IItemHandler handler = level.getCapability(
                 Capabilities.ItemHandler.BLOCK,
                 pos,
@@ -106,8 +112,17 @@ public class RecorderItem extends Item {
                 null // contexte / side : null si pas nécessaire
         );
         if (handler == null) return InteractionResult.PASS;
+
+        //create cache
+        var capCache = BlockCapabilityCache.create(
+                Capabilities.ItemHandler.BLOCK, // capability to cache
+                (ServerLevel) level, // level
+                pos, // target position
+                null // context
+        );
+
         try {
-            return this.processClick(mode, player, level, handler, pos);
+            return this.processClick(mode, player, level, capCache, pos);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -125,7 +140,7 @@ public class RecorderItem extends Item {
         player.sendSystemMessage(Component.literal(txt));
     }
 
-    private InteractionResult processClick(RecorderDataComponent.RecorderMode mode, Player player, Level level, IItemHandler handler, BlockPos pos) throws SQLException {
+    private InteractionResult processClick(RecorderDataComponent.RecorderMode mode, Player player, Level level, BlockCapabilityCache<IItemHandler, @Nullable Direction> capCache, BlockPos pos) throws SQLException {
         var invRecord = getRecord(level, pos);
         //TODO: bug sometimes this method is executed two times, might be already resolved.
         switch (mode) {
@@ -134,8 +149,7 @@ public class RecorderItem extends Item {
                     this.sendMessage("This block in not monitored.", player);
                     return InteractionResult.PASS;
                 }
-                this.statManager.remove(invRecord.get().id());
-                //TODO: remove in database
+                this.statManager.unmonitore(invRecord.get().id());
                 this.sendMessage("Removed inventory from monitoring.", player);
                 return InteractionResult.SUCCESS;
             case ADD:
@@ -151,7 +165,7 @@ public class RecorderItem extends Item {
                 //associate inventory to player
                 this.database.getPlayerInventoryDao().insert(playerId, invId);
                 //start monitoring for the block
-                this.statManager.add(invId, handler);
+                this.statManager.add(invId, capCache);
                 this.sendMessage("Added inventory to monitoring.", player);
                 return InteractionResult.SUCCESS;
             case VIEW:
