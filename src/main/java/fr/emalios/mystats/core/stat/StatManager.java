@@ -47,7 +47,6 @@ public class StatManager {
     }
 
     public void shutdown() {
-        flush();
         this.scheduler.shutdown();
     }
 
@@ -83,13 +82,6 @@ public class StatManager {
                 Integer integer = entry.getValue();
                 this.snapshotItemDao.insert(snapshotId, s, integer);
             }
-        }
-    }
-
-    public void log(Stat entry) {
-        buffer.add(entry);
-        if (buffer.size() >= BATCH_SIZE) {
-            flush();
         }
     }
 

@@ -8,6 +8,8 @@ import fr.emalios.mystats.core.db.Database;
 import fr.emalios.mystats.core.db.DatabaseSchema;
 import fr.emalios.mystats.core.db.DatabaseWorker;
 import fr.emalios.mystats.core.stat.StatManager;
+import fr.emalios.mystats.registries.StatCodec;
+import fr.emalios.mystats.registries.StatDataComponent;
 import fr.emalios.mystats.screen.LogChestScreen;
 import fr.emalios.mystats.screen.ModMenuTypes;
 import net.minecraft.client.renderer.entity.EntityRenderers;
@@ -118,6 +120,7 @@ public class MyStats {
         // Register the Deferred Register to the mod event bus so blocks get registered
         BLOCKS.register(modEventBus);
         BLOCK_ENTITY_TYPES.register(modEventBus);
+        StatDataComponent.REGISTRAR.register(modEventBus);
         // Register the Deferred Register to the mod event bus so items get registered
         ITEMS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so tabs get registered
@@ -168,6 +171,7 @@ public class MyStats {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
         try {
+            Database.getInstance().init();
             DatabaseSchema.createAll();
         } catch (SQLException e) {
             throw new RuntimeException(e);

@@ -9,7 +9,7 @@ import java.sql.SQLException;
 public final class Database {
 
     private static Database instance;
-    private final Connection connection;
+    private Connection connection;
 
     //dao
     private final InventoryDao inventoryDao;
@@ -38,6 +38,15 @@ public final class Database {
             }
         }
         return instance;
+    }
+
+    public void init() {
+        try {
+            this.connection = DriverManager.getConnection("jdbc:sqlite:mystats.db");
+            this.connection.setAutoCommit(false);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Connection getConnection() {
