@@ -1,5 +1,6 @@
 package fr.emalios.mystats.content.item;
 
+import fr.emalios.mystats.MyStats;
 import fr.emalios.mystats.core.dao.InventoryDao;
 import fr.emalios.mystats.core.dao.SnapshotItemDao;
 import fr.emalios.mystats.core.db.Database;
@@ -8,6 +9,7 @@ import fr.emalios.mystats.helper.Utils;
 import fr.emalios.mystats.registries.StatDataComponent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -26,11 +28,9 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Method;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Main item of the mod used to add and remove monitored blocks. Also used to show the stats for a clicked block
@@ -82,7 +82,6 @@ public class RecorderItem extends Item {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
 
-        //We only want server side logic
         if (level.isClientSide()) return InteractionResult.PASS;
 
         ItemStack itemStack = context.getItemInHand();
@@ -158,8 +157,9 @@ public class RecorderItem extends Item {
                     return InteractionResult.PASS;
                 }
                 int playerId = database.getPlayerDao().insertIfNotExists(player.getName().getString());
+                System.out.println(level.dimension().location());
                 int invId = database.getInventoryDao().insert(
-                        level.getDescription().getString(),
+                        level.dimension().location().toString(),
                         pos.getX(), pos.getY(), pos.getZ(),
                         "ITEM");
                 //associate inventory to player

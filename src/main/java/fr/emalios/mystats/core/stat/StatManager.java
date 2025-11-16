@@ -1,6 +1,5 @@
 package fr.emalios.mystats.core.stat;
 
-import fr.emalios.mystats.core.SnapshotDao;
 import fr.emalios.mystats.core.dao.InventoryDao;
 import fr.emalios.mystats.core.dao.InventorySnapshotDao;
 import fr.emalios.mystats.core.dao.SnapshotItemDao;
@@ -8,9 +7,16 @@ import fr.emalios.mystats.core.db.Database;
 import fr.emalios.mystats.core.db.DatabaseWorker;
 import fr.emalios.mystats.helper.Utils;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
+import net.neoforged.neoforge.common.extensions.IBlockExtension;
 import net.neoforged.neoforge.items.IItemHandler;
 
+import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.*;
@@ -18,6 +24,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 public class StatManager {
 
@@ -95,6 +102,16 @@ public class StatManager {
         this.monitored.remove(inventoryId);
         this.inventoryDao.deleteById(inventoryId);
     }
+
+    //load inventories in database
+    public void init(MinecraftServer server) throws SQLException {
+
+        server.getAllLevels().forEach(level -> {
+            System.out.println(level.dimension().location());
+        });
+    }
+
+    //IBlockExtension: getCloneItemStack
 
     private synchronized void flush() {
         if (buffer.isEmpty()) return;
