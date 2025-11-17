@@ -4,11 +4,11 @@ import com.mojang.blaze3d.platform.InputConstants;
 import fr.emalios.mystats.command.StatCommand;
 import fr.emalios.mystats.content.block.StatMonitorBlock;
 import fr.emalios.mystats.content.item.RecorderItem;
-import fr.emalios.mystats.content.screen.StatScreen;
 import fr.emalios.mystats.core.db.Database;
 import fr.emalios.mystats.core.db.DatabaseSchema;
 import fr.emalios.mystats.core.db.DatabaseWorker;
 import fr.emalios.mystats.core.stat.StatManager;
+import fr.emalios.mystats.registries.ModMenus;
 import fr.emalios.mystats.registries.StatDataComponent;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -105,6 +105,7 @@ public class MyStats {
         BLOCKS.register(modEventBus);
         BLOCK_ENTITY_TYPES.register(modEventBus);
         StatDataComponent.REGISTRAR.register(modEventBus);
+        ModMenus.MENUS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so items get registered
         ITEMS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so tabs get registered
@@ -180,9 +181,7 @@ public class MyStats {
 
     @SubscribeEvent
     private void onClientTick(ClientTickEvent.Post event) {
-        while (MONITOR_MAPPING.get().consumeClick()) {
-            Minecraft.getInstance().setScreen(new StatScreen());
-        }
+
     }
 
     private void registerCommands(final RegisterCommandsEvent event) {

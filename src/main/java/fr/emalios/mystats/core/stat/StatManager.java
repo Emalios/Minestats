@@ -6,13 +6,16 @@ import fr.emalios.mystats.core.dao.SnapshotItemDao;
 import fr.emalios.mystats.core.db.Database;
 import fr.emalios.mystats.core.db.DatabaseWorker;
 import fr.emalios.mystats.helper.Utils;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.extensions.IBlockExtension;
 import net.neoforged.neoforge.items.IItemHandler;
 
@@ -105,13 +108,24 @@ public class StatManager {
 
     //load inventories in database
     public void init(MinecraftServer server) throws SQLException {
-
+        Map<String, ServerLevel> levels = new HashMap<>();
         server.getAllLevels().forEach(level -> {
-            System.out.println(level.dimension().location());
+            levels.put(level.dimension().location().toString(), level);
         });
+        for (var inventory : this.inventoryDao.findAll()) {
+            int invId = inventory.id();
+            var cache = Utils.getCapabilityCache(
+                    levels.get(inventory.world()),
+                    new BlockPos(inventory.x(), inventory.y(), inventory.z()));
+            if (cache.isEmpty()) {
+                System.out.println("unmonitore");
+                this.unmonitore(invId);
+                continue;
+            }
+            System.out.println("Loading block at " + inventory.x() + ", " + inventory.y() + ", " + inventory.z() );
+            this.add(invId, cache.get());
+        }
     }
-
-    //IBlockExtension: getCloneItemStack
 
     private synchronized void flush() {
         if (buffer.isEmpty()) return;

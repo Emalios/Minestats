@@ -30,6 +30,45 @@ public class PlayerInventoryDao {
         }
     }
 
+    public List<InventoryDao.InventoryRecord> findByPlayerName(String name) throws SQLException {
+        PlayerDao.PlayerRecord record = Database.getInstance().getPlayerDao().findByName(name);
+        if(record == null) return new ArrayList<>();
+        String sql = "SELECT * FROM player_inventories WHERE player_id = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, record.id());
+            ResultSet rs = ps.executeQuery();
+            List<InventoryDao.InventoryRecord> records = new ArrayList<>();
+            while (rs.next()) {
+                records.add(new InventoryDao.InventoryRecord(
+                        rs.getInt("id"),
+                        rs.getString("block_id"),
+                        rs.getString("world"),
+                        rs.getInt("x"),
+                        rs.getInt("y"),
+                        rs.getInt("z"),
+                        rs.getString("type"),
+                        rs.getString("created_at")
+                ));
+            }
+            return records;
+        }
+    }
+
+    public List<Integer> findInventoryIds(String playerName) throws SQLException {
+        PlayerDao.PlayerRecord record = Database.getInstance().getPlayerDao().findByName(playerName);
+        if(record == null) return new ArrayList<>();
+        String sql = "SELECT inventory_id FROM player_inventories WHERE player_id = ?;";
+        List<Integer> inventoryIds = new ArrayList<>();
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, record.id());
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                inventoryIds.add(rs.getInt("inventory_id"));
+            }
+        }
+        return inventoryIds;
+    }
+
     public List<PlayerInventoryRecord> findByPlayerId(int playerId) throws SQLException {
         String sql = "SELECT * FROM player_inventories WHERE player_id = ?;";
         List<PlayerInventoryRecord> list = new ArrayList<>();

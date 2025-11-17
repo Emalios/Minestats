@@ -1,17 +1,28 @@
 package fr.emalios.mystats.content.screen;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import fr.emalios.mystats.content.menu.MonitorMenu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class StatScreen extends Screen {
+public class StatScreen extends AbstractContainerScreen<MonitorMenu> {
 
 
     private int scrollOffset = 0;
@@ -27,54 +38,29 @@ public class StatScreen extends Screen {
     private int columnStartX = 0;
     private int startX = 0;
 
+    private Map<String, Double> stats = new HashMap<>();
+
     // Exemple de données : item → production par seconde
-    private Map<ItemStack, Long> stats = new LinkedHashMap<>();
-    public StatScreen() {
-        super(Component.literal("Mes statistiques"));
-        int i = -50;
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
-        stats.put(new  ItemStack(Items.IRON_INGOT), (long) i++);
+
+    public StatScreen(MonitorMenu menu, Inventory inv, Component title) {
+        super(menu, inv, title);
+        init();
     }
 
     @Override
     protected void init() {
         super.init();
+        this.stats = this.menu.getStats();
     }
 
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         //guiGraphics.fill(0, 0, this.width, this.height, 0xFF1E1E1E);
+    }
+
+    @Override
+    protected void renderBg(GuiGraphics guiGraphics, float v, int i, int i1) {
+        System.out.println();
     }
 
     @Override
@@ -150,29 +136,47 @@ public class StatScreen extends Screen {
 
         // ---- dessiner items (remplissage vertical) ----
         int i = 0;
-        for (Map.Entry<ItemStack, Long> entry : stats.entrySet()) {
+        for (Map.Entry<String, Double> entry : stats.entrySet()) {
             int col = i / rowsPerColumn;
             int row = i % rowsPerColumn;
 
-            // clamp col si jamais (sécurité)
-            //if (col >= totalColumns) col = totalColumns - 1;
-
             int x = columnsStartX + col * cellWidth;
-            // y basé sur la zone visible et le scrollOffset
             int y = scrollAreaTop + row * cellHeight - scrollOffset;
 
-            ItemStack item = entry.getKey();
-            long value = entry.getValue();
-            int color = value >= 0 ? 0x00FF00 : 0xFF0000;
-            gfx.renderItem(item, x + (cellWidth - 16) / 2, y);
-            gfx.renderItemDecorations(this.font, item, x, y);
+            // obtenir RegistryAccess depuis le client
+            RegistryAccess registryAccess = this.minecraft.level.registryAccess();
+            System.out.println("Accesing: " + entry.getKey());
+            // convertir string → ResourceLocation
+            String itemId = entry.getKey();
+            ResourceLocation rl = ResourceLocation.parse(itemId);
+            System.out.println(rl);
+            BuiltInRegistries.ITEM.ge
+            // récupérer la registry des items
+            Registry<Item> itemRegistry = registryAccess.registryOrThrow(Registries.ITEM);
 
+            // récupérer l’item
+            Item item = itemRegistry.get(rl);
+
+            // créer ItemStack
+            ItemStack itemStack = (item != null) ? new ItemStack(item) : ItemStack.EMPTY;
+
+            // ==== value & color ====
+            double value = entry.getValue();
+            int color = value >= 0 ? 0x00FF00 : 0xFF0000;
+
+            // ==== rendre item ====
+            if (!itemStack.isEmpty()) {
+                gfx.renderItem(itemStack, x + (cellWidth - 16) / 2, y);
+                gfx.renderItemDecorations(this.font, itemStack, x, y);
+            }
+
+            // ==== texte centré ====
             String txt = value + "/s";
-            gfx.drawString(this.font, txt, x + (cellWidth - this.font.width(txt)) / 2, y + 20, color);
+            int textX = x + (cellWidth - this.font.width(txt)) / 2;
+            gfx.drawString(this.font, txt, textX, y + 20, color);
 
             i++;
         }
-
         gfx.disableScissor();
 
         // ---- scrollbar (si nécessaire) ----

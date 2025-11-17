@@ -1,6 +1,7 @@
 package fr.emalios.mystats.content.item;
 
 import fr.emalios.mystats.MyStats;
+import fr.emalios.mystats.content.menu.MonitorMenu;
 import fr.emalios.mystats.core.dao.InventoryDao;
 import fr.emalios.mystats.core.dao.SnapshotItemDao;
 import fr.emalios.mystats.core.db.Database;
@@ -15,6 +16,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -83,6 +85,11 @@ public class RecorderItem extends Item {
         BlockPos pos = context.getClickedPos();
 
         if (level.isClientSide()) return InteractionResult.PASS;
+
+        context.getPlayer().openMenu(new SimpleMenuProvider(
+                (containerId, playerInventory, player) -> new MonitorMenu(containerId, playerInventory),
+                Component.translatable("menu.title.examplemod.mymenu")
+        ));
 
         ItemStack itemStack = context.getItemInHand();
         var mode = itemStack.get(StatDataComponent.RECORDER_COMPONENT).mode();

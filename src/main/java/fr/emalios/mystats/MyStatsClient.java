@@ -1,12 +1,14 @@
 package fr.emalios.mystats;
 
-import net.minecraft.client.Minecraft;
+import fr.emalios.mystats.content.screen.StatScreen;
+import fr.emalios.mystats.registries.ModMenus;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
@@ -23,9 +25,13 @@ public class MyStatsClient {
     }
 
     @SubscribeEvent
+    public static void registerScreens(RegisterMenuScreensEvent event) {
+        event.register(ModMenus.MONITOR_MENU.get(), StatScreen::new);
+    }
+
+    @SubscribeEvent
     static void onClientSetup(FMLClientSetupEvent event) {
         // Some client setup code
         MyStats.LOGGER.info("HELLO FROM CLIENT SETUP");
-        MyStats.LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
     }
 }

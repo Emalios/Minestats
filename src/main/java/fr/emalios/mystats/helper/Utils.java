@@ -1,7 +1,14 @@
 package fr.emalios.mystats.helper;
 
 import fr.emalios.mystats.core.dao.SnapshotItemDao;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.*;
@@ -60,6 +67,28 @@ public class Utils {
         }
 
         return avgRate;
+    }
+
+    public static Optional<BlockCapabilityCache<IItemHandler, net.minecraft.core.Direction>> getCapabilityCache(Level level, BlockPos pos) {
+        BlockEntity be = level.getBlockEntity(pos);
+        BlockState state = level.getBlockState(pos);
+
+        IItemHandler handler = level.getCapability(
+                Capabilities.ItemHandler.BLOCK,
+                pos,
+                state,
+                be,
+                null // contexte / side : null si pas nécessaire
+        );
+
+        if(handler == null) {return Optional.empty();}
+
+        return Optional.of(BlockCapabilityCache.create(
+                Capabilities.ItemHandler.BLOCK, // capability to cache
+                (ServerLevel) level, // level
+                pos, // target position
+                null // context
+        ));
     }
 
 }

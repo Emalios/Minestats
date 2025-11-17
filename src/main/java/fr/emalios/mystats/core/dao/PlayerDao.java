@@ -95,6 +95,8 @@ public class PlayerDao {
         }
     }
 
+
+
     /** Simple record pour représenter un joueur. */
     public record PlayerRecord(int id, String name, String createdAt) {}
 }
