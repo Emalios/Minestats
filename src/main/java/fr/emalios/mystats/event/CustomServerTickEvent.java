@@ -23,7 +23,7 @@ public class CustomServerTickEvent {
             System.out.println("SCANNING");
             statManager.scan();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            System.out.println("ERROR WITH DB: " + e.getMessage());
         }
     }
 

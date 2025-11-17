@@ -28,6 +28,9 @@ public class SnapshotItemDao {
             ps.setInt(3, count);
             ps.executeUpdate();
             connection.commit();
+        } catch (SQLException e) {
+            connection.commit();
+            System.out.println("CANT INSERT DATA TO DB: " + e.getMessage());
         }
     }
 

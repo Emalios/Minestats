@@ -31,6 +31,9 @@ public class InventorySnapshotDao {
                     return rs.getInt(1);
                 }
             }
+        } catch (SQLException e) {
+            connection.commit();
+            System.out.println("CANT INSERT DATA TO DB: " + e.getMessage());
         }
         return -1;
     }

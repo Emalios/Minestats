@@ -38,7 +38,7 @@ public class StatScreen extends AbstractContainerScreen<MonitorMenu> {
     private int columnStartX = 0;
     private int startX = 0;
 
-    private Map<String, Double> stats = new HashMap<>();
+    private Map<String, Double> stats;
 
     // Exemple de données : item → production par seconde
 
@@ -60,7 +60,7 @@ public class StatScreen extends AbstractContainerScreen<MonitorMenu> {
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float v, int i, int i1) {
-        System.out.println();
+        guiGraphics.fill(0, 0, this.width, this.height, 0xFF1E1E1E);
     }
 
     @Override
@@ -76,7 +76,8 @@ public class StatScreen extends AbstractContainerScreen<MonitorMenu> {
 
     @Override
     public void render(GuiGraphics gfx, int mouseX, int mouseY, float partialTicks) {
-        super.render(gfx, mouseX, mouseY, partialTicks);
+        //TODO: might be a problem when there is no items to render.
+        //super.render(gfx, mouseX, mouseY, partialTicks);
 
         int totalItems = stats.size();
         int titleArea = 30; // espace réservé en haut pour le titre
@@ -101,7 +102,8 @@ public class StatScreen extends AbstractContainerScreen<MonitorMenu> {
         maxScroll = Math.max(0, contentHeight - visibleHeight);
 
         // 5) Taillage panneau : largeur initiale (sans scrollbar) + ajout scrollbar si nécessaire
-        int initialPanelWidth = totalColumns * cellWidth + panelPadding * 2; // largeur dédiée aux colonnes + paddings
+        // Si pas d'item on a une largeur minimale
+        int initialPanelWidth = (totalColumns > 0 ? totalColumns : 2) * cellWidth + panelPadding * 2; // largeur dédiée aux colonnes + paddings
         int panelWidth = initialPanelWidth + (maxScroll > 0 ? scrollbarWidth : 0);
         int panelHeight = titleArea + visibleHeight; // hauteur globale du panneau
 
@@ -136,29 +138,21 @@ public class StatScreen extends AbstractContainerScreen<MonitorMenu> {
 
         // ---- dessiner items (remplissage vertical) ----
         int i = 0;
-        for (Map.Entry<String, Double> entry : stats.entrySet()) {
+        System.out.println("gold value:" + this.menu.getStats().get("minecraft:gold_ingot"));
+        for (Map.Entry<String, Double> entry : this.menu.getStats().entrySet()) {
             int col = i / rowsPerColumn;
             int row = i % rowsPerColumn;
 
             int x = columnsStartX + col * cellWidth;
             int y = scrollAreaTop + row * cellHeight - scrollOffset;
 
-            // obtenir RegistryAccess depuis le client
-            RegistryAccess registryAccess = this.minecraft.level.registryAccess();
-            System.out.println("Accesing: " + entry.getKey());
-            // convertir string → ResourceLocation
             String itemId = entry.getKey();
             ResourceLocation rl = ResourceLocation.parse(itemId);
-            System.out.println(rl);
-            BuiltInRegistries.ITEM.ge
+            Item item = BuiltInRegistries.ITEM.get(rl);
             // récupérer la registry des items
-            Registry<Item> itemRegistry = registryAccess.registryOrThrow(Registries.ITEM);
-
-            // récupérer l’item
-            Item item = itemRegistry.get(rl);
 
             // créer ItemStack
-            ItemStack itemStack = (item != null) ? new ItemStack(item) : ItemStack.EMPTY;
+            ItemStack itemStack = new ItemStack(item);
 
             // ==== value & color ====
             double value = entry.getValue();

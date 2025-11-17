@@ -88,7 +88,7 @@ public class RecorderItem extends Item {
 
         context.getPlayer().openMenu(new SimpleMenuProvider(
                 (containerId, playerInventory, player) -> new MonitorMenu(containerId, playerInventory),
-                Component.translatable("menu.title.examplemod.mymenu")
+                Component.translatable("menu.mystats.monitor")
         ));
 
         ItemStack itemStack = context.getItemInHand();
