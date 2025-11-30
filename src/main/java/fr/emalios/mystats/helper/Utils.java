@@ -59,7 +59,6 @@ public class Utils {
 
         // Moyenne de la vitesse pour chaque item sur toute la période
         Map<String, Double> avgRate = new HashMap<>();
-        System.out.println(ratesByItem.keySet());
         for (var entry : ratesByItem.entrySet()) {
             double mean = entry.getValue().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
             double rounded = Math.round(mean * 10.0) / 10.0; // arrondi à un chiffre après la virgule

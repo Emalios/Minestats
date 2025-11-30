@@ -8,6 +8,8 @@ import fr.emalios.mystats.core.db.Database;
 import fr.emalios.mystats.core.db.DatabaseSchema;
 import fr.emalios.mystats.core.db.DatabaseWorker;
 import fr.emalios.mystats.core.stat.StatManager;
+import fr.emalios.mystats.network.ClientPayloadHandler;
+import fr.emalios.mystats.network.StatPayload;
 import fr.emalios.mystats.registries.ModMenus;
 import fr.emalios.mystats.registries.StatDataComponent;
 import net.minecraft.client.KeyMapping;
@@ -18,6 +20,9 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.common.util.Lazy;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 
@@ -120,6 +125,7 @@ public class MyStats {
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::registerBindings);
+        modEventBus.addListener(this::registerPayload);
 
         final IEventBus GAME_BUS = NeoForge.EVENT_BUS;
 
@@ -173,6 +179,20 @@ public class MyStats {
         LOGGER.info("[Minestats] Db unloaded.");
         StatManager.getInstance().shutdown();
         LOGGER.info("[Minestats] StatManager unloaded.");
+    }
+
+    private void registerPayload(final RegisterPayloadHandlersEvent event) {
+        // Sets the current network version
+        final PayloadRegistrar registrar = event.registrar("1");
+        registrar.playToClient(
+                StatPayload.TYPE,
+                StatPayload.STREAM_CODEC,
+                (payload, context) -> {
+                    context.enqueueWork(() -> {
+                        ClientPayloadHandler.handleDataOnMain(payload, context);
+                    });
+                }
+        );
     }
 
     private void registerBindings(RegisterKeyMappingsEvent event) {

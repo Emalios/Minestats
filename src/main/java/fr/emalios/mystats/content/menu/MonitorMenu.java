@@ -4,6 +4,7 @@ import fr.emalios.mystats.core.dao.InventoryDao;
 import fr.emalios.mystats.core.db.Database;
 import fr.emalios.mystats.core.stat.StatCalculator;
 import fr.emalios.mystats.helper.Utils;
+import fr.emalios.mystats.network.StatPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -51,17 +52,15 @@ public class MonitorMenu extends AbstractContainerMenu {
             tickCounter = 0;
             try {
                 this.updateStats(); // serveur MAJ SQL
+                PacketDistributor.sendToPlayer((ServerPlayer) this.player, new StatPayload(this.stats));
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         }
-
-        this.sendStatsToClient();
     }
 
 
     public void updateStats() throws SQLException {
-        System.out.println("Updating stats");
         this.stats = this.statCalculator.genPerSecond(this.player.getName().getString());
     }
 
@@ -77,25 +76,4 @@ public class MonitorMenu extends AbstractContainerMenu {
         return null;
     }
 
-    public record MonitorStatsPacket(Map<String, Double> stats)
-    {
-        public static void encode(MonitorStatsPacket msg, FriendlyByteBuf buf) {
-            buf.writeMap(msg.stats(), FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeDouble);
-        }
-
-        public static MonitorStatsPacket decode(FriendlyByteBuf buf) {
-            return new MonitorStatsPacket(buf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readDouble));
-        }
-
-        public static void handle(MonitorStatsPacket msg, Supplier<NetworkEvent.Context> ctx) {
-            ctx.get().enqueueWork(() -> {
-                // Exécuté côté client
-                MonitorMenu menu = (MonitorMenu) Minecraft.getInstance().player.containerMenu;
-                if (menu != null) {
-                    menu.setStats(msg.stats()); // tu dois rajouter un setter
-                }
-            });
-            ctx.get().setPacketHandled(true);
-        }
-    }
 }

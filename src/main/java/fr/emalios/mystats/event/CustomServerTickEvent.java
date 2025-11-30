@@ -20,7 +20,6 @@ public class CustomServerTickEvent {
         if(counter < 300) return;
         counter = 0;
         try {
-            System.out.println("SCANNING");
             statManager.scan();
         } catch (SQLException e) {
             System.out.println("ERROR WITH DB: " + e.getMessage());

@@ -164,7 +164,6 @@ public class RecorderItem extends Item {
                     return InteractionResult.PASS;
                 }
                 int playerId = database.getPlayerDao().insertIfNotExists(player.getName().getString());
-                System.out.println(level.dimension().location());
                 int invId = database.getInventoryDao().insert(
                         level.dimension().location().toString(),
                         pos.getX(), pos.getY(), pos.getZ(),

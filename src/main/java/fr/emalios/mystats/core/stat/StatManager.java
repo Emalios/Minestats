@@ -118,11 +118,9 @@ public class StatManager {
                     levels.get(inventory.world()),
                     new BlockPos(inventory.x(), inventory.y(), inventory.z()));
             if (cache.isEmpty()) {
-                System.out.println("unmonitore");
                 this.unmonitore(invId);
                 continue;
             }
-            System.out.println("Loading block at " + inventory.x() + ", " + inventory.y() + ", " + inventory.z() );
             this.add(invId, cache.get());
         }
     }
@@ -130,7 +128,6 @@ public class StatManager {
     private synchronized void flush() {
         if (buffer.isEmpty()) return;
 
-        System.out.println("FLUSH");
         // drain to array
         Stat[] entries = buffer.toArray(Stat[]::new);
         buffer.clear();

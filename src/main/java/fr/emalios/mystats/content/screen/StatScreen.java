@@ -47,6 +47,10 @@ public class StatScreen extends AbstractContainerScreen<MonitorMenu> {
         init();
     }
 
+    public void updateStats(Map<String, Double> stats) {
+        this.stats = stats;
+    }
+
     @Override
     protected void init() {
         super.init();
@@ -138,8 +142,7 @@ public class StatScreen extends AbstractContainerScreen<MonitorMenu> {
 
         // ---- dessiner items (remplissage vertical) ----
         int i = 0;
-        System.out.println("gold value:" + this.menu.getStats().get("minecraft:gold_ingot"));
-        for (Map.Entry<String, Double> entry : this.menu.getStats().entrySet()) {
+        for (Map.Entry<String, Double> entry : this.stats.entrySet()) {
             int col = i / rowsPerColumn;
             int row = i % rowsPerColumn;
 
@@ -193,11 +196,6 @@ public class StatScreen extends AbstractContainerScreen<MonitorMenu> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        System.out.println("width: " + this.panelWidth);
-        System.out.println("startX: " + this.startX);
-        System.out.println("columnWidth: " + this.columnWidth);
-        System.out.println("columnstartX: " + this.columnStartX);
-        System.out.println("mouseClicked at: " + mouseX + ", " + mouseY);
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
