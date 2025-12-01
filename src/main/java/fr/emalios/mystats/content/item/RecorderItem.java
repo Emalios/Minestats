@@ -72,7 +72,7 @@ public class RecorderItem extends Item {
         if (!player.isShiftKeyDown()) {
             mode = mode.next();
             stack.set(StatDataComponent.RECORDER_COMPONENT, new RecorderDataComponent.RecorderData(mode));
-            player.sendSystemMessage(Component.literal("Set to '" + mode + "' mode."));
+            this.sendMessage("Set to '" + mode + "' mode.", player);
             return InteractionResultHolder.consume(stack);
         }
 
@@ -94,7 +94,7 @@ public class RecorderItem extends Item {
             //if not shift click, new config
             if(!player.isShiftKeyDown()) {
                 mode = mode.next();
-                player.sendSystemMessage(Component.literal("Set to '" + mode + "' mode."));
+                this.sendMessage("Set to '" + mode + "' mode.", player);
                 itemStack.set(StatDataComponent.RECORDER_COMPONENT, new RecorderDataComponent.RecorderData(mode));
                 return InteractionResult.CONSUME;
             }
@@ -131,14 +131,14 @@ public class RecorderItem extends Item {
 
     private Optional<InventoryDao.InventoryRecord> getRecord(Level level, BlockPos pos) throws SQLException {
         var inventoryRecord = database.getInventoryDao().findByBlockId(
-                level.getDescription().getString(),
+                level.dimension().location().toString(),
                 pos.getX(), pos.getY(), pos.getZ()
         );
         return inventoryRecord;
     }
 
     private void sendMessage(String txt, Player player) {
-        player.sendSystemMessage(Component.literal(txt));
+        player.displayClientMessage(Component.literal(txt), true);
     }
 
     private InteractionResult processClick(RecorderDataComponent.RecorderMode mode, Player player, Level level, BlockCapabilityCache<IItemHandler, @Nullable Direction> capCache, BlockPos pos) throws SQLException {
