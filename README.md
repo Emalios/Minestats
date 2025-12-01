@@ -11,7 +11,7 @@ I'll try to create one issue for each task and keep them updated as I start work
 - [ ] Fluid support
 - [ ] Upgrade Recorder Item
   - [ ] Texture
-  - [ ] Mode switch
+  - [X] Mod switch
 
 ## Problems/Bugs
 
