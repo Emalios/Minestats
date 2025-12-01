@@ -1,6 +1,7 @@
 package fr.emalios.mystats.helper;
 
 import fr.emalios.mystats.core.dao.SnapshotItemDao;
+import fr.emalios.mystats.core.stat.Stat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
@@ -15,16 +16,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Utils {
-
-    public static Map<String, Integer> getInventoryContent(IItemHandler inv) {
-        Map<String, Integer> stacks = new HashMap<>();
-        for (int i = 0; i < inv.getSlots(); i++) {
-            ItemStack current = inv.getStackInSlot(i);
-            if(current.isEmpty()) continue;
-            stacks.merge(current.getItem().toString(), current.getCount(), Integer::sum);
-        }
-        return stacks;
-    }
 
     public static Map<String, Double> makeStats(Map<Long, List<SnapshotItemDao.ItemRecord>> history) {
         List<Long> timestamps = new ArrayList<>(history.keySet());

@@ -40,7 +40,9 @@ public class StatManager {
     private final InventorySnapshotDao inventorySnapshotDao = db.getInventorySnapshotDao();
     private final InventoryDao inventoryDao = db.getInventoryDao();
     private final SnapshotItemDao snapshotItemDao = db.getSnapshotItemDao();
-    private final Map<Integer, BlockCapabilityCache<IItemHandler,Direction>> monitored = new HashMap<>();
+
+
+    private final Map<Integer, List<IHandler>> monitored = new HashMap<>();
     private final Queue<Stat> buffer = new ConcurrentLinkedQueue<>();
     private final ScheduledExecutorService scheduler =
             Executors.newSingleThreadScheduledExecutor(r -> {
@@ -85,18 +87,17 @@ public class StatManager {
             //create snapshot
             int snapshotId = this.inventorySnapshotDao.insert(inventoryId, Instant.now().getEpochSecond());
             //check if inventory still exists
-            IItemHandler handler = this.monitored.get(inventoryId).getCapability();
-            if(handler == null) {
+            List<IHandler> handlers = this.monitored.get(inventoryId);
+            if(handlers.isEmpty() || !handlers.get(0).exists()) {
                 this.unmonitore(inventoryId);
                 continue;
-            };
+            }
             //get inventory content
-            var content = Utils.getInventoryContent(handler);
-            //put everything in db
-            for (Map.Entry<String, Integer> entry : content.entrySet()) {
-                String s = entry.getKey();
-                Integer integer = entry.getValue();
-                this.snapshotItemDao.insert(snapshotId, s, integer);
+            for (IHandler handler : handlers) {
+                for (Stat stat : handler.getContent()) {
+                    System.out.println("insert: " + stat);
+                    this.snapshotItemDao.insert(snapshotId, stat);
+                }
             }
         }
     }

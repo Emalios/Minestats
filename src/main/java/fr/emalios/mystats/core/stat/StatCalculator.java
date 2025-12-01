@@ -17,7 +17,6 @@ public class StatCalculator {
 
     private static StatCalculator instance = new StatCalculator();
 
-    private final StatManager statManager = StatManager.getInstance();
     private final PlayerInventoryDao playerInventoryDao = Database.getInstance().getPlayerInventoryDao();
     private final InventorySnapshotDao inventorySnapshotDao = Database.getInstance().getInventorySnapshotDao();
     private final SnapshotItemDao snapshotItemDao = Database.getInstance().getSnapshotItemDao();

@@ -54,6 +54,8 @@ public class DatabaseSchema {
                     snapshot_id INTEGER NOT NULL,
                     item_name TEXT NOT NULL,
                     count INTEGER NOT NULL,
+                    stat_type TEXT NOT NULL,
+                    unit TEXT NOT NULL,
                     FOREIGN KEY (snapshot_id) REFERENCES inventory_snapshots(id)
                 );
             """);

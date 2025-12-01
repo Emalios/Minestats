@@ -27,6 +27,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.HitResult;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
 
@@ -103,7 +104,7 @@ public class RecorderItem extends Item {
 
         BlockState state = level.getBlockState(pos);
 
-        //TODO: https://docs.neoforged.net/docs/1.21.1/datastorage/capabilities/#block-capability-caching
+        //Test if block has at least one Capability
 
         IItemHandler handler = level.getCapability(
                 Capabilities.ItemHandler.BLOCK,
@@ -174,4 +175,7 @@ public class RecorderItem extends Item {
         return InteractionResult.PASS;
     }
 
+
 }
+
+interface IHandler extends IItemHandler, IFluidHandler {}
