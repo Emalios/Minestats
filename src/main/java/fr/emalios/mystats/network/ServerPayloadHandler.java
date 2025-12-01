@@ -13,7 +13,7 @@ public class ServerPayloadHandler {
             ServerPlayer player = (ServerPlayer) ctx.player();
             player.openMenu(new SimpleMenuProvider(
                     (id, inv, p) -> new MonitorMenu(id, inv),
-                    Component.literal("Monitor")
+                    Component.translatable("menu.mystats.monitor")
             ));
         });
     }

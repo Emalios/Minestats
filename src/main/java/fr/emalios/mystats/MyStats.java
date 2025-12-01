@@ -213,7 +213,6 @@ public class MyStats {
         if (mc.player == null) return;
 
         while (MONITOR_MAPPING.get().consumeClick()) {
-            System.out.println("open");
             PacketDistributor.sendToServer(new OpenMonitorMenuPayload());
         }
     }

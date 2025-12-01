@@ -63,7 +63,7 @@ public class RecorderItem extends Item {
         HitResult hit = player.pick(5.0D, 0.0F, false);
 
         // Si on vise un bloc, on ne gère rien ici : laisser useOn() faire le boulot
-        if (hit.getType() == HitResult.Type.BLOCK) {
+        if (hit.getType() == HitResult.Type.BLOCK || player.isShiftKeyDown()) {
             return InteractionResultHolder.pass(stack);
         }
 
@@ -85,11 +85,6 @@ public class RecorderItem extends Item {
         BlockPos pos = context.getClickedPos();
 
         if (level.isClientSide()) return InteractionResult.PASS;
-
-        context.getPlayer().openMenu(new SimpleMenuProvider(
-                (containerId, playerInventory, player) -> new MonitorMenu(containerId, playerInventory),
-                Component.translatable("menu.mystats.monitor")
-        ));
 
         ItemStack itemStack = context.getItemInHand();
         var mode = itemStack.get(StatDataComponent.RECORDER_COMPONENT).mode();
@@ -173,24 +168,6 @@ public class RecorderItem extends Item {
                 //start monitoring for the block
                 this.statManager.add(invId, capCache);
                 this.sendMessage("Added inventory to monitoring.", player);
-                return InteractionResult.SUCCESS;
-            case VIEW:
-                //wtf cases share the same scope
-                if(invRecord.isEmpty()) {
-                    this.sendMessage("This block in not monitored.", player);
-                    return InteractionResult.PASS;
-                }
-                invId = invRecord.get().id();
-                var snapshots = database.getInventorySnapshotDao().findAllByInvId(invId);
-                Map<Long, List<SnapshotItemDao.ItemRecord>> history = new HashMap<>();
-                for (var snapshot : snapshots) {
-                    int snapshotId = snapshot.id();
-                    var snapshotItems = database.getSnapshotItemDao().findBySnapshotId(snapshotId);
-                    history.put(snapshot.timestamp(), snapshotItems);
-                }
-                Utils.makeStats(history).forEach((itemName, value) -> {
-                    player.sendSystemMessage(Component.literal(String.format("%s : %.1f items/s", itemName, value)));
-                });
                 return InteractionResult.SUCCESS;
         }
         System.err.println("UNKNOW MODE '" + mode + "'");

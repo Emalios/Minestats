@@ -5,8 +5,8 @@ public class RecorderDataComponent {
 
     public enum RecorderMode {
         ADD,
-        REMOVE,
-        VIEW;
+        REMOVE;
+        //VIEW;
 
         public RecorderMode next() {
             RecorderMode[] values = values();
