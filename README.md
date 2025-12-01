@@ -1,25 +1,22 @@
+# Minestats
 
-Installation information
-=======
+**Minestats** is a utility mod that lets players track and monitor the contents of any block-based inventory in the world. 
+Whether you're automating a factory, managing a storage room, or trying to optimize item production, Minestats gives you real-time statistics about how much each block produces, consumes, or stores.
 
-This template repository can be directly cloned to get you started with a new
-mod. Simply create a new repository cloned from this one, by following the
-instructions provided by [GitHub](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+## Roadmap
 
-Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
+Please feel free to suggest content either in an issue in the github or in the dedicated channel in the [discord](https://discord.gg/mbyetvK8Rf).
+I'll try to create one issue for each task and keep them updated as I start working on it. 
 
-If at any point you are missing libraries in your IDE, or you've run into problems you can
-run `gradlew --refresh-dependencies` to refresh the local cache. `gradlew clean` to reset everything 
-{this does not affect your code} and then start the process again.
+- [ ] Fluid support
+- [ ] Upgrade Recorder Item
+  - [ ] Texture
+  - [ ] Mode switch
 
-Mapping Names:
-============
-By default, the MDK is configured to use the official mapping names from Mojang for methods and fields 
-in the Minecraft codebase. These names are covered by a specific license. All modders should be aware of this
-license. For the latest license text, refer to the mapping file itself, or the reference copy here:
-https://github.com/NeoForged/NeoForm/blob/main/Mojang.md
+## Problems/Bugs
 
-Additional Resources: 
-==========
-Community Documentation: https://docs.neoforged.net/  
-NeoForged Discord: https://discord.neoforged.net/
+Use either github issue or the [discord](https://discord.gg/mbyetvK8Rf)
+
+## Download
+
+Download this mod on [CurseForge](https://www.curseforge.com/minecraft/mc-mods/minestats)
