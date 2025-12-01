@@ -1,6 +1,5 @@
 package fr.emalios.mystats;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import fr.emalios.mystats.command.StatCommand;
 import fr.emalios.mystats.content.block.StatMonitorBlock;
 import fr.emalios.mystats.content.item.RecorderItem;
@@ -9,6 +8,8 @@ import fr.emalios.mystats.core.db.DatabaseSchema;
 import fr.emalios.mystats.core.db.DatabaseWorker;
 import fr.emalios.mystats.core.stat.StatManager;
 import fr.emalios.mystats.network.ClientPayloadHandler;
+import fr.emalios.mystats.network.OpenMonitorMenuPayload;
+import fr.emalios.mystats.network.ServerPayloadHandler;
 import fr.emalios.mystats.network.StatPayload;
 import fr.emalios.mystats.registries.ModMenus;
 import fr.emalios.mystats.registries.StatDataComponent;
@@ -20,8 +21,8 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.common.util.Lazy;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
@@ -38,8 +39,6 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
@@ -193,6 +192,15 @@ public class MyStats {
                     });
                 }
         );
+        registrar.playToServer(
+                OpenMonitorMenuPayload.TYPE,
+                OpenMonitorMenuPayload.STREAM_CODEC,
+                (payload, context) -> {
+                    context.enqueueWork(() -> {
+                        ServerPayloadHandler.handleOpenMonitorMenu(payload, context);
+                    });
+                }
+        );
     }
 
     private void registerBindings(RegisterKeyMappingsEvent event) {
@@ -201,7 +209,13 @@ public class MyStats {
 
     @SubscribeEvent
     private void onClientTick(ClientTickEvent.Post event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
 
+        while (MONITOR_MAPPING.get().consumeClick()) {
+            System.out.println("open");
+            PacketDistributor.sendToServer(new OpenMonitorMenuPayload());
+        }
     }
 
     private void registerCommands(final RegisterCommandsEvent event) {
