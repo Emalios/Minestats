@@ -1,6 +1,6 @@
 package fr.emalios.mystats.core.stat;
 
-public enum Unit {
+public enum CountUnit {
 
     ITEM,
     STACK,

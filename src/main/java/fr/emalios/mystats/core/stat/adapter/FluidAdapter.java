@@ -1,15 +1,12 @@
 package fr.emalios.mystats.core.stat.adapter;
 
-import fr.emalios.mystats.core.stat.IHandler;
-import fr.emalios.mystats.core.stat.Stat;
-import fr.emalios.mystats.core.stat.StatType;
-import fr.emalios.mystats.core.stat.Unit;
+import fr.emalios.mystats.core.stat.Record;
+import fr.emalios.mystats.core.stat.RecordType;
+import fr.emalios.mystats.core.stat.CountUnit;
 import net.minecraft.core.Direction;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -26,17 +23,16 @@ public class FluidAdapter implements IHandler {
     }
 
     @Override
-    public Collection<Stat> getContent() {
+    public Collection<Record> getContent() {
         IFluidHandler inv = this.capabilityCache.getCapability();
         if(inv == null) return new ArrayList<>();
 
-        Map<String, Stat> stacks = new HashMap<>();
+        Map<String, Record> stacks = new HashMap<>();
         for (int i = 0; i < inv.getTanks(); i++) {
             FluidStack current = inv.getFluidInTank(i);
             if(current.isEmpty()) continue;
-            System.out.println("Current Fluid: " + current.getFluid());
-            Stat curStat = new Stat(StatType.FLUID, current.getFluid().toString(), current.getAmount(), Unit.MB);
-            stacks.merge(current.getFluid().toString(), curStat, Stat::mergeWith);
+            Record curRecord = new Record(RecordType.FLUID, current.getFluid().toString(), current.getAmount(), CountUnit.MB);
+            stacks.merge(current.getFluid().toString(), curRecord, Record::mergeWith);
         }
         return stacks.values();
     }

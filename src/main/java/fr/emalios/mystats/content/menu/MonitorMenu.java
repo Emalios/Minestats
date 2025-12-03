@@ -1,21 +1,15 @@
 package fr.emalios.mystats.content.menu;
 
-import fr.emalios.mystats.core.dao.InventoryDao;
-import fr.emalios.mystats.core.db.Database;
-import fr.emalios.mystats.core.stat.StatCalculator;
-import fr.emalios.mystats.helper.Utils;
+import fr.emalios.mystats.core.stat.utils.StatCalculator;
+import fr.emalios.mystats.core.stat.RecordType;
 import fr.emalios.mystats.network.StatPayload;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.jetbrains.annotations.Nullable;
+import oshi.util.tuples.Pair;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -30,7 +24,7 @@ public class MonitorMenu extends AbstractContainerMenu {
 
     private final Player player;
     private final StatCalculator statCalculator = StatCalculator.getInstance();
-    private Map<String, Double> stats = new HashMap<>();
+    private Map<String, Pair<Double, RecordType>> stats = new HashMap<>();
 
     public MonitorMenu(int containerId, Inventory playerInv) {
         super(MONITOR_MENU.get(), containerId);

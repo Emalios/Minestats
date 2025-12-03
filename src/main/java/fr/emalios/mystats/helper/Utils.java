@@ -1,23 +1,22 @@
 package fr.emalios.mystats.helper;
 
-import fr.emalios.mystats.core.dao.SnapshotItemDao;
-import fr.emalios.mystats.core.stat.Stat;
+import fr.emalios.mystats.core.stat.adapter.IHandler;
+import fr.emalios.mystats.core.stat.Record;
+import fr.emalios.mystats.core.stat.adapter.FluidAdapter;
+import fr.emalios.mystats.core.stat.adapter.ItemAdapter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Utils {
 
-    public static Map<String, Double> makeStats(Map<Long, List<SnapshotItemDao.ItemRecord>> history) {
+    public static Map<String, Double> makeStats(Map<Long, List<Record>> history) {
         List<Long> timestamps = new ArrayList<>(history.keySet());
         Collections.sort(timestamps);
 
@@ -30,9 +29,9 @@ public class Utils {
 
             // convertir chaque snapshot en Map<itemName, count>
             Map<String, Integer> counts1 = history.get(t1).stream()
-                    .collect(Collectors.toMap(SnapshotItemDao.ItemRecord::itemName, SnapshotItemDao.ItemRecord::count));
+                    .collect(Collectors.toMap(Record::getResourceId, Record::getCount));
             Map<String, Integer> counts2 = history.get(t2).stream()
-                    .collect(Collectors.toMap(SnapshotItemDao.ItemRecord::itemName, SnapshotItemDao.ItemRecord::count));
+                    .collect(Collectors.toMap(Record::getResourceId, Record::getCount));
 
             // union des items des deux snapshots
             Set<String> allItems = new HashSet<>();
@@ -59,26 +58,33 @@ public class Utils {
         return avgRate;
     }
 
-    public static Optional<BlockCapabilityCache<IItemHandler, net.minecraft.core.Direction>> getCapabilityCache(Level level, BlockPos pos) {
-        BlockEntity be = level.getBlockEntity(pos);
-        BlockState state = level.getBlockState(pos);
+    /**
+     * Get the Item/Fluid Capability and convert it into IHandler
+     * @param level
+     * @param pos
+     * @return
+     */
+    public static List<IHandler> getIHandlers(Level level, BlockPos pos) {
+        List<IHandler> handlers = new ArrayList<>();
 
-        IItemHandler handler = level.getCapability(
-                Capabilities.ItemHandler.BLOCK,
-                pos,
-                state,
-                be,
-                null // contexte / side : null si pas nécessaire
-        );
+        getCapabilityCache(level, pos, Capabilities.ItemHandler.BLOCK).ifPresent(block -> {
+            if(block.getCapability() != null) handlers.add(new ItemAdapter(block));
+        });
+        getCapabilityCache(level, pos, Capabilities.FluidHandler.BLOCK).ifPresent(block -> {
+            if(block.getCapability() != null) handlers.add(new FluidAdapter(block));
+        });
 
-        if(handler == null) {return Optional.empty();}
+        return handlers;
+    }
 
+    public static <T, C> Optional<BlockCapabilityCache<T, C>> getCapabilityCache(Level level, BlockPos pos, BlockCapability<T, C> capability) {
         return Optional.of(BlockCapabilityCache.create(
-                Capabilities.ItemHandler.BLOCK, // capability to cache
+                capability, // capability to cache
                 (ServerLevel) level, // level
                 pos, // target position
                 null // context
         ));
     }
+
 
 }

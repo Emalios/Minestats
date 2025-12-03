@@ -5,21 +5,12 @@ import fr.emalios.mystats.core.dao.InventorySnapshotDao;
 import fr.emalios.mystats.core.dao.SnapshotItemDao;
 import fr.emalios.mystats.core.db.Database;
 import fr.emalios.mystats.core.db.DatabaseWorker;
+import fr.emalios.mystats.core.stat.adapter.IHandler;
 import fr.emalios.mystats.helper.Utils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.common.extensions.IBlockExtension;
-import net.neoforged.neoforge.items.IItemHandler;
 
-import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.*;
@@ -27,7 +18,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
 public class StatManager {
 
@@ -41,9 +31,10 @@ public class StatManager {
     private final InventoryDao inventoryDao = db.getInventoryDao();
     private final SnapshotItemDao snapshotItemDao = db.getSnapshotItemDao();
 
-
+    //link an inventoryId to associated capability handlers
+    //might be necessary to use coordinates/level here
     private final Map<Integer, List<IHandler>> monitored = new HashMap<>();
-    private final Queue<Stat> buffer = new ConcurrentLinkedQueue<>();
+    private final Queue<Record> buffer = new ConcurrentLinkedQueue<>();
     private final ScheduledExecutorService scheduler =
             Executors.newSingleThreadScheduledExecutor(r -> {
                 Thread t = new Thread(r, "MineStats-Batch-Flusher");
@@ -66,8 +57,8 @@ public class StatManager {
         this.scheduler.shutdown();
     }
 
-    public void add(int inventoryId, BlockCapabilityCache<IItemHandler,Direction> handler) {
-        this.monitored.put(inventoryId, handler);
+    public void add(int inventoryId, List<IHandler> handlers) {
+        this.monitored.put(inventoryId, handlers);
     }
 
     public boolean isMonitored(int inventoryId) {
@@ -94,9 +85,9 @@ public class StatManager {
             }
             //get inventory content
             for (IHandler handler : handlers) {
-                for (Stat stat : handler.getContent()) {
-                    System.out.println("insert: " + stat);
-                    this.snapshotItemDao.insert(snapshotId, stat);
+                for (Record record : handler.getContent()) {
+                    System.out.println("insert: " + record);
+                    this.snapshotItemDao.insert(snapshotId, record);
                 }
             }
         }
@@ -115,14 +106,15 @@ public class StatManager {
         });
         for (var inventory : this.inventoryDao.findAll()) {
             int invId = inventory.id();
-            var cache = Utils.getCapabilityCache(
+            List<IHandler> handlers = Utils.getIHandlers(
                     levels.get(inventory.world()),
                     new BlockPos(inventory.x(), inventory.y(), inventory.z()));
-            if (cache.isEmpty()) {
+
+            if (handlers.isEmpty()) {
                 this.unmonitore(invId);
                 continue;
             }
-            this.add(invId, cache.get());
+            this.add(invId, handlers);
         }
     }
 
@@ -130,7 +122,7 @@ public class StatManager {
         if (buffer.isEmpty()) return;
 
         // drain to array
-        Stat[] entries = buffer.toArray(Stat[]::new);
+        Record[] entries = buffer.toArray(Record[]::new);
         buffer.clear();
 
         DatabaseWorker.submitBatch(entries);

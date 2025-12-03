@@ -1,4 +1,6 @@
-package fr.emalios.mystats.core.stat;
+package fr.emalios.mystats.core.stat.adapter;
+
+import fr.emalios.mystats.core.stat.Record;
 
 import java.util.Collection;
 
@@ -8,7 +10,7 @@ import java.util.Collection;
 public interface IHandler {
 
     boolean exists();
-    Collection<Stat> getContent();
+    Collection<Record> getContent();
 
 }
 

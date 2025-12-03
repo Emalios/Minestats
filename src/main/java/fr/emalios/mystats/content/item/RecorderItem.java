@@ -1,37 +1,24 @@
 package fr.emalios.mystats.content.item;
 
-import fr.emalios.mystats.MyStats;
-import fr.emalios.mystats.content.menu.MonitorMenu;
 import fr.emalios.mystats.core.dao.InventoryDao;
-import fr.emalios.mystats.core.dao.SnapshotItemDao;
 import fr.emalios.mystats.core.db.Database;
+import fr.emalios.mystats.core.stat.adapter.IHandler;
 import fr.emalios.mystats.core.stat.StatManager;
 import fr.emalios.mystats.helper.Utils;
 import fr.emalios.mystats.registries.StatDataComponent;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.HitResult;
-import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
-import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -102,29 +89,18 @@ public class RecorderItem extends Item {
             return InteractionResult.FAIL;
         }
 
-        BlockState state = level.getBlockState(pos);
-
         //Test if block has at least one Capability
-
-        IItemHandler handler = level.getCapability(
-                Capabilities.ItemHandler.BLOCK,
-                pos,
-                state,
-                be,
-                null // contexte / side : null si pas nécessaire
-        );
-        if (handler == null) return InteractionResult.PASS;
-
-        //create cache
-        var capCache = BlockCapabilityCache.create(
-                Capabilities.ItemHandler.BLOCK, // capability to cache
-                (ServerLevel) level, // level
-                pos, // target position
-                null // context
-        );
+        List<IHandler> handlers = Utils.getIHandlers(level, pos);
+        if(handlers.isEmpty()) {
+            return InteractionResult.PASS;
+        }
+        System.out.println(handlers.size() + " handlers");
+        handlers.forEach(handler -> {
+            System.out.println(handler.exists());
+        });
 
         try {
-            return this.processClick(mode, player, level, capCache, pos);
+            return this.processClick(mode, player, level, handlers, pos);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -142,7 +118,7 @@ public class RecorderItem extends Item {
         player.displayClientMessage(Component.literal(txt), true);
     }
 
-    private InteractionResult processClick(RecorderDataComponent.RecorderMode mode, Player player, Level level, BlockCapabilityCache<IItemHandler, @Nullable Direction> capCache, BlockPos pos) throws SQLException {
+    private InteractionResult processClick(RecorderDataComponent.RecorderMode mode, Player player, Level level, List<IHandler> handlers, BlockPos pos) throws SQLException {
         var invRecord = getRecord(level, pos);
         //TODO: bug sometimes this method is executed two times, might be already resolved.
         switch (mode) {
@@ -167,7 +143,7 @@ public class RecorderItem extends Item {
                 //associate inventory to player
                 this.database.getPlayerInventoryDao().insert(playerId, invId);
                 //start monitoring for the block
-                this.statManager.add(invId, capCache);
+                this.statManager.add(invId, handlers);
                 this.sendMessage("Added inventory to monitoring.", player);
                 return InteractionResult.SUCCESS;
         }
@@ -177,5 +153,3 @@ public class RecorderItem extends Item {
 
 
 }
-
-interface IHandler extends IItemHandler, IFluidHandler {}

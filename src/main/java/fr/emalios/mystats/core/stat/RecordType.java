@@ -1,6 +1,6 @@
 package fr.emalios.mystats.core.stat;
 
-public enum StatType {
+public enum RecordType {
 
     ITEM, FLUID
 

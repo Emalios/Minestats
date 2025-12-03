@@ -53,9 +53,9 @@ public class DatabaseSchema {
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     snapshot_id INTEGER NOT NULL,
                     item_name TEXT NOT NULL,
-                    count INTEGER NOT NULL,
+                    count REAL NOT NULL,
                     stat_type TEXT NOT NULL,
-                    unit TEXT NOT NULL,
+                    countUnit TEXT NOT NULL,
                     FOREIGN KEY (snapshot_id) REFERENCES inventory_snapshots(id)
                 );
             """);

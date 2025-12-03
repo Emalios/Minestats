@@ -1,9 +1,8 @@
 package fr.emalios.mystats.core.stat.adapter;
 
-import fr.emalios.mystats.core.stat.IHandler;
-import fr.emalios.mystats.core.stat.Stat;
-import fr.emalios.mystats.core.stat.StatType;
-import fr.emalios.mystats.core.stat.Unit;
+import fr.emalios.mystats.core.stat.Record;
+import fr.emalios.mystats.core.stat.RecordType;
+import fr.emalios.mystats.core.stat.CountUnit;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
@@ -21,16 +20,16 @@ public class ItemAdapter implements IHandler {
     }
 
     @Override
-    public Collection<Stat> getContent() {
+    public Collection<Record> getContent() {
         IItemHandler inv = this.capabilityCache.getCapability();
         if(inv == null) return new ArrayList<>();
 
-        Map<String, Stat> stacks = new HashMap<>();
+        Map<String, Record> stacks = new HashMap<>();
         for (int i = 0; i < inv.getSlots(); i++) {
             ItemStack current = inv.getStackInSlot(i);
             if(current.isEmpty()) continue;
-            Stat curStat = new Stat(StatType.ITEM, current.getItem().toString(), current.getCount(), Unit.ITEM);
-            stacks.merge(current.getItem().toString(), curStat, Stat::mergeWith);
+            Record curRecord = new Record(RecordType.ITEM, current.getItem().toString(), current.getCount(), CountUnit.ITEM);
+            stacks.merge(current.getItem().toString(), curRecord, Record::mergeWith);
         }
         return stacks.values();
     }

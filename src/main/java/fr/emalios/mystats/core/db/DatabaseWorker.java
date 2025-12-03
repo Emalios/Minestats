@@ -1,6 +1,6 @@
 package fr.emalios.mystats.core.db;
 
-import fr.emalios.mystats.core.stat.Stat;
+import fr.emalios.mystats.core.stat.Record;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,12 +20,12 @@ public class DatabaseWorker {
             });
 
 
-    public static void submitBatch(Stat[] entries) {
+    public static void submitBatch(Record[] entries) {
         if (entries == null || entries.length == 0) return;
         EXECUTOR.submit(() -> insertBatch(entries));
     }
 
-    private static void insertBatch(Stat[] entries) {
+    private static void insertBatch(Record[] entries) {
 
     }
 
