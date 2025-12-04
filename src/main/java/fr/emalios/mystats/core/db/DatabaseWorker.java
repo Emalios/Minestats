@@ -2,42 +2,28 @@ package fr.emalios.mystats.core.db;
 
 import fr.emalios.mystats.core.stat.Record;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-/**
- * Worker asynchrone responsable de la persistance des statistiques en base SQLite.
- * Utilise un thread unique pour sérialiser les écritures et éviter la contention.
- */
 public class DatabaseWorker {
-
-    private static final ExecutorService EXECUTOR =
-            Executors.newSingleThreadExecutor(r -> {
-                Thread t = new Thread(r, "MyStats-DB-Worker");
-                t.setDaemon(true);
-                return t;
-            });
-
 
     public static void submitBatch(Record[] entries) {
         if (entries == null || entries.length == 0) return;
-        EXECUTOR.submit(() -> insertBatch(entries));
-    }
 
-    private static void insertBatch(Record[] entries) {
+        Database.getInstance().executeWriteAsync(conn -> {
+            try (var ps = conn.prepareStatement(
+                    "INSERT INTO snapshot_items(snapshot_id, item_name, count, stat_type, countUnit) VALUES (?,?,?,?,?)"
+            )) {
+                /*
+                for (Record r : entries) {
+                    ps.setInt(1, r.snapshotId());
+                    ps.setString(2, r.itemName());
+                    ps.setDouble(3, r.count());
+                    ps.setString(4, r.statType());
+                    ps.setString(5, r.unit());
+                    ps.addBatch();
+                }
+                ps.executeBatch();
 
-    }
-
-    /**
-     * Ferme proprement le worker et la connexion.
-     */
-    public static void shutdown() {
-        EXECUTOR.shutdown();
-        try {
-            if (!EXECUTOR.awaitTermination(3, TimeUnit.SECONDS)) {
-                EXECUTOR.shutdownNow();
+                 */
             }
-        } catch (InterruptedException ignored) {}
+        });
     }
 }

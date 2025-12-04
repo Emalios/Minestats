@@ -173,10 +173,9 @@ public class MyStats {
 
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) {
-        Database.getInstance().close();
-        DatabaseWorker.shutdown();
-        LOGGER.info("[Minestats] Db unloaded.");
         StatManager.getInstance().shutdown();
+        Database.getInstance().close();
+        LOGGER.info("[Minestats] Db unloaded.");
         LOGGER.info("[Minestats] StatManager unloaded.");
     }
 

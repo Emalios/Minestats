@@ -34,7 +34,8 @@ public class PlayerDao {
     }
 
     public int insertIfNotExists(String name) throws SQLException {
-        if (findByName(name) != null) return -1; // déjà présent
+        var entry = findByName(name);
+        if (entry != null) return entry.id; // déjà présent
         return insert(name);
     }
 

@@ -1,15 +1,25 @@
 package fr.emalios.mystats.content.screen;
 
 import fr.emalios.mystats.content.menu.MonitorMenu;
+import fr.emalios.mystats.core.stat.Stat;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.fluids.FluidStack;
 
+import java.util.List;
 import java.util.Map;
 
 public class StatScreen extends AbstractContainerScreen<MonitorMenu> {
@@ -28,7 +38,7 @@ public class StatScreen extends AbstractContainerScreen<MonitorMenu> {
     private int columnStartX = 0;
     private int startX = 0;
 
-    private Map<String, Double> stats;
+    private List<Stat> stats;
 
     // Exemple de données : item → production par seconde
 
@@ -37,7 +47,7 @@ public class StatScreen extends AbstractContainerScreen<MonitorMenu> {
         init();
     }
 
-    public void updateStats(Map<String, Double> stats) {
+    public void updateStats(List<Stat> stats) {
         this.stats = stats;
     }
 
@@ -132,38 +142,47 @@ public class StatScreen extends AbstractContainerScreen<MonitorMenu> {
 
         // ---- dessiner items (remplissage vertical) ----
         int i = 0;
-        for (Map.Entry<String, Double> entry : this.stats.entrySet()) {
+        for (Stat stat : this.stats) {
             int col = i / rowsPerColumn;
             int row = i % rowsPerColumn;
 
             int x = columnsStartX + col * cellWidth;
             int y = scrollAreaTop + row * cellHeight - scrollOffset;
 
-            String itemId = entry.getKey();
-            ResourceLocation rl = ResourceLocation.parse(itemId);
-            Item item = BuiltInRegistries.ITEM.get(rl);
-            // récupérer la registry des items
+            String id = stat.getResourceId();
+            ResourceLocation rl = ResourceLocation.parse(id);
 
-            // créer ItemStack
-            ItemStack itemStack = new ItemStack(item);
+            // ======== ITEM ? ========
+            switch (stat.getType()) {
+                case ITEM -> {
+                    Item item = BuiltInRegistries.ITEM.get(rl);
 
-            // ==== value & color ====
-            double value = entry.getValue();
-            int color = value >= 0 ? 0x00FF00 : 0xFF0000;
+                    if (item != Items.AIR) {
+                        ItemStack stack = new ItemStack(item);
 
-            // ==== rendre item ====
-            if (!itemStack.isEmpty()) {
-                gfx.renderItem(itemStack, x + (cellWidth - 16) / 2, y);
-                gfx.renderItemDecorations(this.font, itemStack, x, y);
+                        if (!stack.isEmpty()) {
+                            gfx.renderItem(stack, x + (cellWidth - 16) / 2, y);
+                            gfx.renderItemDecorations(this.font, stack, x, y);
+                        }
+                    }
+                }
+                case FLUID -> {
+                    Fluid fluid = BuiltInRegistries.FLUID.get(rl);
+                    FluidRenderer.renderFluid(gfx.pose(), x + (cellWidth - 16) / 2, y, 16, 16, new FluidStack(fluid, 1));
+                }
             }
 
-            // ==== texte centré ====
+            // ======== texte ========
+            float value = stat.getCount();
+            int color = value >= 0 ? 0x00FF00 : 0xFF0000;
+
             String txt = value + "/s";
             int textX = x + (cellWidth - this.font.width(txt)) / 2;
             gfx.drawString(this.font, txt, textX, y + 20, color);
 
             i++;
         }
+
         gfx.disableScissor();
 
         // ---- scrollbar (si nécessaire) ----

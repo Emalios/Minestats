@@ -33,8 +33,19 @@ public class Record {
     public CountUnit getUnit() { return countUnit; }
 
     public Record mergeWith(Record record) {
-        if(!this.resourceId.equals(record.getResourceId())) return this; //might throw an exception
-        assert this.countUnit == record.getUnit();
+        //TODO: refactor
+        if(!this.type.equals(record.type)) {
+            System.out.println("Merge failed");
+            return this;
+        }
+        if(!this.resourceId.equals(record.getResourceId())) {
+            System.out.println("Merge failed");
+            return this; //might throw an exception
+        }
+        if(!this.countUnit.equals(record.getUnit())) {
+            System.out.println("Merge failed");
+            return this;
+        }
         return new Record(this.type, this.resourceId, this.count + record.getCount(), this.countUnit);
     }
 

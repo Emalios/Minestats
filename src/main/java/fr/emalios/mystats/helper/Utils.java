@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class Utils {
 
-    public static Map<String, Double> makeStats(Map<Long, List<Record>> history) {
+    public static Map<String, Float> makeStats(Map<Long, List<Record>> history) {
         List<Long> timestamps = new ArrayList<>(history.keySet());
         Collections.sort(timestamps);
 
@@ -28,9 +28,9 @@ public class Utils {
             double deltaTime = (double) (t2 - t1);
 
             // convertir chaque snapshot en Map<itemName, count>
-            Map<String, Integer> counts1 = history.get(t1).stream()
+            Map<String, Float> counts1 = history.get(t1).stream()
                     .collect(Collectors.toMap(Record::getResourceId, Record::getCount));
-            Map<String, Integer> counts2 = history.get(t2).stream()
+            Map<String, Float> counts2 = history.get(t2).stream()
                     .collect(Collectors.toMap(Record::getResourceId, Record::getCount));
 
             // union des items des deux snapshots
@@ -39,20 +39,22 @@ public class Utils {
             allItems.addAll(counts2.keySet());
 
             for (String item : allItems) {
-                int c1 = counts1.getOrDefault(item, 0);
-                int c2 = counts2.getOrDefault(item, 0);
+                float c1 = counts1.getOrDefault(item, Float.valueOf(0));
+                float c2 = counts2.getOrDefault(item, Float.valueOf(0));
                 double delta = (c2 - c1) / deltaTime; // items / seconde
 
                 ratesByItem.computeIfAbsent(item, k -> new ArrayList<>()).add(delta);
             }
         }
 
-        // Moyenne de la vitesse pour chaque item sur toute la période
-        Map<String, Double> avgRate = new HashMap<>();
+        Map<String, Float> avgRate = new HashMap<>();
         for (var entry : ratesByItem.entrySet()) {
-            double mean = entry.getValue().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-            double rounded = Math.round(mean * 10.0) / 10.0; // arrondi à un chiffre après la virgule
-            avgRate.put(entry.getKey(), rounded);
+            double mean = entry.getValue().stream()
+                    .mapToDouble(Double::doubleValue)
+                    .average()
+                    .orElse(0.0);
+            double rounded = Math.round(mean * 10.0) / 10.0;
+            avgRate.put(entry.getKey(), (float) rounded);
         }
 
         return avgRate;

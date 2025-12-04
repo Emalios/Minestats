@@ -30,6 +30,11 @@ public class PlayerInventoryDao {
         }
     }
 
+    public void insertIfNotExists(int playerId, int inventoryId) throws SQLException {
+        if (!findByPlayerId(playerId).isEmpty()) return;
+        this.insert(playerId, inventoryId);
+    }
+
     public List<InventoryDao.InventoryRecord> findByPlayerName(String name) throws SQLException {
         PlayerDao.PlayerRecord record = Database.getInstance().getPlayerDao().findByName(name);
         if(record == null) return new ArrayList<>();

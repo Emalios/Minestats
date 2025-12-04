@@ -8,6 +8,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 
 import fr.emalios.mystats.core.db.DatabaseSchema;
 import fr.emalios.mystats.core.db.DatabaseWorker;
+import fr.emalios.mystats.core.stat.StatManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -24,6 +25,7 @@ public class StatCommand {
 
     private static ArgumentBuilder<CommandSourceStack, ?> db() {
         return Commands.literal("db")
+                .then(scan())
                 .then(show())
                 .then(init())
                 .then(destroy());
@@ -42,12 +44,25 @@ public class StatCommand {
                 });
     }
 
+    private static ArgumentBuilder<CommandSourceStack, ?> scan() {
+        return Commands.literal("scan")
+                .requires(cs -> cs.hasPermission(2))
+                .executes(ctx -> {
+                    try {
+                        StatManager.getInstance().scan();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return 0;
+                });
+    }
+
     private static ArgumentBuilder<CommandSourceStack, ?> destroy() {
         return Commands.literal("destroy")
                 .requires(cs -> cs.hasPermission(2))
                 .executes(ctx -> {
                     try {
-                        DatabaseSchema.deleteDb();
+                        DatabaseSchema.olddeleteDb();
                     } catch (SQLException e) {
                         throw new RuntimeException(e);
                     }

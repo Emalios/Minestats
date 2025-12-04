@@ -80,6 +80,8 @@ public class StatManager {
             //check if inventory still exists
             List<IHandler> handlers = this.monitored.get(inventoryId);
             if(handlers.isEmpty() || !handlers.get(0).exists()) {
+                System.out.println("unmonitore");
+                System.out.println(handlers.get(0));
                 this.unmonitore(inventoryId);
                 continue;
             }

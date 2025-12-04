@@ -73,6 +73,7 @@ public class InventorySnapshotDao {
                 ));
             }
         }
+        connection.commit();
         return list;
     }
 

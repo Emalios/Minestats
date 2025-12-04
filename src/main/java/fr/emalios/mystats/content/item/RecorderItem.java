@@ -94,11 +94,6 @@ public class RecorderItem extends Item {
         if(handlers.isEmpty()) {
             return InteractionResult.PASS;
         }
-        System.out.println(handlers.size() + " handlers");
-        handlers.forEach(handler -> {
-            System.out.println(handler.exists());
-        });
-
         try {
             return this.processClick(mode, player, level, handlers, pos);
         } catch (SQLException e) {
@@ -136,6 +131,7 @@ public class RecorderItem extends Item {
                     return InteractionResult.PASS;
                 }
                 int playerId = database.getPlayerDao().insertIfNotExists(player.getName().getString());
+                System.out.println("player id: " + playerId);
                 int invId = database.getInventoryDao().insert(
                         level.dimension().location().toString(),
                         pos.getX(), pos.getY(), pos.getZ(),

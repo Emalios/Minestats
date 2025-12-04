@@ -116,33 +116,79 @@ public class DatabaseSchema {
         }
     }
 
-    public static void deleteDb() throws SQLException {
+    public static void deleteDb() {
+        Database.getInstance().executeWriteAsync(conn -> {
+            try (Statement st = conn.createStatement()) {
+                st.execute("PRAGMA foreign_keys=OFF;");
+            }
+
+            try (Statement s = conn.createStatement();
+                 ResultSet rs = s.executeQuery(
+                         "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';"
+                 )) {
+
+                while (rs.next()) {
+                    String table = rs.getString("name");
+                    System.out.println("Dropping table: " + table);
+
+                    try (Statement drop = conn.createStatement()) {
+                        drop.execute("DROP TABLE IF EXISTS \"" + table + "\";");
+                    }
+                }
+            }
+
+            try (Statement st = conn.createStatement()) {
+                st.execute("PRAGMA foreign_keys=ON;");
+            }
+
+            conn.commit();
+        });
+    }
+
+    public static void olddeleteDb() throws SQLException {
+
         Connection connection = Database.getInstance().getConnection();
-        try (Statement pragmaStmt = connection.createStatement()) {
-            pragmaStmt.execute("PRAGMA foreign_keys = OFF;");
+
+        System.out.println("deleteDb() called from thread: " + Thread.currentThread().getName());
+
+        try (Statement s = connection.createStatement()) {
+            s.execute("PRAGMA foreign_keys = OFF;");
         }
 
         List<String> tables = new ArrayList<>();
+
         try (Statement readStmt = connection.createStatement();
              ResultSet rs = readStmt.executeQuery(
                      "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';")) {
+
             while (rs.next()) {
                 tables.add(rs.getString("name"));
             }
         }
 
-        // 2️⃣ Supprimer chaque table après avoir fermé le ResultSet
         try (Statement dropStmt = connection.createStatement()) {
-            for (String tableName : tables) {
-                System.out.println("Delete '" + tableName + "' table.");
-                dropStmt.execute("DROP TABLE IF EXISTS \"" + tableName + "\";");
+
+            for (String t : tables) {
+                System.out.println("About to drop '" + t + "' by thread = " + Thread.currentThread().getName());
+
+                try {
+                    dropStmt.execute("DROP TABLE IF EXISTS \"" + t + "\";");
+                } catch (SQLException e) {
+                    if (e.getMessage().contains("SQLITE_BUSY")) {
+                        System.err.println("===== SQLITE BUSY when dropping '" + t + "' =====");
+                        e.printStackTrace();
+                    }
+                    throw e;
+                }
             }
         }
 
-        try (Statement pragmaStmt = connection.createStatement()) {
-            pragmaStmt.execute("PRAGMA foreign_keys = ON;");
+        try (Statement s = connection.createStatement()) {
+            s.execute("PRAGMA foreign_keys = ON;");
         }
 
         connection.commit();
     }
+
+
 }
