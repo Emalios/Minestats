@@ -1,6 +1,7 @@
 package fr.emalios.mystats.content.screen;
 
 import fr.emalios.mystats.content.menu.MonitorMenu;
+import fr.emalios.mystats.core.stat.CountUnit;
 import fr.emalios.mystats.core.stat.Stat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -171,15 +172,7 @@ public class StatScreen extends AbstractContainerScreen<MonitorMenu> {
                     FluidRenderer.renderFluid(gfx.pose(), x + (cellWidth - 16) / 2, y, 16, 16, new FluidStack(fluid, 1));
                 }
             }
-
-            // ======== texte ========
-            float value = stat.getCount();
-            int color = value >= 0 ? 0x00FF00 : 0xFF0000;
-
-            String txt = value + "/s";
-            int textX = x + (cellWidth - this.font.width(txt)) / 2;
-            gfx.drawString(this.font, txt, textX, y + 20, color);
-
+            this.renderValue(gfx, stat, x, y);
             i++;
         }
 
@@ -201,6 +194,24 @@ public class StatScreen extends AbstractContainerScreen<MonitorMenu> {
             gfx.fill(barX, barY, barX + scrollbarWidth, barY + barHeight, 0xFFFFFFFF); // thumb
         }
     }
+
+    private void renderValue(GuiGraphics gfx, Stat stat, int x, int y) {
+        var value = CountUnit.simplify(stat.getCount(), stat.getUnit());
+        float a = value.getA();
+        int color = a >= 0 ? 0x00FF00 : 0xFF0000;
+        //transform 3.0 into 3 and keep 3.x
+        boolean isInteger = Math.abs(a - Math.round(a)) < 1e-6;
+
+        String valueStr = isInteger
+                ? Integer.toString(Math.round(a))                         //3
+                : String.format(java.util.Locale.ROOT, "%.1f", a); //3.1
+
+        String txt = valueStr + value.getB().toString() + "/s";
+
+        int textX = x + (cellWidth - this.font.width(txt)) / 2;
+        gfx.drawString(this.font, txt, textX, y + 20, color);
+    }
+
 
 
     @Override
