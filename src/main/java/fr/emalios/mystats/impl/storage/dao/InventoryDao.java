@@ -1,6 +1,6 @@
-package fr.emalios.mystats.core.dao;
+package fr.emalios.mystats.impl.storage.dao;
 
-import fr.emalios.mystats.core.db.Database;
+import fr.emalios.mystats.impl.storage.db.Database;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ public class InventoryDao {
             ps.setInt(5, z);
             ps.setString(6, type);
             ps.executeUpdate();
-            connection.commit();
+            //connection.commit();
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {
@@ -57,7 +57,7 @@ public class InventoryDao {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
             int rows = ps.executeUpdate();
-            connection.commit();
+            //connection.commit();
             return rows > 0;
         }
     }

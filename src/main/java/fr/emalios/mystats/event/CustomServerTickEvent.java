@@ -1,7 +1,7 @@
 package fr.emalios.mystats.event;
 
 import fr.emalios.mystats.MyStats;
-import fr.emalios.mystats.core.stat.StatManager;
+import fr.emalios.mystats.impl.adapter.StatManager;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -19,7 +19,6 @@ public class CustomServerTickEvent {
         counter++;
         if(counter < 300) return;
         counter = 0;
-        System.out.println("SCANNING");
         try {
             statManager.scan();
         } catch (SQLException e) {

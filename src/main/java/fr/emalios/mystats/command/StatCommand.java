@@ -2,14 +2,9 @@ package fr.emalios.mystats.command;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.suggestion.SuggestionProvider;
-import com.mojang.brigadier.suggestion.Suggestions;
-import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 
-import fr.emalios.mystats.core.db.DatabaseSchema;
-import fr.emalios.mystats.core.db.DatabaseWorker;
-import fr.emalios.mystats.core.stat.StatManager;
-import net.minecraft.ChatFormatting;
+import fr.emalios.mystats.impl.storage.db.DatabaseInitializer;
+import fr.emalios.mystats.impl.adapter.StatManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
@@ -36,7 +31,7 @@ public class StatCommand {
                 .requires(cs -> cs.hasPermission(2))
                 .executes(ctx -> {
                     try {
-                        DatabaseSchema.showDbStructures();
+                        DatabaseInitializer.showDbStructures();
                     } catch (SQLException e) {
                         throw new RuntimeException(e);
                     }
@@ -62,7 +57,7 @@ public class StatCommand {
                 .requires(cs -> cs.hasPermission(2))
                 .executes(ctx -> {
                     try {
-                        DatabaseSchema.olddeleteDb();
+                        DatabaseInitializer.olddeleteDb();
                     } catch (SQLException e) {
                         throw new RuntimeException(e);
                     }
@@ -75,7 +70,7 @@ public class StatCommand {
                 .requires(cs -> cs.hasPermission(2))
                 .executes(ctx -> {
                     try {
-                        DatabaseSchema.createAll();
+                        DatabaseInitializer.createAll();
                     } catch (SQLException e) {
                         throw new RuntimeException(e);
                     }

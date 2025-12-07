@@ -1,9 +1,9 @@
 package fr.emalios.mystats.content.item;
 
-import fr.emalios.mystats.core.dao.InventoryDao;
-import fr.emalios.mystats.core.db.Database;
-import fr.emalios.mystats.core.stat.adapter.IHandler;
-import fr.emalios.mystats.core.stat.StatManager;
+import fr.emalios.mystats.impl.storage.dao.InventoryDao;
+import fr.emalios.mystats.impl.storage.db.Database;
+import fr.emalios.mystats.api.stat.IHandler;
+import fr.emalios.mystats.impl.adapter.StatManager;
 import fr.emalios.mystats.helper.Utils;
 import fr.emalios.mystats.registries.StatDataComponent;
 import net.minecraft.core.BlockPos;

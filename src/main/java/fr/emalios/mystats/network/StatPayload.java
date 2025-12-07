@@ -1,7 +1,7 @@
 package fr.emalios.mystats.network;
 
 import fr.emalios.mystats.MyStats;
-import fr.emalios.mystats.core.stat.Stat;
+import fr.emalios.mystats.api.stat.Stat;
 import fr.emalios.mystats.registries.StatCodec;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -9,9 +9,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public record StatPayload(List<Stat> stats) implements CustomPacketPayload {
 

@@ -1,4 +1,4 @@
-package fr.emalios.mystats.core.db;
+package fr.emalios.mystats.impl.storage.db;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -7,7 +7,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DatabaseSchema {
+public class DatabaseInitializer {
 
     public static void createAll() throws SQLException {
         Connection conn = Database.getInstance().getConnection();
@@ -72,7 +72,7 @@ public class DatabaseSchema {
                 );
             """);
 
-            conn.commit();
+            //conn.commit();
         }
     }
 
@@ -111,7 +111,7 @@ public class DatabaseSchema {
             }
 
             System.out.println("===============================\n");
-            connection.commit();
+            //connection.commit();
 
         }
     }
@@ -141,7 +141,7 @@ public class DatabaseSchema {
                 st.execute("PRAGMA foreign_keys=ON;");
             }
 
-            conn.commit();
+            //conn.commit();
         });
     }
 
@@ -187,7 +187,7 @@ public class DatabaseSchema {
             s.execute("PRAGMA foreign_keys = ON;");
         }
 
-        connection.commit();
+        //connection.commit();
     }
 
 

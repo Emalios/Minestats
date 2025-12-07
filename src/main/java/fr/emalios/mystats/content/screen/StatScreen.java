@@ -1,13 +1,10 @@
 package fr.emalios.mystats.content.screen;
 
 import fr.emalios.mystats.content.menu.MonitorMenu;
-import fr.emalios.mystats.core.stat.CountUnit;
-import fr.emalios.mystats.core.stat.Stat;
-import net.minecraft.client.Minecraft;
+import fr.emalios.mystats.api.stat.CountUnit;
+import fr.emalios.mystats.api.stat.Stat;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -16,12 +13,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.List;
-import java.util.Map;
 
 public class StatScreen extends AbstractContainerScreen<MonitorMenu> {
 

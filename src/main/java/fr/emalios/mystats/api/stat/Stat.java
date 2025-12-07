@@ -1,7 +1,4 @@
-package fr.emalios.mystats.core.stat;
-
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
+package fr.emalios.mystats.api.stat;
 
 /**
  * Represent an evolution of a record in time

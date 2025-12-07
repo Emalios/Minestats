@@ -1,26 +1,14 @@
-package fr.emalios.mystats.core.db;
+package fr.emalios.mystats.impl.storage.db;
 
-import fr.emalios.mystats.MyStats;
-import fr.emalios.mystats.core.dao.*;
+import fr.emalios.mystats.impl.storage.dao.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-@FunctionalInterface
-interface SQLConsumer {
-    void accept(Connection conn) throws SQLException;
-}
-
-@FunctionalInterface
-interface SQLFunction<T> {
-    T apply(Connection conn) throws SQLException;
-}
 
 public final class Database {
 
@@ -33,7 +21,7 @@ public final class Database {
     private InventorySnapshotDao inventorySnapshotDao;
     private PlayerDao playerDao;
     private PlayerInventoryDao playerInventoryDao;
-    private SnapshotItemDao snapshotItemDao;
+    private RecordDao recordDao;
     private InventoryDao inventoryDao;
 
     private Database() throws SQLException {
@@ -42,7 +30,7 @@ public final class Database {
         this.inventorySnapshotDao = new InventorySnapshotDao(connection);
         this.playerDao = new PlayerDao(connection);
         this.playerInventoryDao = new PlayerInventoryDao(connection);
-        this.snapshotItemDao = new SnapshotItemDao(connection);
+        this.recordDao = new RecordDao(connection);
     }
 
     public static synchronized Database getInstance() {
@@ -59,16 +47,7 @@ public final class Database {
     public void init() {
         try {
             this.connection = DriverManager.getConnection("jdbc:sqlite:mystats.db");
-
-            try (Statement st = this.connection.createStatement()) {
-                st.execute("PRAGMA journal_mode=WAL;");
-                st.execute("PRAGMA synchronous=NORMAL;");
-                st.execute("PRAGMA busy_timeout=5000;");
-            }
-
-            this.connection.setAutoCommit(false);
-            this.connection.commit();
-
+            //this.connection.setAutoCommit(false);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -86,7 +65,7 @@ public final class Database {
         dbExecutor.submit(() -> {
             try {
                 operation.accept(connection);
-                connection.commit();
+                //connection.commit();
             } catch (SQLException e) {
                 logDatabaseBusy(e, "<write operation>");
             }
@@ -102,10 +81,6 @@ public final class Database {
                 throw new RuntimeException(e);
             }
         }, dbExecutor);
-    }
-
-    public void deleteDatabaseAsync() {
-
     }
 
     public void close() {
@@ -133,8 +108,8 @@ public final class Database {
         return playerInventoryDao;
     }
 
-    public SnapshotItemDao getSnapshotItemDao() {
-        return snapshotItemDao;
+    public RecordDao getSnapshotItemDao() {
+        return recordDao;
     }
 
     public InventoryDao getInventoryDao() {

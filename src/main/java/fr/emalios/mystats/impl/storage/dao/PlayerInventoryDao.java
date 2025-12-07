@@ -1,6 +1,6 @@
-package fr.emalios.mystats.core.dao;
+package fr.emalios.mystats.impl.storage.dao;
 
-import fr.emalios.mystats.core.db.Database;
+import fr.emalios.mystats.impl.storage.db.Database;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ public class PlayerInventoryDao {
             ps.setInt(1, playerId);
             ps.setInt(2, inventoryId);
             ps.executeUpdate();
-            connection.commit();
+            //connection.commit();
         }
     }
 

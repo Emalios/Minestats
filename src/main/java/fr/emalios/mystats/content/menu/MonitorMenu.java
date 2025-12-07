@@ -1,8 +1,7 @@
 package fr.emalios.mystats.content.menu;
 
-import fr.emalios.mystats.core.stat.Stat;
-import fr.emalios.mystats.core.stat.utils.StatCalculator;
-import fr.emalios.mystats.core.stat.RecordType;
+import fr.emalios.mystats.api.stat.Stat;
+import fr.emalios.mystats.api.stat.utils.StatCalculator;
 import fr.emalios.mystats.network.StatPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -10,13 +9,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
-import oshi.util.tuples.Pair;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static fr.emalios.mystats.registries.ModMenus.MONITOR_MENU;
 

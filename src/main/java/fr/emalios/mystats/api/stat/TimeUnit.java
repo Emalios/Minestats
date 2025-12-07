@@ -1,4 +1,4 @@
-package fr.emalios.mystats.core.stat;
+package fr.emalios.mystats.api.stat;
 
 public enum TimeUnit {
 

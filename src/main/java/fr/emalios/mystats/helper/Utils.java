@@ -1,9 +1,9 @@
 package fr.emalios.mystats.helper;
 
-import fr.emalios.mystats.core.stat.adapter.IHandler;
-import fr.emalios.mystats.core.stat.Record;
-import fr.emalios.mystats.core.stat.adapter.FluidAdapter;
-import fr.emalios.mystats.core.stat.adapter.ItemAdapter;
+import fr.emalios.mystats.api.stat.IHandler;
+import fr.emalios.mystats.api.stat.Record;
+import fr.emalios.mystats.impl.adapter.FluidAdapter;
+import fr.emalios.mystats.impl.adapter.ItemAdapter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;

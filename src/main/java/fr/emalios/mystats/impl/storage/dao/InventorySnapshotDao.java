@@ -1,6 +1,4 @@
-package fr.emalios.mystats.core.dao;
-
-import fr.emalios.mystats.core.db.Database;
+package fr.emalios.mystats.impl.storage.dao;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -18,13 +16,13 @@ public class InventorySnapshotDao {
         this.connection = connection;
     }
 
-    public int insert(int inventoryId, long timestamp) throws SQLException {
+    public int insert(int inventoryId, long timestamp) {
         String sql = "INSERT INTO inventory_snapshots (inventory_id, timestamp) VALUES (?, ?);";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, inventoryId);
             ps.setLong(2, timestamp);
             ps.executeUpdate();
-            connection.commit();
+            //connection.commit();
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {
@@ -32,7 +30,7 @@ public class InventorySnapshotDao {
                 }
             }
         } catch (SQLException e) {
-            connection.commit();
+            //connection.commit();
             System.out.println("CANT INSERT DATA TO DB: " + e.getMessage());
         }
         return -1;
@@ -73,7 +71,7 @@ public class InventorySnapshotDao {
                 ));
             }
         }
-        connection.commit();
+        //connection.commit();
         return list;
     }
 

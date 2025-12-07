@@ -1,13 +1,12 @@
-package fr.emalios.mystats.core.stat.utils;
+package fr.emalios.mystats.api.stat.utils;
 
-import fr.emalios.mystats.core.dao.InventorySnapshotDao;
-import fr.emalios.mystats.core.dao.PlayerInventoryDao;
-import fr.emalios.mystats.core.dao.SnapshotItemDao;
-import fr.emalios.mystats.core.db.Database;
-import fr.emalios.mystats.core.stat.*;
-import fr.emalios.mystats.core.stat.Record;
+import fr.emalios.mystats.impl.storage.dao.InventorySnapshotDao;
+import fr.emalios.mystats.impl.storage.dao.PlayerInventoryDao;
+import fr.emalios.mystats.impl.storage.dao.RecordDao;
+import fr.emalios.mystats.impl.storage.db.Database;
+import fr.emalios.mystats.api.stat.*;
+import fr.emalios.mystats.api.stat.Record;
 import fr.emalios.mystats.helper.Utils;
-import oshi.util.tuples.Pair;
 
 import java.sql.SQLException;
 import java.util.Collection;
@@ -21,7 +20,7 @@ public class StatCalculator {
 
     private final PlayerInventoryDao playerInventoryDao = Database.getInstance().getPlayerInventoryDao();
     private final InventorySnapshotDao inventorySnapshotDao = Database.getInstance().getInventorySnapshotDao();
-    private final SnapshotItemDao snapshotItemDao = Database.getInstance().getSnapshotItemDao();
+    private final RecordDao recordDao = Database.getInstance().getSnapshotItemDao();
 
     private StatCalculator() {
 
@@ -50,16 +49,10 @@ public class StatCalculator {
                 Map<Long, List<Record>> history = new HashMap<>();
                 for (var snapshot : snapshots) {
                     int snapshotId = snapshot.id();
-                    var snapshotItems = this.snapshotItemDao.findBySnapshotId(snapshotId);
+                    var snapshotItems = this.recordDao.findBySnapshotId(snapshotId);
                     this.registerContentTypes(contentTypes, snapshotItems);
                     history.put(snapshot.timestamp(), snapshotItems);
                 }
-                System.out.println("Start with data:");
-                history.forEach((snapshot, items) -> {
-                    System.out.println("Inv: " + snapshot);
-                    System.out.println("Items: " + items);
-                    System.out.println("================");
-                });
                 Utils.makeStats(history).forEach((itemName, value) -> {
                     RecordType recordType = contentTypes.get(itemName);
                     Stat stat = new Stat(

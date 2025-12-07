@@ -1,11 +1,10 @@
-package fr.emalios.mystats.core.stat;
+package fr.emalios.mystats.impl.adapter;
 
-import fr.emalios.mystats.core.dao.InventoryDao;
-import fr.emalios.mystats.core.dao.InventorySnapshotDao;
-import fr.emalios.mystats.core.dao.SnapshotItemDao;
-import fr.emalios.mystats.core.db.Database;
-import fr.emalios.mystats.core.db.DatabaseWorker;
-import fr.emalios.mystats.core.stat.adapter.IHandler;
+import fr.emalios.mystats.api.stat.IHandler;
+import fr.emalios.mystats.impl.storage.dao.InventoryDao;
+import fr.emalios.mystats.impl.storage.dao.InventorySnapshotDao;
+import fr.emalios.mystats.impl.storage.dao.RecordDao;
+import fr.emalios.mystats.impl.storage.db.Database;
 import fr.emalios.mystats.helper.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
@@ -15,9 +14,6 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class StatManager {
 
@@ -29,21 +25,14 @@ public class StatManager {
     private final Database db = Database.getInstance();
     private final InventorySnapshotDao inventorySnapshotDao = db.getInventorySnapshotDao();
     private final InventoryDao inventoryDao = db.getInventoryDao();
-    private final SnapshotItemDao snapshotItemDao = db.getSnapshotItemDao();
+    private final RecordDao recordDao = db.getSnapshotItemDao();
 
     //link an inventoryId to associated capability handlers
     //might be necessary to use coordinates/level here
     private final Map<Integer, List<IHandler>> monitored = new HashMap<>();
-    private final Queue<Record> buffer = new ConcurrentLinkedQueue<>();
-    private final ScheduledExecutorService scheduler =
-            Executors.newSingleThreadScheduledExecutor(r -> {
-                Thread t = new Thread(r, "MineStats-Batch-Flusher");
-                t.setDaemon(true);
-                return t;
-            });
+    private final Queue<fr.emalios.mystats.api.stat.Record> buffer = new ConcurrentLinkedQueue<>();
 
     private StatManager() {
-        this.scheduler.scheduleAtFixedRate(this::flush, FLUSH_INTERVAL_SECONDS, FLUSH_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
 
     public static synchronized StatManager getInstance() {
@@ -51,10 +40,6 @@ public class StatManager {
             instance = new StatManager();
         }
         return instance;
-    }
-
-    public void shutdown() {
-        this.scheduler.shutdown();
     }
 
     public void add(int inventoryId, List<IHandler> handlers) {
@@ -87,10 +72,7 @@ public class StatManager {
             }
             //get inventory content
             for (IHandler handler : handlers) {
-                for (Record record : handler.getContent()) {
-                    System.out.println("insert: " + record);
-                    this.snapshotItemDao.insert(snapshotId, record);
-                }
+                this.recordDao.insert(snapshotId, handler.getContent());
             }
         }
     }
@@ -118,15 +100,5 @@ public class StatManager {
             }
             this.add(invId, handlers);
         }
-    }
-
-    private synchronized void flush() {
-        if (buffer.isEmpty()) return;
-
-        // drain to array
-        Record[] entries = buffer.toArray(Record[]::new);
-        buffer.clear();
-
-        DatabaseWorker.submitBatch(entries);
     }
 }

@@ -1,4 +1,4 @@
-package fr.emalios.mystats.core.stat;
+package fr.emalios.mystats.api.stat;
 
 import oshi.util.tuples.Pair;
 
@@ -6,8 +6,8 @@ public enum CountUnit {
 
     ITEM(""),
     STACK(""),
-    MB("mb"),
-    B("b"),
+    MB("mB"),
+    B("B"),
     FE("");
 
 

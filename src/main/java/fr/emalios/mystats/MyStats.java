@@ -3,10 +3,9 @@ package fr.emalios.mystats;
 import fr.emalios.mystats.command.StatCommand;
 import fr.emalios.mystats.content.block.StatMonitorBlock;
 import fr.emalios.mystats.content.item.RecorderItem;
-import fr.emalios.mystats.core.db.Database;
-import fr.emalios.mystats.core.db.DatabaseSchema;
-import fr.emalios.mystats.core.db.DatabaseWorker;
-import fr.emalios.mystats.core.stat.StatManager;
+import fr.emalios.mystats.impl.storage.db.Database;
+import fr.emalios.mystats.impl.storage.db.DatabaseInitializer;
+import fr.emalios.mystats.impl.adapter.StatManager;
 import fr.emalios.mystats.network.ClientPayloadHandler;
 import fr.emalios.mystats.network.OpenMonitorMenuPayload;
 import fr.emalios.mystats.network.ServerPayloadHandler;
@@ -161,7 +160,7 @@ public class MyStats {
         LOGGER.info("HELLO from server starting");
         try {
             Database.getInstance().init();
-            DatabaseSchema.createAll();
+            DatabaseInitializer.createAll();
             StatManager.getInstance().init(event.getServer());
             //TODO: insert inventories into StatManager
         } catch (SQLException e) {
@@ -173,7 +172,6 @@ public class MyStats {
 
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) {
-        StatManager.getInstance().shutdown();
         Database.getInstance().close();
         LOGGER.info("[Minestats] Db unloaded.");
         LOGGER.info("[Minestats] StatManager unloaded.");

@@ -1,15 +1,19 @@
-package fr.emalios.mystats.core.stat.adapter;
+package fr.emalios.mystats.impl.adapter;
 
-import fr.emalios.mystats.core.stat.Record;
-import fr.emalios.mystats.core.stat.RecordType;
-import fr.emalios.mystats.core.stat.CountUnit;
+import fr.emalios.mystats.api.stat.CountUnit;
+import fr.emalios.mystats.api.stat.IHandler;
+import fr.emalios.mystats.api.stat.Record;
+import fr.emalios.mystats.api.stat.RecordType;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ItemAdapter implements IHandler {
 
@@ -37,5 +41,15 @@ public class ItemAdapter implements IHandler {
     @Override
     public boolean exists() {
         return this.capabilityCache.getCapability() != null;
+    }
+
+    @Override
+    public void save() {
+
+    }
+
+    @Override
+    public void delete() {
+
     }
 }

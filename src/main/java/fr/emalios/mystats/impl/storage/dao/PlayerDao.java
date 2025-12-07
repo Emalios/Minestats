@@ -1,6 +1,4 @@
-package fr.emalios.mystats.core.dao;
-
-import fr.emalios.mystats.core.db.Database;
+package fr.emalios.mystats.impl.storage.dao;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -22,7 +20,7 @@ public class PlayerDao {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, name);
             ps.executeUpdate();
-            connection.commit();
+            //connection.commit();
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {
@@ -92,7 +90,7 @@ public class PlayerDao {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
             ps.executeUpdate();
-            connection.commit();
+            //connection.commit();
         }
     }
 
