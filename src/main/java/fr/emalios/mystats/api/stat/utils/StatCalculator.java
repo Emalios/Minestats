@@ -65,7 +65,7 @@ public class StatCalculator {
                             },
                             TimeUnit.SECOND
                     );
-                    results.merge(itemName, stat, Stat::merge);
+                    results.merge(itemName, stat, Stat::mergeWith);
                 });
             }
         } catch (SQLException e) {

@@ -1,11 +1,13 @@
 package fr.emalios.mystats.api.stat;
 
+import java.util.Objects;
+
 /**
- * Represent an evolution of a record in time
+ * Represent an evolution of a record in a given time unit
  */
 public class Stat extends Record {
 
-    private TimeUnit timeUnit;
+    private final TimeUnit timeUnit;
 
     public Stat(RecordType type, String resourceId, float count, CountUnit countUnit, TimeUnit timeUnit) {
         super(type, resourceId, count, countUnit);
@@ -17,11 +19,8 @@ public class Stat extends Record {
         this.timeUnit = timeUnit;
     }
 
-    public Stat merge(Stat other) {
-        if(this.getType() != other.getType()) {
-            System.out.println("Merge failed.");
-            return this;
-        }
+    public Stat mergeWith(Stat other) {
+        if(this.timeUnit != other.timeUnit) throw new IllegalArgumentException("Trying to merge " + this.timeUnit + " with " + other.timeUnit);
         return new Stat(
                 super.mergeWith(other),
                 this.timeUnit
@@ -29,8 +28,16 @@ public class Stat extends Record {
     }
 
     @Override
-    public Record mergeWith(Record record) {
-        return super.mergeWith(record);
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Stat stat = (Stat) o;
+        return timeUnit == stat.timeUnit;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), timeUnit);
     }
 
     public TimeUnit getTimeUnit() {

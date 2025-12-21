@@ -111,6 +111,10 @@ configurations {
     runtimeClasspath.extendsFrom localRuntime
 }
 
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
+
 dependencies {
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
@@ -129,6 +133,11 @@ dependencies {
 
     // Example project dependency using a sister or child project:
     // implementation project(":myproject")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${junit_version}")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junit_version}")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("com.github.oshi:oshi-core:6.6.5")
 
     implementation 'org.xerial:sqlite-jdbc:3.50.1.0'
     // This adds the library to all the runs
