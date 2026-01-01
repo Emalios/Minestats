@@ -1,11 +1,17 @@
 package fr.emalios.mystats;
 
+import fr.emalios.mystats.api.storage.Storage;
 import fr.emalios.mystats.command.StatCommand;
 import fr.emalios.mystats.content.block.StatMonitorBlock;
 import fr.emalios.mystats.content.item.RecorderItem;
+import fr.emalios.mystats.impl.storage.dao.PlayerDao;
 import fr.emalios.mystats.impl.storage.db.Database;
 import fr.emalios.mystats.impl.storage.db.DatabaseInitializer;
 import fr.emalios.mystats.impl.adapter.StatManager;
+import fr.emalios.mystats.impl.storage.repository.SqliteInventoryRepository;
+import fr.emalios.mystats.impl.storage.repository.SqliteInventorySnapshotRepository;
+import fr.emalios.mystats.impl.storage.repository.SqlitePlayerInventoryRepository;
+import fr.emalios.mystats.impl.storage.repository.SqlitePlayerRepository;
 import fr.emalios.mystats.network.ClientPayloadHandler;
 import fr.emalios.mystats.network.OpenMonitorMenuPayload;
 import fr.emalios.mystats.network.ServerPayloadHandler;
@@ -161,6 +167,14 @@ public class MyStats {
         try {
             Database.getInstance().init();
             DatabaseInitializer.createAll();
+            Storage.register(
+                    new SqlitePlayerRepository(Database.getInstance().getPlayerDao()),
+                    new SqlitePlayerInventoryRepository(Database.getInstance().getPlayerInventoryDao()),
+                    new SqliteInventoryRepository(Database.getInstance().getInventoryDao()),
+                    new SqliteInventorySnapshotRepository(
+                            Database.getInstance().getInventorySnapshotDao(),
+                            Database.getInstance().getRecordDao())
+            );
             StatManager.getInstance().init(event.getServer());
             //TODO: insert inventories into StatManager
         } catch (SQLException e) {

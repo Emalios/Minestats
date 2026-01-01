@@ -1,11 +1,13 @@
 package fr.emalios.mystats.api.stat.utils;
 
+import fr.emalios.mystats.api.CountUnit;
+import fr.emalios.mystats.api.RecordType;
 import fr.emalios.mystats.impl.storage.dao.InventorySnapshotDao;
 import fr.emalios.mystats.impl.storage.dao.PlayerInventoryDao;
 import fr.emalios.mystats.impl.storage.dao.RecordDao;
 import fr.emalios.mystats.impl.storage.db.Database;
 import fr.emalios.mystats.api.stat.*;
-import fr.emalios.mystats.api.stat.Record;
+import fr.emalios.mystats.api.Record;
 import fr.emalios.mystats.helper.Utils;
 
 import java.sql.SQLException;
@@ -20,7 +22,7 @@ public class StatCalculator {
 
     private final PlayerInventoryDao playerInventoryDao = Database.getInstance().getPlayerInventoryDao();
     private final InventorySnapshotDao inventorySnapshotDao = Database.getInstance().getInventorySnapshotDao();
-    private final RecordDao recordDao = Database.getInstance().getSnapshotItemDao();
+    private final RecordDao recordDao = Database.getInstance().getRecordDao();
 
     private StatCalculator() {
 

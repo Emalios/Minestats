@@ -1,6 +1,6 @@
 package minestats.api;
 
-import fr.emalios.mystats.api.stat.CountUnit;
+import fr.emalios.mystats.api.CountUnit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import oshi.util.tuples.Pair;

@@ -1,13 +1,13 @@
 package fr.emalios.mystats.api.stat;
 
-import fr.emalios.mystats.api.storage.IStorage;
+import fr.emalios.mystats.api.Record;
 
 import java.util.Collection;
 
 /**
  * Represent something that contains things to monitor
  */
-public interface IHandler extends IStorage {
+public interface IHandler {
 
     boolean exists();
     Collection<Record> getContent();

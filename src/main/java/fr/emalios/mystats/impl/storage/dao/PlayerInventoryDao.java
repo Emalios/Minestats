@@ -35,30 +35,6 @@ public class PlayerInventoryDao {
         this.insert(playerId, inventoryId);
     }
 
-    public List<InventoryDao.InventoryRecord> findByPlayerName(String name) throws SQLException {
-        PlayerDao.PlayerRecord record = Database.getInstance().getPlayerDao().findByName(name);
-        if(record == null) return new ArrayList<>();
-        String sql = "SELECT * FROM player_inventories WHERE player_id = ?;";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, record.id());
-            ResultSet rs = ps.executeQuery();
-            List<InventoryDao.InventoryRecord> records = new ArrayList<>();
-            while (rs.next()) {
-                records.add(new InventoryDao.InventoryRecord(
-                        rs.getInt("id"),
-                        rs.getString("block_id"),
-                        rs.getString("world"),
-                        rs.getInt("x"),
-                        rs.getInt("y"),
-                        rs.getInt("z"),
-                        rs.getString("type"),
-                        rs.getString("created_at")
-                ));
-            }
-            return records;
-        }
-    }
-
     public List<Integer> findInventoryIds(String playerName) throws SQLException {
         PlayerDao.PlayerRecord record = Database.getInstance().getPlayerDao().findByName(playerName);
         if(record == null) return new ArrayList<>();
@@ -91,5 +67,56 @@ public class PlayerInventoryDao {
         return list;
     }
 
+    public List<PlayerInventoryWithInventoryRecord> findInventoriesByPlayer(int playerId)
+            throws SQLException {
+
+        String sql = """
+            SELECT i.id, i.world, i.x, i.y, i.z
+            FROM inventories i
+            JOIN player_inventories pi ON pi.inventory_id = i.id
+            WHERE pi.player_id = ?;
+        """;
+
+        List<PlayerInventoryWithInventoryRecord> result = new ArrayList<>();
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, playerId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                result.add(new PlayerInventoryWithInventoryRecord(
+                        rs.getInt("id"),
+                        rs.getString("world"),
+                        rs.getInt("x"),
+                        rs.getInt("y"),
+                        rs.getInt("z")
+                ));
+            }
+        }
+
+        return result;
+    }
+
+    public void delete(int playerId, int inventoryId) throws SQLException {
+        String sql = """
+        DELETE FROM player_inventories
+        WHERE player_id = ? AND inventory_id = ?;
+    """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, playerId);
+            ps.setInt(2, inventoryId);
+            ps.executeUpdate();
+            // connection.commit();
+        }
+    }
+
+    public record PlayerInventoryWithInventoryRecord(
+            int inventoryId,
+            String world,
+            int x,
+            int y,
+            int z
+    ) {}
     public record PlayerInventoryRecord(int playerId, int inventoryId, String addedAt) {}
 }

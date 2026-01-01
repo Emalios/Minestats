@@ -1,8 +1,8 @@
 package fr.emalios.mystats.impl.storage.dao;
 
-import fr.emalios.mystats.api.stat.CountUnit;
-import fr.emalios.mystats.api.stat.Record;
-import fr.emalios.mystats.api.stat.RecordType;
+import fr.emalios.mystats.api.CountUnit;
+import fr.emalios.mystats.api.Record;
+import fr.emalios.mystats.api.RecordType;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Represent an item stored in a snapshot of an inventory. Associated with a snapshot.
+ * Represent a thing stored in a snapshot of an inventory. Associated with a snapshot.
  */
 public class RecordDao {
 

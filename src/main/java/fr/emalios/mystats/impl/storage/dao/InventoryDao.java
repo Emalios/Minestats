@@ -11,7 +11,7 @@ import java.util.Optional;
  * Represent an inventory.
  * blockId: unique identifier for a block composed of world:x;y;z
  * world: World where the inventory is scanned
- * x,y, z: position
+ * x,y,z: position
  * type:
  * An inventory will be linked to a player (player_inventories) and to snapshots of this inventory (inventory_snapshots)
  */

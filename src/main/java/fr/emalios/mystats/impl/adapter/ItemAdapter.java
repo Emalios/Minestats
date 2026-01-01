@@ -1,9 +1,9 @@
 package fr.emalios.mystats.impl.adapter;
 
-import fr.emalios.mystats.api.stat.CountUnit;
+import fr.emalios.mystats.api.CountUnit;
 import fr.emalios.mystats.api.stat.IHandler;
-import fr.emalios.mystats.api.stat.Record;
-import fr.emalios.mystats.api.stat.RecordType;
+import fr.emalios.mystats.api.Record;
+import fr.emalios.mystats.api.RecordType;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
@@ -41,15 +41,5 @@ public class ItemAdapter implements IHandler {
     @Override
     public boolean exists() {
         return this.capabilityCache.getCapability() != null;
-    }
-
-    @Override
-    public void save() {
-
-    }
-
-    @Override
-    public void delete() {
-
     }
 }

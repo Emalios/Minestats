@@ -1,7 +1,7 @@
 package fr.emalios.mystats.helper;
 
 import fr.emalios.mystats.api.stat.IHandler;
-import fr.emalios.mystats.api.stat.Record;
+import fr.emalios.mystats.api.Record;
 import fr.emalios.mystats.impl.adapter.FluidAdapter;
 import fr.emalios.mystats.impl.adapter.ItemAdapter;
 import net.minecraft.core.BlockPos;

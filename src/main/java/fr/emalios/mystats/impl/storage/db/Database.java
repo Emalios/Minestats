@@ -108,7 +108,7 @@ public final class Database {
         return playerInventoryDao;
     }
 
-    public RecordDao getSnapshotItemDao() {
+    public RecordDao getRecordDao() {
         return recordDao;
     }
 

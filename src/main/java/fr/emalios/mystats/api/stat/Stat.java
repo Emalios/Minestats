@@ -1,5 +1,9 @@
 package fr.emalios.mystats.api.stat;
 
+import fr.emalios.mystats.api.Record;
+import fr.emalios.mystats.api.CountUnit;
+import fr.emalios.mystats.api.RecordType;
+
 import java.util.Objects;
 
 /**

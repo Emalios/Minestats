@@ -1,4 +1,4 @@
-package fr.emalios.mystats.api.stat;
+package fr.emalios.mystats.api;
 
 import oshi.util.tuples.Pair;
 

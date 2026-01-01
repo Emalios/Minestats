@@ -1,6 +1,7 @@
 package fr.emalios.mystats.impl.adapter;
 
 import fr.emalios.mystats.api.stat.IHandler;
+import fr.emalios.mystats.api.Record;
 import fr.emalios.mystats.impl.storage.dao.InventoryDao;
 import fr.emalios.mystats.impl.storage.dao.InventorySnapshotDao;
 import fr.emalios.mystats.impl.storage.dao.RecordDao;
@@ -25,12 +26,12 @@ public class StatManager {
     private final Database db = Database.getInstance();
     private final InventorySnapshotDao inventorySnapshotDao = db.getInventorySnapshotDao();
     private final InventoryDao inventoryDao = db.getInventoryDao();
-    private final RecordDao recordDao = db.getSnapshotItemDao();
+    private final RecordDao recordDao = db.getRecordDao();
 
     //link an inventoryId to associated capability handlers
     //might be necessary to use coordinates/level here
     private final Map<Integer, List<IHandler>> monitored = new HashMap<>();
-    private final Queue<fr.emalios.mystats.api.stat.Record> buffer = new ConcurrentLinkedQueue<>();
+    private final Queue<Record> buffer = new ConcurrentLinkedQueue<>();
 
     private StatManager() {
     }

@@ -33,7 +33,7 @@ public class PlayerDao {
 
     public int insertIfNotExists(String name) throws SQLException {
         var entry = findByName(name);
-        if (entry != null) return entry.id; // déjà présent
+        if (entry != null) return entry.id; //WARNING: might be a problem to do like this, maybe better to throw exception here
         return insert(name);
     }
 
@@ -85,10 +85,10 @@ public class PlayerDao {
         return players;
     }
 
-    public void deleteById(int id) throws SQLException {
-        String sql = "DELETE FROM players WHERE id = ?;";
+    public void deleteByName(String name) throws SQLException {
+        String sql = "DELETE FROM players WHERE name = ?;";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, id);
+            ps.setString(1, name);
             ps.executeUpdate();
             //connection.commit();
         }

@@ -1,5 +1,7 @@
 package fr.emalios.mystats.content.item;
 
+import fr.emalios.mystats.api.StatPlayer;
+import fr.emalios.mystats.api.storage.Storage;
 import fr.emalios.mystats.impl.storage.dao.InventoryDao;
 import fr.emalios.mystats.impl.storage.db.Database;
 import fr.emalios.mystats.api.stat.IHandler;
@@ -114,6 +116,7 @@ public class RecorderItem extends Item {
     }
 
     private InteractionResult processClick(RecorderDataComponent.RecorderMode mode, Player player, Level level, List<IHandler> handlers, BlockPos pos) throws SQLException {
+        String playerName = player.getName().getString();
         var invRecord = getRecord(level, pos);
         //TODO: bug sometimes this method is executed two times, might be already resolved.
         switch (mode) {
@@ -126,6 +129,7 @@ public class RecorderItem extends Item {
                 this.sendMessage("Removed inventory from monitoring.", player);
                 return InteractionResult.SUCCESS;
             case ADD:
+                StatPlayer statPlayer = Storage.players().getOrCreate(playerName);
                 if(invRecord.isPresent()) {
                     this.sendMessage("Already monitored.", player);
                     return InteractionResult.PASS;

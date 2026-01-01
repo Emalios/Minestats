@@ -1,4 +1,4 @@
-package fr.emalios.mystats.api.stat;
+package fr.emalios.mystats.api;
 
 
 import java.util.Objects;
@@ -26,7 +26,6 @@ public class Record {
         this.countUnit = Objects.requireNonNull(countUnit);
     }
 
-    // --- Getters ---
     public RecordType getType() { return type; }
     public String getResourceId() { return resourceId; }
     public float getCount() { return count; }
