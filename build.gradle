@@ -139,7 +139,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("com.github.oshi:oshi-core:6.6.5")
 
-    implementation 'org.xerial:sqlite-jdbc:3.50.1.0'
+    jarJar 'org.xerial:sqlite-jdbc:3.50.1.0'
     // This adds the library to all the runs
     additionalRuntimeClasspath 'org.xerial:sqlite-jdbc:3.50.1.0'
 }
