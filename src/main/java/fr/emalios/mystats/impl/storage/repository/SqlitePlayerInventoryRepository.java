@@ -35,6 +35,22 @@ public class SqlitePlayerInventoryRepository implements PlayerInventoryRepositor
     }
 
     @Override
+    public boolean hasInventory(StatPlayer player, Inventory inventory) {
+        if (!player.isPersisted()) {
+            return false;
+        }
+        if (!inventory.isPersisted()) {
+            return false;
+        }
+
+        try {
+            return dao.exists(player.getId(), inventory.getId());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public Collection<Inventory> findByPlayer(StatPlayer statPlayer) {
         try {
             var records = dao.findInventoriesByPlayer(statPlayer.getId());

@@ -19,11 +19,7 @@ public class CustomServerTickEvent {
         counter++;
         if(counter < 300) return;
         counter = 0;
-        try {
-            statManager.scan();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        statManager.scan();
     }
 
 }

@@ -50,6 +50,22 @@ public class PlayerInventoryDao {
         return inventoryIds;
     }
 
+    public boolean exists(int playerId, int inventoryId) throws SQLException {
+        String sql = """
+        SELECT 1 FROM player_inventories
+        WHERE player_id = ? AND inventory_id = ?
+        LIMIT 1;
+    """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, playerId);
+            ps.setInt(2, inventoryId);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        }
+    }
+
+
     public List<PlayerInventoryRecord> findByPlayerId(int playerId) throws SQLException {
         String sql = "SELECT * FROM player_inventories WHERE player_id = ?;";
         List<PlayerInventoryRecord> list = new ArrayList<>();

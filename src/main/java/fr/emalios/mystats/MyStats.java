@@ -166,7 +166,8 @@ public class MyStats {
         LOGGER.info("HELLO from server starting");
         try {
             Database.getInstance().init();
-            DatabaseInitializer.createAll();
+            DatabaseInitializer.createAll(Database.getInstance().getConnection());
+            DatabaseInitializer.createIndexes(Database.getInstance().getConnection());
             Storage.register(
                     new SqlitePlayerRepository(Database.getInstance().getPlayerDao()),
                     new SqlitePlayerInventoryRepository(Database.getInstance().getPlayerInventoryDao()),

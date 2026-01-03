@@ -6,6 +6,7 @@ import fr.emalios.mystats.api.storage.PlayerRepository;
 import fr.emalios.mystats.impl.storage.dao.PlayerDao;
 
 import java.sql.SQLException;
+import java.util.Optional;
 
 public class SqlitePlayerRepository implements PlayerRepository {
 
@@ -13,11 +14,6 @@ public class SqlitePlayerRepository implements PlayerRepository {
 
     public SqlitePlayerRepository(PlayerDao dao) {
         this.dao = dao;
-    }
-
-    @Override
-    public boolean hasInventory(Inventory inventory) {
-        return false;
     }
 
     @Override
@@ -34,10 +30,8 @@ public class SqlitePlayerRepository implements PlayerRepository {
 
     @Override
     public StatPlayer getOrCreate(String name) {
-        StatPlayer existing = findByName(name);
-        if (existing != null) {
-            return existing;
-        }
+        var optPlayer = findByName(name);
+        if (optPlayer.isPresent()) return optPlayer.get();
 
         StatPlayer statPlayer = new StatPlayer(name);
         this.save(statPlayer);
@@ -45,16 +39,16 @@ public class SqlitePlayerRepository implements PlayerRepository {
     }
 
     @Override
-    public StatPlayer findByName(String name) {
+    public Optional<StatPlayer> findByName(String name) {
         PlayerDao.PlayerRecord record;
         try {
             record = dao.findByName(name);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        if (record == null) throw new IllegalArgumentException("Player '" + name + "' not found");
+        if (record == null) return Optional.empty();
         StatPlayer statPlayer = new StatPlayer(record.name());
         statPlayer.assignId(record.id());
-        return statPlayer;
+        return Optional.of(statPlayer);
     }
 }

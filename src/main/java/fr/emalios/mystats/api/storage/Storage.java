@@ -36,4 +36,8 @@ public final class Storage {
         inventoryRepository = inventoryRepo;
         inventorySnapshotRepository = inventorySnapshotRepo;
     }
+
+    public static void registerPlayers(PlayerRepository repository) {
+        playerRepository = repository;
+    }
 }

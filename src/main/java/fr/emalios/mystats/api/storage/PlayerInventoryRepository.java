@@ -11,5 +11,7 @@ public interface PlayerInventoryRepository {
 
     void removeInventory(StatPlayer statPlayer, Inventory inventory);
 
+    boolean hasInventory(StatPlayer statPlayer, Inventory inventory);
+
     Collection<Inventory> findByPlayer(StatPlayer statPlayer);
 }

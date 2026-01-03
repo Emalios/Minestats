@@ -1,7 +1,5 @@
 package fr.emalios.mystats.impl.storage.dao;
 
-import fr.emalios.mystats.impl.storage.db.Database;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,23 +21,17 @@ public class InventoryDao {
         this.connection = connection;
     }
 
-    private String generateBlockId(String world, int x, int y, int z) {
-        return world + ":" + x + ":" + y + ":" + z;
-    }
-
-    //TODO: review block_id system
     public int insert(String world, int x, int y, int z, String type) throws SQLException {
         String sql = """
-            INSERT INTO inventories (block_id, world, x, y, z, type)
-            VALUES (?, ?, ?, ?, ?, ?);
+            INSERT INTO inventories (world, x, y, z, type)
+            VALUES (?, ?, ?, ?, ?);
         """;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, generateBlockId(world, x, y, z));
-            ps.setString(2, world);
-            ps.setInt(3, x);
-            ps.setInt(4, y);
-            ps.setInt(5, z);
-            ps.setString(6, type);
+            ps.setString(1, world);
+            ps.setInt(2, x);
+            ps.setInt(3, y);
+            ps.setInt(4, z);
+            ps.setString(5, type);
             ps.executeUpdate();
             //connection.commit();
 
@@ -57,18 +49,19 @@ public class InventoryDao {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
             int rows = ps.executeUpdate();
+            System.out.println("row: " + rows);
             //connection.commit();
             return rows > 0;
         }
     }
 
     public int insertIfNotExists(String world, int x, int y, int z, String type) throws SQLException {
-        if (!findByBlockId(world, x, y, z).isEmpty()) return -1; // déjà présent
+        if (!getByPos(world, x, y, z).isEmpty()) return -1; // déjà présent
         return insert(world, x, y, z, type);
     }
 
     public boolean exists(String world, int x, int y, int z) throws SQLException {
-        return !findByBlockId(world, x, y, z).isEmpty();
+        return !getByPos(world, x, y, z).isEmpty();
     }
 
     public InventoryRecord findById(int id) throws SQLException {
@@ -79,7 +72,6 @@ public class InventoryDao {
             if (rs.next()) {
                 return new InventoryRecord(
                         rs.getInt("id"),
-                        rs.getString("block_id"),
                         rs.getString("world"),
                         rs.getInt("x"),
                         rs.getInt("y"),
@@ -92,15 +84,17 @@ public class InventoryDao {
         return null;
     }
 
-    public Optional<InventoryRecord> findByBlockId(String world, int x, int y, int z) throws SQLException {
-        String sql = "SELECT * FROM inventories WHERE block_id = ?;";
+    public Optional<InventoryRecord> getByPos(String world, int x, int y, int z) throws SQLException {
+        String sql = "SELECT * FROM inventories WHERE world = ? AND x = ? AND y = ? AND z = ?;";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, generateBlockId(world, x, y, z));
+            ps.setString(1, world);
+            ps.setInt(2, x);
+            ps.setInt(3, y);
+            ps.setInt(4, z);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return Optional.of(new InventoryRecord(
                         rs.getInt("id"),
-                        rs.getString("block_id"),
                         rs.getString("world"),
                         rs.getInt("x"),
                         rs.getInt("y"),
@@ -113,7 +107,28 @@ public class InventoryDao {
         return Optional.empty();
     }
 
-    public List<InventoryRecord> findAll() throws SQLException {
+    public List<InventoryRecord> getByWorld(String world) throws SQLException {
+        String sql = "SELECT * FROM inventories WHERE world = ?;";
+        List<InventoryRecord> records = new ArrayList<>();
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, world);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                records.add(new InventoryRecord(
+                        rs.getInt("id"),
+                        rs.getString("world"),
+                        rs.getInt("x"),
+                        rs.getInt("y"),
+                        rs.getInt("z"),
+                        rs.getString("type"),
+                        rs.getString("created_at")
+                ));
+            }
+        }
+        return records;
+    }
+
+    public List<InventoryRecord> getAll() throws SQLException {
         String sql = "SELECT * FROM inventories;";
         List<InventoryRecord> inventories = new ArrayList<>();
         try (Statement stmt = connection.createStatement();
@@ -121,7 +136,6 @@ public class InventoryDao {
             while (rs.next()) {
                 inventories.add(new InventoryRecord(
                         rs.getInt("id"),
-                        rs.getString("block_id"),
                         rs.getString("world"),
                         rs.getInt("x"),
                         rs.getInt("y"),
@@ -135,6 +149,6 @@ public class InventoryDao {
     }
 
     public record InventoryRecord(
-            int id, String blockId, String world, int x, int y, int z, String type, String createdAt
+            int id, String world, int x, int y, int z, String type, String createdAt
     ) {}
 }

@@ -1,8 +1,8 @@
 package fr.emalios.mystats.content.item;
 
+import fr.emalios.mystats.api.Inventory;
 import fr.emalios.mystats.api.StatPlayer;
 import fr.emalios.mystats.api.storage.Storage;
-import fr.emalios.mystats.impl.storage.dao.InventoryDao;
 import fr.emalios.mystats.impl.storage.db.Database;
 import fr.emalios.mystats.api.stat.IHandler;
 import fr.emalios.mystats.impl.adapter.StatManager;
@@ -103,53 +103,42 @@ public class RecorderItem extends Item {
         }
     }
 
-    private Optional<InventoryDao.InventoryRecord> getRecord(Level level, BlockPos pos) throws SQLException {
-        var inventoryRecord = database.getInventoryDao().findByBlockId(
-                level.dimension().location().toString(),
-                pos.getX(), pos.getY(), pos.getZ()
-        );
-        return inventoryRecord;
-    }
-
     private void sendMessage(String txt, Player player) {
         player.displayClientMessage(Component.literal(txt), true);
     }
 
     private InteractionResult processClick(RecorderDataComponent.RecorderMode mode, Player player, Level level, List<IHandler> handlers, BlockPos pos) throws SQLException {
         String playerName = player.getName().getString();
-        var invRecord = getRecord(level, pos);
         //TODO: bug sometimes this method is executed two times, might be already resolved.
         switch (mode) {
             case REMOVE:
-                if(invRecord.isEmpty()) {
+                Optional<Inventory> optInv = Storage.inventories().findByPos(
+                        level.dimension().location().toString(),
+                        pos.getX(), pos.getY(), pos.getZ());
+                if(optInv.isEmpty()) {
                     this.sendMessage("This block in not monitored.", player);
                     return InteractionResult.PASS;
                 }
-                this.statManager.unmonitore(invRecord.get().id());
+                this.statManager.unmonitore(optInv.get());
                 this.sendMessage("Removed inventory from monitoring.", player);
                 return InteractionResult.SUCCESS;
             case ADD:
                 StatPlayer statPlayer = Storage.players().getOrCreate(playerName);
-                if(invRecord.isPresent()) {
+                Inventory inventory = Storage.inventories().getOrCreate(
+                        level.dimension().location().toString(),
+                        pos.getX(), pos.getY(), pos.getZ());
+                inventory.addHandlers(handlers);
+                if(statPlayer.hasInventory(inventory)) {
                     this.sendMessage("Already monitored.", player);
                     return InteractionResult.PASS;
                 }
-                int playerId = database.getPlayerDao().insertIfNotExists(player.getName().getString());
-                System.out.println("player id: " + playerId);
-                int invId = database.getInventoryDao().insert(
-                        level.dimension().location().toString(),
-                        pos.getX(), pos.getY(), pos.getZ(),
-                        "ITEM");
-                //associate inventory to player
-                this.database.getPlayerInventoryDao().insert(playerId, invId);
+                statPlayer.addInventory(inventory);
                 //start monitoring for the block
-                this.statManager.add(invId, handlers);
+                this.statManager.add(inventory);
                 this.sendMessage("Added inventory to monitoring.", player);
                 return InteractionResult.SUCCESS;
         }
         System.err.println("UNKNOW MODE '" + mode + "'");
         return InteractionResult.PASS;
     }
-
-
 }

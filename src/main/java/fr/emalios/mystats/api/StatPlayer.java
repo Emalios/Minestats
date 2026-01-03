@@ -21,6 +21,10 @@ public class StatPlayer extends Persistable {
         Storage.playerInventories().removeInventory(this, inventory);
     }
 
+    public boolean hasInventory(Inventory inventory) {
+        return Storage.playerInventories().hasInventory(this, inventory);
+    }
+
     public Collection<Inventory> getInventories() {
         return Storage.playerInventories().findByPlayer(this);
     }

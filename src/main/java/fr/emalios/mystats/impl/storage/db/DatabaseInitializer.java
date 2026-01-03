@@ -9,8 +9,7 @@ import java.util.List;
 
 public class DatabaseInitializer {
 
-    public static void createAll() throws SQLException {
-        Connection conn = Database.getInstance().getConnection();
+    public static void createAll(Connection conn) throws SQLException {
         try (Statement stmt = conn.createStatement()) {
 
             // Table players
@@ -26,13 +25,13 @@ public class DatabaseInitializer {
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS inventories (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    block_id TEXT NOT NULL,
                     world TEXT NOT NULL,
                     x INTEGER NOT NULL,
                     y INTEGER NOT NULL,
                     z INTEGER NOT NULL,
                     type TEXT NOT NULL,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(world, x, y, z)
                 );
             """);
 
@@ -43,7 +42,7 @@ public class DatabaseInitializer {
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     inventory_id INTEGER NOT NULL,
                     timestamp INTEGER NOT NULL,
-                    FOREIGN KEY (inventory_id) REFERENCES inventories(id)
+                    FOREIGN KEY (inventory_id) REFERENCES inventories(id) ON DELETE CASCADE
                 );
             """);
 
@@ -56,7 +55,7 @@ public class DatabaseInitializer {
                     count REAL NOT NULL,
                     stat_type TEXT NOT NULL,
                     countUnit TEXT NOT NULL,
-                    FOREIGN KEY (snapshot_id) REFERENCES inventory_snapshots(id)
+                    FOREIGN KEY (snapshot_id) REFERENCES inventory_snapshots(id) ON DELETE CASCADE
                 );
             """);
 
@@ -67,12 +66,29 @@ public class DatabaseInitializer {
                     inventory_id INTEGER NOT NULL,
                     added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     PRIMARY KEY (player_id, inventory_id),
-                    FOREIGN KEY (player_id) REFERENCES players(id),
-                    FOREIGN KEY (inventory_id) REFERENCES inventories(id)
+                    FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
+                    FOREIGN KEY (inventory_id) REFERENCES inventories(id) ON DELETE CASCADE
                 );
             """);
 
             //conn.commit();
+        }
+    }
+
+    public static void createIndexes(Connection conn) throws SQLException {
+        try (Statement stmt = conn.createStatement()) {
+
+            // inventory_snapshots.inventory_id
+            stmt.execute("""
+            CREATE INDEX IF NOT EXISTS idx_inventory_snapshots_inventory
+            ON inventory_snapshots(inventory_id);
+        """);
+
+            // snapshot_items.snapshot_id
+            stmt.execute("""
+            CREATE INDEX IF NOT EXISTS idx_snapshot_items_snapshot
+            ON snapshot_items(snapshot_id);
+        """);
         }
     }
 
