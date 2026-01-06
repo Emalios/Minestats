@@ -40,7 +40,7 @@ public class Inventory extends Persistable {
         Collection<Record> records = this.getHandlers().stream()
                 .flatMap(iHandler -> iHandler.getContent().stream())
                 .collect(Collectors.toSet());
-        Snapshot snapshot = new Snapshot(this, records);
+        Snapshot snapshot = new Snapshot(this.getId(), records);
         Storage.inventorySnapshots().addSnapshot(snapshot);
     }
 

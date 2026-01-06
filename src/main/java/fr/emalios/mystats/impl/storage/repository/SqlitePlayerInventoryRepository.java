@@ -19,6 +19,7 @@ public class SqlitePlayerInventoryRepository implements PlayerInventoryRepositor
     @Override
     public void addInventory(StatPlayer statPlayer, Inventory inventory) {
         try {
+            System.out.println("insert player id: " + statPlayer.getId() + " inv id: " + inventory.getId());
             this.dao.insertIfNotExists(statPlayer.getId(), inventory.getId());
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -26,9 +27,9 @@ public class SqlitePlayerInventoryRepository implements PlayerInventoryRepositor
     }
 
     @Override
-    public void removeInventory(StatPlayer statPlayer, Inventory inventory) {
+    public boolean removeInventory(StatPlayer statPlayer, Inventory inventory) {
         try {
-            this.dao.delete(statPlayer.getId(), inventory.getId());
+            return this.dao.delete(statPlayer.getId(), inventory.getId());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -37,13 +38,16 @@ public class SqlitePlayerInventoryRepository implements PlayerInventoryRepositor
     @Override
     public boolean hasInventory(StatPlayer player, Inventory inventory) {
         if (!player.isPersisted()) {
+            System.out.println("player pas persisted");
             return false;
         }
         if (!inventory.isPersisted()) {
+            System.out.println("inventory pas persisted");
             return false;
         }
 
         try {
+            System.out.println("oked");
             return dao.exists(player.getId(), inventory.getId());
         } catch (SQLException e) {
             throw new RuntimeException(e);

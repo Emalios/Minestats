@@ -9,7 +9,7 @@ public interface PlayerInventoryRepository {
 
     void addInventory(StatPlayer statPlayer, Inventory inventory);
 
-    void removeInventory(StatPlayer statPlayer, Inventory inventory);
+    boolean removeInventory(StatPlayer statPlayer, Inventory inventory);
 
     boolean hasInventory(StatPlayer statPlayer, Inventory inventory);
 

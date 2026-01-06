@@ -1,0 +1,196 @@
+package minestats.api.storage;
+
+import fr.emalios.mystats.api.*;
+import fr.emalios.mystats.api.Record;
+import fr.emalios.mystats.api.stat.IHandler;
+import fr.emalios.mystats.api.storage.Storage;
+import fr.emalios.mystats.impl.storage.dao.*;
+import fr.emalios.mystats.impl.storage.repository.SqliteInventoryRepository;
+import fr.emalios.mystats.impl.storage.repository.SqliteInventorySnapshotRepository;
+import fr.emalios.mystats.impl.storage.repository.SqlitePlayerInventoryRepository;
+import fr.emalios.mystats.impl.storage.repository.SqlitePlayerRepository;
+import org.junit.jupiter.api.*;
+
+import java.sql.Connection;
+import java.util.Collection;
+import java.util.List;
+
+@DisplayName("InventorySnapshotRepository test")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class SqliteInventorySnapshotRepositoryTest {
+
+    private List<Record> itemRecords = List.of(
+            new Record(RecordType.ITEM, "dirt", 10, CountUnit.ITEM),
+            new Record(RecordType.ITEM, "stone", 100, CountUnit.ITEM),
+            new Record(RecordType.ITEM, "iron", 1000, CountUnit.ITEM)
+    );
+    private List<Record> fluidRecords = List.of(
+            new Record(RecordType.FLUID, "water", 1, CountUnit.B),
+            new Record(RecordType.FLUID, "lava", 100, CountUnit.MB)
+    );
+
+    private IHandler items = new IHandler() {
+        @Override
+        public boolean exists() {
+            return true;
+        }
+
+        @Override
+        public Collection<Record> getContent() {
+            return itemRecords;
+        }
+    };
+
+    private IHandler fluids = new IHandler() {
+        @Override
+        public boolean exists() {
+            return true;
+        }
+
+        @Override
+        public Collection<Record> getContent() {
+            return fluidRecords;
+        }
+    };
+
+    private IHandler empty = new IHandler() {
+        @Override
+        public boolean exists() {
+            return true;
+        }
+
+        @Override
+        public Collection<Record> getContent() {
+            return List.of();
+        }
+    };
+
+    @BeforeAll
+    void setup() {
+        Connection conn = DatabaseTest.getConnection();
+        Storage.registerInventorySnapshotRepo(new SqliteInventorySnapshotRepository(new InventorySnapshotDao(conn), new RecordDao(conn)));
+        Storage.registerPlayerInventoriesRepo(new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn)));
+        Storage.registerPlayerRepo(new SqlitePlayerRepository(new PlayerDao(conn)));
+        Storage.registerInventoryRepo(new SqliteInventoryRepository(new InventoryDao(conn)));
+    }
+
+    @AfterAll
+    void teardown() {
+        DatabaseTest.close();
+    }
+
+    @Test
+    @DisplayName("Create multiple empty snapshots")
+    void createMultipleEmptySnapshots() {
+        Inventory inventory = Storage.inventories().getOrCreate("minecraft:overworld", 0, 0, 0);
+        for (int i = 0; i < 10; i++) {
+            inventory.recordContent();
+        }
+        var invSnapshots = Storage.inventorySnapshots().findByInventory(inventory);
+        Assertions.assertNotNull(invSnapshots);
+        Assertions.assertFalse(invSnapshots.isEmpty());
+        Assertions.assertEquals(10, invSnapshots.size());
+    }
+
+    @Test
+    @DisplayName("Create item snapshot")
+    void createItemSnapshot() {
+        Inventory inventory = Storage.inventories().getOrCreate("minecraft:nether", 0, 0, 0);
+        inventory.addHandler(items);
+        inventory.recordContent();
+        var invSnapshots = Storage.inventorySnapshots().findByInventory(inventory);
+        Snapshot snapshot = invSnapshots.getFirst();
+        var content = snapshot.getContent();
+        Assertions.assertNotNull(content);
+        Assertions.assertFalse(content.isEmpty());
+        Assertions.assertEquals(itemRecords.size(), content.size());
+        Assertions.assertTrue(
+                content.containsAll(itemRecords) &&
+                        itemRecords.containsAll(content)
+        );
+    }
+
+    @Test
+    @DisplayName("Create fluid snapshot")
+    void createFluidSnapshot() {
+        Inventory inventory = Storage.inventories().getOrCreate("minecraft:end", 0, 0, 0);
+        inventory.addHandler(fluids);
+        inventory.recordContent();
+        var invSnapshots = Storage.inventorySnapshots().findByInventory(inventory);
+        Snapshot snapshot = invSnapshots.getFirst();
+        var content = snapshot.getContent();
+        Assertions.assertNotNull(content);
+        Assertions.assertFalse(content.isEmpty());
+        Assertions.assertEquals(fluidRecords.size(), content.size());
+        Assertions.assertTrue(
+                content.containsAll(fluidRecords) &&
+                        fluidRecords.containsAll(content)
+        );
+    }
+
+    @Test
+    @DisplayName("Create empty snapshot")
+    void createEmptySnapshot() {
+        Inventory inventory = Storage.inventories().getOrCreate("minecraft:overworld", 10, 0, 0);
+        inventory.addHandler(empty);
+        inventory.recordContent();
+        var invSnapshots = Storage.inventorySnapshots().findByInventory(inventory);
+        Snapshot snapshot = invSnapshots.getFirst();
+        var content = snapshot.getContent();
+        Assertions.assertNotNull(content);
+        Assertions.assertTrue(content.isEmpty());
+        Assertions.assertEquals(List.of(), content);
+    }
+
+    @Test
+    @DisplayName("Create mixed snapshot")
+    void createMixedSnapshot() {
+        Inventory inventory = Storage.inventories().getOrCreate("minecraft:overworld", 0, 10, 0);
+        inventory.addHandler(fluids);
+        inventory.addHandler(items);
+        inventory.recordContent();
+        var invSnapshots = Storage.inventorySnapshots().findByInventory(inventory);
+        Snapshot snapshot = invSnapshots.getFirst();
+        var content = snapshot.getContent();
+        Assertions.assertNotNull(content);
+        Assertions.assertFalse(content.isEmpty());
+        Assertions.assertTrue(
+                content.containsAll(fluidRecords) &&
+                        content.containsAll(itemRecords)
+        );
+    }
+
+    @Test
+    @DisplayName("Create mixed snapshots")
+    void createMixedSnapshots() {
+        Inventory inventory = Storage.inventories().getOrCreate("minecraft:overworld", 0, 0, 10);
+        inventory.addHandler(fluids);
+        inventory.addHandler(items);
+        inventory.recordContent();
+        inventory.recordContent();
+        var invSnapshots = Storage.inventorySnapshots().findByInventory(inventory);
+        Assertions.assertEquals(2, invSnapshots.size());
+    }
+
+    /**
+     * We do not support that yet.
+     */
+    @Test
+    @DisplayName("Create snapshot with merged records")
+    void createSnapshotWithMergedRecords() {
+        Inventory inventory = Storage.inventories().getOrCreate("minecraft:overworld", 10, 10, 10);
+        inventory.addHandler(items);
+        inventory.addHandler(items);
+        inventory.recordContent();
+        var invSnapshots = Storage.inventorySnapshots().findByInventory(inventory);
+        Snapshot snapshot = invSnapshots.getFirst();
+        Assertions.assertEquals(3, snapshot.getContent().size());
+        Assertions.assertEquals(List.of(
+                new Record(RecordType.ITEM, "dirt", 10*2, CountUnit.ITEM),
+                new Record(RecordType.ITEM, "stone", 100*2, CountUnit.ITEM),
+                new Record(RecordType.ITEM, "iron", 1000*2, CountUnit.ITEM)
+        ), snapshot.getContent());
+    }
+
+
+}

@@ -31,7 +31,7 @@ public class PlayerInventoryDao {
     }
 
     public void insertIfNotExists(int playerId, int inventoryId) throws SQLException {
-        if (!findByPlayerId(playerId).isEmpty()) return;
+        if (exists(playerId, inventoryId)) return;
         this.insert(playerId, inventoryId);
     }
 
@@ -50,13 +50,34 @@ public class PlayerInventoryDao {
         return inventoryIds;
     }
 
+    private void debugPlayerInventories(int playerId) throws SQLException {
+        String debugSql = """
+        SELECT player_id, inventory_id
+        FROM player_inventories
+        WHERE player_id = ?;
+    """;
+
+        try (PreparedStatement ps = connection.prepareStatement(debugSql)) {
+            ps.setInt(1, playerId);
+            ResultSet rs = ps.executeQuery();
+
+            System.out.println("DEBUG inventories for player_id=" + playerId);
+            while (rs.next()) {
+                System.out.println(
+                        "player_id=" + rs.getInt("player_id") +
+                                ", inventory_id=" + rs.getInt("inventory_id")
+                );
+            }
+        }
+    }
+
+
     public boolean exists(int playerId, int inventoryId) throws SQLException {
         String sql = """
         SELECT 1 FROM player_inventories
         WHERE player_id = ? AND inventory_id = ?
         LIMIT 1;
     """;
-
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, playerId);
             ps.setInt(2, inventoryId);
@@ -113,7 +134,7 @@ public class PlayerInventoryDao {
         return result;
     }
 
-    public void delete(int playerId, int inventoryId) throws SQLException {
+    public boolean delete(int playerId, int inventoryId) throws SQLException {
         String sql = """
         DELETE FROM player_inventories
         WHERE player_id = ? AND inventory_id = ?;
@@ -122,10 +143,11 @@ public class PlayerInventoryDao {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, playerId);
             ps.setInt(2, inventoryId);
-            ps.executeUpdate();
-            // connection.commit();
+            int affectedRows = ps.executeUpdate();
+            return affectedRows > 0;
         }
     }
+
 
     public record PlayerInventoryWithInventoryRecord(
             int inventoryId,

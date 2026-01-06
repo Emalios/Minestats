@@ -8,10 +8,11 @@ import fr.emalios.mystats.impl.storage.repository.SqlitePlayerRepository;
 import org.junit.jupiter.api.*;
 
 import java.sql.Connection;
+import java.util.Optional;
 
 @DisplayName("PlayerRepository test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class PlayerRepositoryTest {
+public class SqlitePlayerRepositoryTest {
 
     private PlayerRepository repository;
 
@@ -22,7 +23,7 @@ public class PlayerRepositoryTest {
         PlayerDao playerDao = new PlayerDao(conn);
         repository = new SqlitePlayerRepository(playerDao);
 
-        Storage.registerPlayers(repository);
+        Storage.registerPlayerRepo(repository);
     }
 
     @AfterAll
@@ -44,16 +45,13 @@ public class PlayerRepositoryTest {
     @DisplayName("Get existing player")
     void getExistingPlayerTest() {
         StatPlayer p1 = Storage.players().getOrCreate("Dev");
-        StatPlayer p2 = Storage.players().getOrCreate("Dev");
+        Optional<StatPlayer> optP2 = Storage.players().findByName("Dev");
+        Assertions.assertTrue(optP2.isPresent());
+        StatPlayer p2 = optP2.get();
         Assertions.assertTrue(p1.isPersisted());
         Assertions.assertTrue(p2.isPersisted());
         Assertions.assertEquals(p1.getId(), p2.getId());
-    }
-
-    @Test
-    @DisplayName("Get null player")
-    void getNullPlayerTest() {
-        StatPlayer p1 = Storage.players().("DevTest");
-        Assertions.assertFalse(p1.isPersisted());
+        Assertions.assertEquals(p1.getName(), p2.getName());
+        Assertions.assertEquals(p1, p2);
     }
 }

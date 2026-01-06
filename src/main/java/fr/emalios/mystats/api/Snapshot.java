@@ -7,21 +7,21 @@ public class Snapshot {
 
 
     private final Collection<Record> content;
-    private final Inventory inventory;
+    private final int inventoryId;
     private final long timestamp;
 
-    public Snapshot(Inventory inventory, Collection<Record> content) {
+    public Snapshot(int inventoryId, Collection<Record> content) {
         this.timestamp = Instant.now().getEpochSecond();
-        this.inventory = inventory;
         this.content = content;
-    }
-
-    public Inventory getInventory() {
-        return inventory;
+        this.inventoryId = inventoryId;
     }
 
     public Collection<Record> getContent() {
         return content;
+    }
+
+    public int getInventoryId() {
+        return inventoryId;
     }
 
     public long getTimestamp() {

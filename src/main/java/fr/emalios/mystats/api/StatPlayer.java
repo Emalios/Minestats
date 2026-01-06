@@ -4,6 +4,7 @@ import fr.emalios.mystats.api.storage.Persistable;
 import fr.emalios.mystats.api.storage.Storage;
 
 import java.util.Collection;
+import java.util.Objects;
 
 public class StatPlayer extends Persistable {
 
@@ -17,8 +18,8 @@ public class StatPlayer extends Persistable {
         Storage.playerInventories().addInventory(this, inventory);
     }
 
-    public void removeInventory(Inventory inventory) {
-        Storage.playerInventories().removeInventory(this, inventory);
+    public boolean removeInventory(Inventory inventory) {
+        return Storage.playerInventories().removeInventory(this, inventory);
     }
 
     public boolean hasInventory(Inventory inventory) {
@@ -33,4 +34,15 @@ public class StatPlayer extends Persistable {
         return name;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        StatPlayer that = (StatPlayer) o;
+        return Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name);
+    }
 }

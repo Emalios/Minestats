@@ -4,11 +4,12 @@ import fr.emalios.mystats.api.Inventory;
 import fr.emalios.mystats.api.Snapshot;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface InventorySnapshotRepository {
 
     void addSnapshot(Snapshot snapshot);
 
-    Collection<Snapshot> findByInventory(Inventory inventory);
+    List<Snapshot> findByInventory(Inventory inventory);
 
 }
