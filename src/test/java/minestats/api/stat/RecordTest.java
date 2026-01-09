@@ -71,4 +71,20 @@ public class RecordTest {
     public void mergeWaterWithLava() {
         assertThrows(IllegalArgumentException.class, () -> water1.mergeWith(lava1));
     }
+
+    @Test
+    @DisplayName("incorrect type")
+    public void incorrectType() {
+        assertThrows(IllegalArgumentException.class, () -> new Record(RecordType.FLUID, "minecraft:dirt", 1, CountUnit.ITEM));
+        assertThrows(IllegalArgumentException.class, () -> new Record(RecordType.ITEM, "minecraft:dirt", 1, CountUnit.MB));
+        assertThrows(IllegalArgumentException.class, () -> new Record(RecordType.ITEM, "minecraft:dirt", 1, CountUnit.B));
+    }
+
+    @Test
+    @DisplayName("correct type")
+    public void correctType() {
+        new Record(RecordType.ITEM, "minecraft:dirt", 1, CountUnit.ITEM);
+        new Record(RecordType.FLUID, "minecraft:dirt", 1, CountUnit.MB);
+        new Record(RecordType.FLUID, "minecraft:dirt", 1, CountUnit.B);
+    }
 }

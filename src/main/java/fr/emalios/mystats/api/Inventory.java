@@ -44,6 +44,14 @@ public class Inventory extends Persistable {
         Storage.inventorySnapshots().addSnapshot(snapshot);
     }
 
+    public void recordContent(long timestamp) {
+        Collection<Record> records = this.getHandlers().stream()
+                .flatMap(iHandler -> iHandler.getContent().stream())
+                .collect(Collectors.toSet());
+        Snapshot snapshot = new Snapshot(this.getId(), records, timestamp);
+        Storage.inventorySnapshots().addSnapshot(snapshot);
+    }
+
     /**
      * Test if the inventory is still valid by testing is IHandler
      * @return true if it has at least one valid IHandler, else false

@@ -20,11 +20,35 @@ public class Record {
             float count,
             CountUnit countUnit
     ) {
+        this.assertTypeUnit(type, countUnit);
         this.type = Objects.requireNonNull(type);
         this.resourceId = Objects.requireNonNull(resourceId);
         this.count = count;
         this.countUnit = Objects.requireNonNull(countUnit);
     }
+
+    private void assertTypeUnit(RecordType type, CountUnit countUnit) {
+        switch (type) {
+            case ITEM -> {
+                switch (countUnit) {
+                    case ITEM -> {}
+                    case MB, B -> throw new IllegalArgumentException(
+                            "ITEM records cannot use " + countUnit
+                    );
+                }
+                ;
+            }
+            case FLUID -> {
+                switch (countUnit) {
+                    case MB, B -> {}
+                    case ITEM -> throw new IllegalArgumentException(
+                            "FLUID records cannot use ITEM unit"
+                    );
+                }
+            }
+        }
+    }
+
 
     public RecordType getType() { return type; }
     public String getResourceId() { return resourceId; }

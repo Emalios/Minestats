@@ -29,6 +29,7 @@ public class SqliteInventorySnapshotRepository
 
     @Override
     public void addSnapshot(Snapshot snapshot) {
+        System.out.println("insert " + snapshot.getTimestamp());
         int snapshotId = this.snapshotDao.insert(
                 snapshot.getInventoryId(),
                 snapshot.getTimestamp()
@@ -47,13 +48,14 @@ public class SqliteInventorySnapshotRepository
 
     @Override
     public List<Snapshot> findByInventory(Inventory inventory) {
+        System.out.println("find by inventory " + inventory);
         try {
             var snapshotRecords = this.snapshotDao.findAllByInvId(inventory.getId());
             List<Snapshot> snapshots = new ArrayList<>();
 
             for (var snap : snapshotRecords) {
                 Collection<Record> records = this.recordDao.findBySnapshotId(snap.id());
-                snapshots.add(new Snapshot(inventory.getId(), records));
+                snapshots.add(new Snapshot(inventory.getId(), records, snap.timestamp()));
             }
             return snapshots;
 

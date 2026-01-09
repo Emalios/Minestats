@@ -1,5 +1,6 @@
 package fr.emalios.mystats.helper;
 
+import fr.emalios.mystats.api.Snapshot;
 import fr.emalios.mystats.api.stat.IHandler;
 import fr.emalios.mystats.api.Record;
 import fr.emalios.mystats.impl.adapter.FluidAdapter;
@@ -16,9 +17,27 @@ import java.util.stream.Collectors;
 
 public class Utils {
 
-    public static Map<String, Float> makeStats(Map<Long, List<Record>> history) {
+
+    public static void testStat(List<Snapshot> snapshots) {
+        Collections.sort(snapshots);
+
+        Map<String, List<Double>> ratesByItem = new HashMap<>();
+
+        for (int i = 0; i < snapshots.size() - 1; i++) {
+            long t1 = snapshots.get(i).getTimestamp();
+            long t2 = snapshots.get(i + 1).getTimestamp();
+            double deltaTime = (double) (t2 - t1);
+
+
+        }
+
+    }
+
+    public static Map<String, Float> makeStats(Map<Long, Collection<Record>> history) {
+        System.out.println("history size: " + history.size());
         List<Long> timestamps = new ArrayList<>(history.keySet());
         Collections.sort(timestamps);
+        System.out.println("timestamps: " + timestamps);
 
         Map<String, List<Double>> ratesByItem = new HashMap<>(); // item -> liste de vitesses successives
 
@@ -37,6 +56,8 @@ public class Utils {
             Set<String> allItems = new HashSet<>();
             allItems.addAll(counts1.keySet());
             allItems.addAll(counts2.keySet());
+
+            System.out.println("allItems: " + allItems);
 
             for (String item : allItems) {
                 float c1 = counts1.getOrDefault(item, Float.valueOf(0));

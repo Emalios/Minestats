@@ -1,7 +1,9 @@
 package fr.emalios.mystats.content.menu;
 
+import fr.emalios.mystats.api.StatPlayer;
 import fr.emalios.mystats.api.stat.Stat;
 import fr.emalios.mystats.api.stat.utils.StatCalculator;
+import fr.emalios.mystats.api.storage.Storage;
 import fr.emalios.mystats.network.StatPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -22,12 +24,14 @@ public class MonitorMenu extends AbstractContainerMenu {
     private static final int UPDATE_INTERVAL = 300;
 
     private final Player player;
+    private final StatPlayer statPlayer;
     private final StatCalculator statCalculator = StatCalculator.getInstance();
     private List<Stat> stats = new ArrayList<>();
 
     public MonitorMenu(int containerId, Inventory playerInv) {
         super(MONITOR_MENU.get(), containerId);
         this.player = playerInv.player;
+        this.statPlayer = Storage.players().getOrCreate(player.getName().getString());
         try {
             this.updateStats();
         } catch (SQLException e) {
@@ -39,13 +43,12 @@ public class MonitorMenu extends AbstractContainerMenu {
     public void broadcastChanges() {
         super.broadcastChanges();
 
-        // Tick toutes les X ticks
         tickCounter++;
         if (tickCounter >= UPDATE_INTERVAL) {
             tickCounter = 0;
             try {
                 //TODO: send only if stats has changed
-                this.updateStats(); // serveur MAJ SQL
+                this.updateStats();
                 PacketDistributor.sendToPlayer((ServerPlayer) this.player, new StatPayload(this.stats));
             } catch (SQLException e) {
                 throw new RuntimeException(e);
@@ -55,7 +58,7 @@ public class MonitorMenu extends AbstractContainerMenu {
 
 
     public void updateStats() throws SQLException {
-        this.stats = this.statCalculator.genPerSecond(this.player.getName().getString()).stream().toList();
+        this.stats = this.statCalculator.genPerSecond(this.statPlayer.getInventories()).stream().toList();
     }
 
     @Override
