@@ -29,7 +29,6 @@ public class SqliteInventorySnapshotRepository
 
     @Override
     public void addSnapshot(Snapshot snapshot) {
-        System.out.println("insert " + snapshot.getTimestamp());
         int snapshotId = this.snapshotDao.insert(
                 snapshot.getInventoryId(),
                 snapshot.getTimestamp()
@@ -47,10 +46,31 @@ public class SqliteInventorySnapshotRepository
     }
 
     @Override
-    public List<Snapshot> findByInventory(Inventory inventory) {
-        System.out.println("find by inventory " + inventory);
+    public List<Snapshot> findAllByInventory(Inventory inventory) {
+        return this.findAllByInventoryId(inventory.getId());
+    }
+
+    @Override
+    public List<Snapshot> findAllByInventoryId(int inventoryId) {
         try {
-            var snapshotRecords = this.snapshotDao.findAllByInvId(inventory.getId());
+            var snapshotRecords = this.snapshotDao.findAllByInvId(inventoryId);
+            List<Snapshot> snapshots = new ArrayList<>();
+
+            for (var snap : snapshotRecords) {
+                Collection<Record> records = this.recordDao.findBySnapshotId(snap.id());
+                snapshots.add(new Snapshot(inventoryId, records, snap.timestamp()));
+            }
+            return snapshots;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<Snapshot> findLastByInventory(Inventory inventory, int number) {
+        try {
+            var snapshotRecords = this.snapshotDao.findLastByInvId(inventory.getId(), number);
             List<Snapshot> snapshots = new ArrayList<>();
 
             for (var snap : snapshotRecords) {

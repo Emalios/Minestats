@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Objects;
 
 public class Snapshot implements Comparable<Snapshot> {
 
@@ -39,5 +40,24 @@ public class Snapshot implements Comparable<Snapshot> {
     @Override
     public int compareTo(@NotNull Snapshot o) {
         return Long.compare(timestamp, o.timestamp);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Snapshot snapshot = (Snapshot) o;
+        return inventoryId == snapshot.inventoryId && timestamp == snapshot.timestamp && Objects.equals(content, snapshot.content);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(content, inventoryId, timestamp);
+    }
+
+    @Override
+    public String toString() {
+        return "Snapshot{" +
+                ", timestamp=" + timestamp +
+                '}';
     }
 }

@@ -1,13 +1,21 @@
 package minestats.api.storage;
 
-import fr.emalios.mystats.api.Inventory;
+import fr.emalios.mystats.api.*;
+import fr.emalios.mystats.api.Record;
+import fr.emalios.mystats.api.stat.IHandler;
 import fr.emalios.mystats.api.storage.InventoryRepository;
 import fr.emalios.mystats.api.storage.Storage;
-import fr.emalios.mystats.impl.storage.dao.InventoryDao;
+import fr.emalios.mystats.impl.adapter.ItemAdapter;
+import fr.emalios.mystats.impl.storage.dao.*;
 import fr.emalios.mystats.impl.storage.repository.SqliteInventoryRepository;
+import fr.emalios.mystats.impl.storage.repository.SqliteInventorySnapshotRepository;
+import fr.emalios.mystats.impl.storage.repository.SqlitePlayerInventoryRepository;
+import fr.emalios.mystats.impl.storage.repository.SqlitePlayerRepository;
 import org.junit.jupiter.api.*;
 
 import java.sql.Connection;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @DisplayName("InventoryRepository test")
@@ -20,9 +28,10 @@ public class SqliteInventoryRepositoryTest {
     void setup() {
         Connection conn = DatabaseTest.getConnection();
 
-        repository = new SqliteInventoryRepository(new InventoryDao(conn));
-
-        Storage.registerInventoryRepo(repository);
+        Storage.registerInventorySnapshotRepo(new SqliteInventorySnapshotRepository(new InventorySnapshotDao(conn), new RecordDao(conn)));
+        Storage.registerPlayerInventoriesRepo(new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn)));
+        Storage.registerPlayerRepo(new SqlitePlayerRepository(new PlayerDao(conn)));
+        Storage.registerInventoryRepo(new SqliteInventoryRepository(new InventoryDao(conn)));
     }
 
     @AfterAll
@@ -105,6 +114,65 @@ public class SqliteInventoryRepositoryTest {
         Storage.inventories().delete(inv);
         Optional<Inventory> optInv =  Storage.inventories().findByPos("minecraft:nether", 0, 0, 0);
         Assertions.assertFalse(optInv.isPresent());
+    }
+
+    @Test
+    @DisplayName("Delete existing inventory with snapshots")
+    void deleteExistingSnapshotTest() {
+        Inventory inv = Storage.inventories().getOrCreate("test-delete-inv-snapshot", 0, 0, 0);
+        inv.addHandler(new IHandler() {
+            @Override
+            public boolean exists() {
+                return true;
+            }
+
+            @Override
+            public Collection<Record> getContent() {
+                return List.of(new Record(RecordType.ITEM, "test", 0, CountUnit.ITEM));
+            }
+        });
+        inv.recordContent();
+        inv.recordContent();
+
+        int invId = inv.getId();
+        Storage.inventories().delete(inv);
+        Optional<Inventory> optInv = Storage.inventories().findByPos("minecraft:nether", 0, 0, 0);
+
+        Assertions.assertFalse(optInv.isPresent());
+        Assertions.assertFalse(inv.isPersisted());
+
+        var snapshots = Storage.inventorySnapshots().findAllByInventoryId(invId);
+        Assertions.assertEquals(0, snapshots.size());
+    }
+
+    @Test
+    @DisplayName("Delete existing inventory associated with player")
+    void deleteExistingInventoryAssociatedWithPlayerTest() {
+        StatPlayer player = Storage.players().getOrCreate("test-delete-inv-player");
+        Inventory inv = Storage.inventories().getOrCreate("test-delete-inv-player-associated", 0, 0, 0);
+        inv.addHandler(new IHandler() {
+            @Override
+            public boolean exists() {
+                return true;
+            }
+
+            @Override
+            public Collection<Record> getContent() {
+                return List.of(new Record(RecordType.ITEM, "test", 0, CountUnit.ITEM));
+            }
+        });
+        player.addInventory(inv);
+        inv.recordContent();
+        inv.recordContent();
+
+        Storage.inventories().delete(inv);
+        Optional<Inventory> optInv = Storage.inventories().findByPos("minecraft:nether", 0, 0, 0);
+
+        Assertions.assertFalse(optInv.isPresent());
+        Assertions.assertFalse(inv.isPersisted());
+
+        var result = Storage.playerInventories().findByPlayer(player);
+        Assertions.assertEquals(0, result.size());
     }
 
     @Test

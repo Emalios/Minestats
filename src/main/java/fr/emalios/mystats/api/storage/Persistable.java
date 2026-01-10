@@ -25,5 +25,14 @@ public abstract class Persistable {
         }
         this.id = id;
     }
+
+    public final void delete() {
+        if (this.id == null) {
+            throw new IllegalStateException(
+                    getClass().getSimpleName() + " not persisted"
+            );
+        }
+        this.id = null;
+    }
 }
 

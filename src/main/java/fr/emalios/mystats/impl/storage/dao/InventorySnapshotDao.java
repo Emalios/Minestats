@@ -57,11 +57,37 @@ public class InventorySnapshotDao {
         String sql = """
             SELECT * FROM inventory_snapshots
             WHERE inventory_id = ?
-            ORDER BY timestamp DESC
-            LIMIT 10;
+            ORDER BY timestamp;
         """;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, inventoryId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(new SnapshotRecord(
+                        rs.getInt("id"),
+                        rs.getInt("inventory_id"),
+                        rs.getLong("timestamp")
+                ));
+            }
+        }
+        //connection.commit();
+        return list;
+    }
+
+    public List<SnapshotRecord> findLastByInvId(int inventoryId, int number) throws SQLException {
+        List<SnapshotRecord> list = new ArrayList<>();
+        String sql = """
+        SELECT * FROM (
+            SELECT * FROM inventory_snapshots
+            WHERE inventory_id = ?
+            ORDER BY timestamp DESC
+            LIMIT ?
+        ) t
+        ORDER BY timestamp;
+        """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, inventoryId);
+            ps.setInt(2, number);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 list.add(new SnapshotRecord(

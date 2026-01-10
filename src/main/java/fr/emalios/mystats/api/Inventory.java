@@ -72,8 +72,12 @@ public class Inventory extends Persistable {
         return this.handlers.stream().filter(IHandler::exists).toList();
     }
 
-    public Collection<Snapshot> getSnapshots() {
-        return Storage.inventorySnapshots().findByInventory(this);
+    public Collection<Snapshot> getSnapshots(int limit) {
+        return Storage.inventorySnapshots().findLastByInventory(this, limit);
+    }
+
+    public Collection<Snapshot> getAllSnapshots() {
+        return Storage.inventorySnapshots().findAllByInventory(this);
     }
 
     public String getBlockId() {

@@ -75,6 +75,7 @@ public class SqliteInventoryRepository implements InventoryRepository {
         if(!inventory.isPersisted()) throw new IllegalArgumentException("Inventory '" + inventory + "' is not persisted");
         try {
             this.dao.deleteById(inventory.getId());
+            inventory.delete();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

@@ -43,7 +43,7 @@ public class StatCalculator {
         Map<String, RecordType> contentTypes = new HashMap<>();
         Map<String, Stat> results = new HashMap<>();
         for (Inventory inventory : inventories) {
-            var snapshots = inventory.getSnapshots();
+            var snapshots = inventory.getSnapshots(10);
             System.out.println("snapshots: " + snapshots.size());
             Map<Long, Collection<Record>> history = new HashMap<>();
             for (var snapshot : snapshots) {

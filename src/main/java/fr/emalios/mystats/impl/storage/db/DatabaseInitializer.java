@@ -10,6 +10,10 @@ import java.util.List;
 public class DatabaseInitializer {
 
     public static void createAll(Connection conn) throws SQLException {
+        try (Statement st = conn.createStatement()) {
+            st.execute("PRAGMA foreign_keys = ON;");
+        }
+
         try (Statement stmt = conn.createStatement()) {
 
             // Table players
