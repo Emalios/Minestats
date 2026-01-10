@@ -44,18 +44,13 @@ public class StatCalculator {
         Map<String, Stat> results = new HashMap<>();
         for (Inventory inventory : inventories) {
             var snapshots = inventory.getSnapshots(10);
-            System.out.println("snapshots: " + snapshots.size());
             Map<Long, Collection<Record>> history = new HashMap<>();
             for (var snapshot : snapshots) {
                 var content = snapshot.getContent();
                 this.registerContentTypes(contentTypes, content);
-                System.out.println("current history: " + history);
-                System.out.println("about to insert at key: " + snapshot.getTimestamp());
                 history.put(snapshot.getTimestamp(), content);
             }
-            System.out.println(history);
             Utils.makeStats(history).forEach((itemName, value) -> {
-                System.out.println("itemName: " + itemName + ", value: " + value);
                 RecordType recordType = contentTypes.get(itemName);
                 Stat stat = new Stat(
                         recordType,

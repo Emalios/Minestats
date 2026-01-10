@@ -49,7 +49,6 @@ public class InventoryDao {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
             int rows = ps.executeUpdate();
-            System.out.println("row: " + rows);
             //connection.commit();
             return rows > 0;
         }

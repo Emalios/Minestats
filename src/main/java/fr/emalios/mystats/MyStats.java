@@ -86,11 +86,6 @@ public class MyStats {
     public static final DeferredItem<Item> EXAMPLE_ITEM = ITEMS.registerSimpleItem("example_item", new Item.Properties().food(new FoodProperties.Builder()
             .alwaysEdible().nutrition(1).saturationModifier(2f).build()));
 
-    public static final Lazy<KeyMapping> MONITOR_MAPPING = Lazy.of(() -> new KeyMapping(
-            "key.mystats.monitor_mapping",
-            GLFW.GLFW_KEY_O, // Default mouse input is the left mouse button
-            "key.categories.mystats.mystats_category" // Mapping will be in the new example category
-    ));
 
     public static final Supplier<Item> RECORDER_ITEM = ITEMS.registerItem(
             "recorder_item",
@@ -100,7 +95,7 @@ public class MyStats {
 
     // Creates a creative tab with the id "mystats:example_tab" for the example item, that is placed after the combat tab
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder()
-            .title(Component.translatable("itemGroup.mystats")) //The language key for the title of your CreativeModeTab
+            .title(Component.translatable("itemGroup." + MODID)) //The language key for the title of your CreativeModeTab
             .withTabsBefore(CreativeModeTabs.COMBAT)
             .icon(() -> RECORDER_ITEM.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
@@ -128,7 +123,6 @@ public class MyStats {
         // Register the item to a creative tab
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::addCreative);
-        modEventBus.addListener(this::registerBindings);
         modEventBus.addListener(this::registerPayload);
 
         final IEventBus GAME_BUS = NeoForge.EVENT_BUS;
@@ -215,19 +209,8 @@ public class MyStats {
         );
     }
 
-    private void registerBindings(RegisterKeyMappingsEvent event) {
-        event.register(MONITOR_MAPPING.get());
-    }
 
-    @SubscribeEvent
-    private void onClientTick(ClientTickEvent.Post event) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null) return;
 
-        while (MONITOR_MAPPING.get().consumeClick()) {
-            PacketDistributor.sendToServer(new OpenMonitorMenuPayload());
-        }
-    }
 
     private void registerCommands(final RegisterCommandsEvent event) {
         event.getDispatcher().register(StatCommand.register("minestats"));

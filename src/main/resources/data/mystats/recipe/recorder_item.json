@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "AB ",
+    " C ",
+    " D "
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:repeater"
+    },
+    "B": {
+      "item": "minecraft:writable_book"
+    },
+    "C": {
+      "item": "minecraft:book"
+    },
+    "D": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "id": "mystats:recorder_item",
+    "count": 1
+  }
+}
