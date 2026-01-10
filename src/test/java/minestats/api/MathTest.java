@@ -159,7 +159,7 @@ public class MathTest {
     @DisplayName("multi inv test")
     public void multiInvMerge() throws InterruptedException {
         int numberOfInvs = 2;
-        StatPlayer player = Storage.players().getOrCreate("test-stat-math-ten-snapshot");
+        StatPlayer player = Storage.players().getOrCreate("test-stat-math-multi-inv-snapshot");
         Inventory inv1 = Storage.inventories().getOrCreate("test-stat-math-multi-1", 0, 0, 0);
         Inventory inv2 = Storage.inventories().getOrCreate("test-stat-math-multi-2", 0, 0, 0);
         inv1.addHandler(basicHandler);
