@@ -5,6 +5,7 @@ import fr.emalios.mystats.api.Record;
 import fr.emalios.mystats.api.stat.IHandler;
 import fr.emalios.mystats.api.storage.Storage;
 import fr.emalios.mystats.impl.storage.dao.*;
+import fr.emalios.mystats.impl.storage.db.Database;
 import fr.emalios.mystats.impl.storage.repository.SqliteInventoryRepository;
 import fr.emalios.mystats.impl.storage.repository.SqliteInventorySnapshotRepository;
 import fr.emalios.mystats.impl.storage.repository.SqlitePlayerInventoryRepository;
@@ -12,6 +13,7 @@ import fr.emalios.mystats.impl.storage.repository.SqlitePlayerRepository;
 import org.junit.jupiter.api.*;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -67,12 +69,14 @@ public class SqliteInventorySnapshotRepositoryTest {
     };
 
     @BeforeAll
-    void setup() {
+    void setup() throws SQLException {
         Connection conn = DatabaseTest.getConnection();
+        DatabaseTest.makeMigrations();
+        var playerInvRepo = new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn));
         Storage.registerInventorySnapshotRepo(new SqliteInventorySnapshotRepository(new InventorySnapshotDao(conn), new RecordDao(conn)));
-        Storage.registerPlayerInventoriesRepo(new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn)));
-        Storage.registerPlayerRepo(new SqlitePlayerRepository(new PlayerDao(conn)));
-        Storage.registerInventoryRepo(new SqliteInventoryRepository(new InventoryDao(conn)));
+        Storage.registerPlayerInventoriesRepo(playerInvRepo);
+        Storage.registerPlayerRepo(new SqlitePlayerRepository(new PlayerDao(conn), playerInvRepo));
+        Storage.registerInventoryRepo(new SqliteInventoryRepository(new InventoryDao(conn), new InventoryPositionsDao(conn)));
     }
 
     @AfterAll
@@ -83,7 +87,7 @@ public class SqliteInventorySnapshotRepositoryTest {
     @Test
     @DisplayName("Create multiple empty snapshots")
     void createMultipleEmptySnapshots() {
-        Inventory inventory = Storage.inventories().getOrCreate("minecraft:overworld", 0, 0, 0);
+        Inventory inventory = Storage.inventories().getOrCreate(new Position("minecraft:overworld", 0, 0, 0));
         for (int i = 0; i < 10; i++) {
             inventory.recordContent();
         }
@@ -96,7 +100,7 @@ public class SqliteInventorySnapshotRepositoryTest {
     @Test
     @DisplayName("Create item snapshot")
     void createItemSnapshot() {
-        Inventory inventory = Storage.inventories().getOrCreate("minecraft:nether", 0, 0, 0);
+        Inventory inventory = Storage.inventories().getOrCreate(new Position("minecraft:nether", 0, 0, 0));
         inventory.addHandler(items);
         inventory.recordContent();
         var invSnapshots = Storage.inventorySnapshots().findAllByInventory(inventory);
@@ -114,7 +118,7 @@ public class SqliteInventorySnapshotRepositoryTest {
     @Test
     @DisplayName("Create fluid snapshot")
     void createFluidSnapshot() {
-        Inventory inventory = Storage.inventories().getOrCreate("minecraft:end", 0, 0, 0);
+        Inventory inventory = Storage.inventories().getOrCreate(new Position("minecraft:end", 0, 0, 0));
         inventory.addHandler(fluids);
         inventory.recordContent();
         var invSnapshots = Storage.inventorySnapshots().findAllByInventory(inventory);
@@ -132,7 +136,7 @@ public class SqliteInventorySnapshotRepositoryTest {
     @Test
     @DisplayName("Create empty snapshot")
     void createEmptySnapshot() {
-        Inventory inventory = Storage.inventories().getOrCreate("minecraft:overworld", 10, 0, 0);
+        Inventory inventory = Storage.inventories().getOrCreate(new Position("minecraft:overworld", 10, 0, 0));
         inventory.addHandler(empty);
         inventory.recordContent();
         var invSnapshots = Storage.inventorySnapshots().findAllByInventory(inventory);
@@ -146,7 +150,7 @@ public class SqliteInventorySnapshotRepositoryTest {
     @Test
     @DisplayName("Create mixed snapshot")
     void createMixedSnapshot() {
-        Inventory inventory = Storage.inventories().getOrCreate("minecraft:overworld", 0, 10, 0);
+        Inventory inventory = Storage.inventories().getOrCreate(new Position("minecraft:overworld", 0, 10, 0));
         inventory.addHandler(fluids);
         inventory.addHandler(items);
         inventory.recordContent();
@@ -164,7 +168,7 @@ public class SqliteInventorySnapshotRepositoryTest {
     @Test
     @DisplayName("Create mixed snapshots")
     void createMixedSnapshots() {
-        Inventory inventory = Storage.inventories().getOrCreate("minecraft:overworld", 0, 0, 10);
+        Inventory inventory = Storage.inventories().getOrCreate(new Position("minecraft:overworld", 0, 0, 10));
         inventory.addHandler(fluids);
         inventory.addHandler(items);
         inventory.recordContent();
@@ -179,7 +183,7 @@ public class SqliteInventorySnapshotRepositoryTest {
     //@Test
     @DisplayName("Create snapshot with merged records")
     void createSnapshotWithMergedRecords() {
-        Inventory inventory = Storage.inventories().getOrCreate("minecraft:overworld", 10, 10, 10);
+        Inventory inventory = Storage.inventories().getOrCreate(new Position("minecraft:overworld", 10, 10, 10));
         inventory.addHandler(items);
         inventory.addHandler(items);
         inventory.recordContent();
@@ -196,7 +200,7 @@ public class SqliteInventorySnapshotRepositoryTest {
     @Test
     @DisplayName("Get all snapshots")
     void getAllSnapshots() throws InterruptedException {
-        Inventory inventory = Storage.inventories().getOrCreate("all-snapshot-test", 0, 0, 10);
+        Inventory inventory = Storage.inventories().getOrCreate(new Position("all-snapshot-test", 0, 0, 10));
         inventory.addHandler(items);
         int numberOfSnapshots = 15;
         for (int i = 0; i < numberOfSnapshots; i++) {
@@ -214,7 +218,7 @@ public class SqliteInventorySnapshotRepositoryTest {
     @Test
     @DisplayName("Get 10 last snapshots")
     void get10LastSnapshots() throws InterruptedException {
-        Inventory inventory = Storage.inventories().getOrCreate("10-snapshot-test", 0, 0, 10);
+        Inventory inventory = Storage.inventories().getOrCreate(new Position("10-snapshot-test", 0, 0, 10));
         inventory.addHandler(items);
         int numberOfSnapshots = 15;
         int wantedNumberOfSnapshots = 10;

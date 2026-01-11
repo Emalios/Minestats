@@ -14,4 +14,6 @@ public interface PlayerInventoryRepository {
     boolean hasInventory(StatPlayer statPlayer, Inventory inventory);
 
     Collection<Inventory> findByPlayer(StatPlayer statPlayer);
+
+    void hydrate(StatPlayer statPlayer);
 }

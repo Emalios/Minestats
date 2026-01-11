@@ -7,6 +7,7 @@ import fr.emalios.mystats.impl.storage.dao.PlayerInventoryDao;
 
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.List;
 
 public class SqlitePlayerInventoryRepository implements PlayerInventoryRepository {
 
@@ -20,6 +21,7 @@ public class SqlitePlayerInventoryRepository implements PlayerInventoryRepositor
     public void addInventory(StatPlayer statPlayer, Inventory inventory) {
         try {
             this.dao.insertIfNotExists(statPlayer.getId(), inventory.getId());
+            statPlayer.addInventory(inventory);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -28,7 +30,9 @@ public class SqlitePlayerInventoryRepository implements PlayerInventoryRepositor
     @Override
     public boolean removeInventory(StatPlayer statPlayer, Inventory inventory) {
         try {
-            return this.dao.delete(statPlayer.getId(), inventory.getId());
+            boolean deleted = this.dao.delete(statPlayer.getId(), inventory.getId());
+            if(deleted) statPlayer.removeInventory(inventory);
+            return deleted;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -45,15 +49,12 @@ public class SqlitePlayerInventoryRepository implements PlayerInventoryRepositor
 
     @Override
     public Collection<Inventory> findByPlayer(StatPlayer statPlayer) {
-        try {
-            var records = dao.findInventoriesByPlayer(statPlayer.getId());
-            return records.stream().map(r -> {
-                Inventory inv = new Inventory(r.world(), r.x(), r.y(), r.z());
-                inv.assignId(r.inventoryId());
-                return inv;
-            }).toList();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        return dao.findInventoriesByPlayer(statPlayer.getId());
+    }
+
+    @Override
+    public void hydrate(StatPlayer statPlayer) {
+        Collection<Inventory> records = this.findByPlayer(statPlayer);
+        statPlayer.loadInventories(records);
     }
 }

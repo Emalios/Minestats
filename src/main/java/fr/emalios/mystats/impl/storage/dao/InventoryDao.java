@@ -1,7 +1,11 @@
 package fr.emalios.mystats.impl.storage.dao;
 
+import fr.emalios.mystats.api.Inventory;
+import fr.emalios.mystats.api.Position;
+
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,17 +25,13 @@ public class InventoryDao {
         this.connection = connection;
     }
 
-    public int insert(String world, int x, int y, int z, String type) throws SQLException {
+    public int insert(String type) throws SQLException {
         String sql = """
-            INSERT INTO inventories (world, x, y, z, type)
-            VALUES (?, ?, ?, ?, ?);
+            INSERT INTO inventories (type)
+            VALUES (?);
         """;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, world);
-            ps.setInt(2, x);
-            ps.setInt(3, y);
-            ps.setInt(4, z);
-            ps.setString(5, type);
+            ps.setString(1, type);
             ps.executeUpdate();
             //connection.commit();
 
@@ -54,33 +54,19 @@ public class InventoryDao {
         }
     }
 
-    public int insertIfNotExists(String world, int x, int y, int z, String type) throws SQLException {
-        if (!getByPos(world, x, y, z).isEmpty()) return -1; // déjà présent
-        return insert(world, x, y, z, type);
-    }
-
-    public boolean exists(String world, int x, int y, int z) throws SQLException {
-        return !getByPos(world, x, y, z).isEmpty();
-    }
-
-    public InventoryRecord findById(int id) throws SQLException {
+    public Optional<Inventory> findById(int id) throws SQLException {
         String sql = "SELECT * FROM inventories WHERE id = ?;";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                return new InventoryRecord(
-                        rs.getInt("id"),
-                        rs.getString("world"),
-                        rs.getInt("x"),
-                        rs.getInt("y"),
-                        rs.getInt("z"),
-                        rs.getString("type"),
-                        rs.getString("created_at")
-                );
+                int invId = rs.getInt("id");
+                Inventory inventory = new Inventory();
+                inventory.assignId(invId);
+                return Optional.of(inventory);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     public Optional<InventoryRecord> getByPos(String world, int x, int y, int z) throws SQLException {
@@ -94,10 +80,6 @@ public class InventoryDao {
             if (rs.next()) {
                 return Optional.of(new InventoryRecord(
                         rs.getInt("id"),
-                        rs.getString("world"),
-                        rs.getInt("x"),
-                        rs.getInt("y"),
-                        rs.getInt("z"),
                         rs.getString("type"),
                         rs.getString("created_at")
                 ));
@@ -115,10 +97,6 @@ public class InventoryDao {
             while (rs.next()) {
                 records.add(new InventoryRecord(
                         rs.getInt("id"),
-                        rs.getString("world"),
-                        rs.getInt("x"),
-                        rs.getInt("y"),
-                        rs.getInt("z"),
                         rs.getString("type"),
                         rs.getString("created_at")
                 ));
@@ -127,27 +105,21 @@ public class InventoryDao {
         return records;
     }
 
-    public List<InventoryRecord> getAll() throws SQLException {
+    public Collection<Inventory> getAll() throws SQLException {
         String sql = "SELECT * FROM inventories;";
-        List<InventoryRecord> inventories = new ArrayList<>();
+        List<Inventory> inventories = new ArrayList<>();
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                inventories.add(new InventoryRecord(
-                        rs.getInt("id"),
-                        rs.getString("world"),
-                        rs.getInt("x"),
-                        rs.getInt("y"),
-                        rs.getInt("z"),
-                        rs.getString("type"),
-                        rs.getString("created_at")
-                ));
+                Inventory inventory = new Inventory();
+                inventory.assignId(rs.getInt("id"));
+                inventories.add(inventory);
             }
         }
         return inventories;
     }
 
     public record InventoryRecord(
-            int id, String world, int x, int y, int z, String type, String createdAt
+            int id, String type, String createdAt
     ) {}
 }

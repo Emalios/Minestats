@@ -1,6 +1,8 @@
 package fr.emalios.mystats.impl.storage.db;
 
 import fr.emalios.mystats.impl.storage.dao.*;
+import fr.emalios.mystats.impl.storage.db.migrations.MigrationRunner;
+import net.neoforged.fml.loading.FMLPaths;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,6 +11,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import static fr.emalios.mystats.helper.Const.pathToMigrations;
+import static fr.emalios.mystats.helper.Const.pathToMigrationsTest;
 
 public final class Database {
 
@@ -19,6 +24,7 @@ public final class Database {
 
     //dao
     private InventorySnapshotDao inventorySnapshotDao;
+    private InventoryPositionsDao inventoryPositionsDao;
     private PlayerDao playerDao;
     private PlayerInventoryDao playerInventoryDao;
     private RecordDao recordDao;
@@ -29,6 +35,7 @@ public final class Database {
         this.inventoryDao = new InventoryDao(connection);
         this.inventorySnapshotDao = new InventorySnapshotDao(connection);
         this.playerDao = new PlayerDao(connection);
+        this.inventoryPositionsDao = new InventoryPositionsDao(connection);
         this.playerInventoryDao = new PlayerInventoryDao(connection);
         this.recordDao = new RecordDao(connection);
     }
@@ -48,6 +55,7 @@ public final class Database {
         try {
             this.connection = DriverManager.getConnection("jdbc:sqlite:mystats.db");
             //this.connection.setAutoCommit(false);
+            MigrationRunner.migrate(this.connection, pathToMigrationsTest);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -114,6 +122,10 @@ public final class Database {
 
     public InventoryDao getInventoryDao() {
         return inventoryDao;
+    }
+
+    public InventoryPositionsDao getInventoryPositionsDao() {
+        return inventoryPositionsDao;
     }
 
     public static void logDatabaseBusy(SQLException e, String sql) {

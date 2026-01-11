@@ -1,9 +1,11 @@
 package fr.emalios.mystats.api.storage;
 
 import fr.emalios.mystats.api.Inventory;
+import fr.emalios.mystats.api.Position;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 
 public interface InventoryRepository {
 
@@ -12,24 +14,20 @@ public interface InventoryRepository {
     /**
      * Method to find an inventory stored in the world at the coordinate.
      * Should be used when you're not sure the inventory exist
-     * @param world
-     * @param x
-     * @param y
-     * @param z
+     * @param position
      * @return inventory if present or Optional.empty
      */
-    Optional<Inventory> findByPos(String world, int x, int y, int z);
+    Optional<Inventory> findByPos(Position position);
 
     /**
-     * Should be use when you want either to get the existing inventory or create it.
-     * In both case the inventory will be stored.
-     * @param world
-     * @param x
-     * @param y
-     * @param z
-     * @return
+     * Useful method that either:
+     * - get the inventory that is associated with the given position
+     * - create an inventory associated with the given position
+     * In both case the returned inventory will be stored.
+     * @param position position of the created inventory
+     * @return persisted inventory
      */
-    Inventory getOrCreate(String world, int x, int y, int z);
+    Inventory getOrCreate(Position position);
 
     void delete(Inventory inventory);
 

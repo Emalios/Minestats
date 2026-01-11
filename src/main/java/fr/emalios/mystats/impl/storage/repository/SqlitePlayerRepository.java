@@ -2,6 +2,7 @@ package fr.emalios.mystats.impl.storage.repository;
 
 import fr.emalios.mystats.api.Inventory;
 import fr.emalios.mystats.api.StatPlayer;
+import fr.emalios.mystats.api.storage.PlayerInventoryRepository;
 import fr.emalios.mystats.api.storage.PlayerRepository;
 import fr.emalios.mystats.impl.storage.dao.PlayerDao;
 
@@ -11,9 +12,11 @@ import java.util.Optional;
 public class SqlitePlayerRepository implements PlayerRepository {
 
     private final PlayerDao dao;
+    private final PlayerInventoryRepository playerInventoryRepository;
 
-    public SqlitePlayerRepository(PlayerDao dao) {
+    public SqlitePlayerRepository(PlayerDao dao, PlayerInventoryRepository playerInventoryRepository) {
         this.dao = dao;
+        this.playerInventoryRepository = playerInventoryRepository;
     }
 
     @Override
@@ -31,12 +34,17 @@ public class SqlitePlayerRepository implements PlayerRepository {
     @Override
     public StatPlayer getOrCreate(String name) {
         var optPlayer = findByName(name);
-        if (optPlayer.isPresent()) return optPlayer.get();
+        if (optPlayer.isPresent()) {
+            StatPlayer statPlayer = optPlayer.get();
+            this.playerInventoryRepository.hydrate(statPlayer);
+            return statPlayer;
+        }
 
         StatPlayer statPlayer = new StatPlayer(name);
         this.save(statPlayer);
         return statPlayer;
     }
+
 
     @Override
     public Optional<StatPlayer> findByName(String name) {
@@ -49,6 +57,7 @@ public class SqlitePlayerRepository implements PlayerRepository {
         if (record == null) return Optional.empty();
         StatPlayer statPlayer = new StatPlayer(record.name());
         statPlayer.assignId(record.id());
+        this.playerInventoryRepository.hydrate(statPlayer);
         return Optional.of(statPlayer);
     }
 }

@@ -8,10 +8,7 @@ import fr.emalios.mystats.impl.storage.dao.PlayerDao;
 import fr.emalios.mystats.impl.storage.db.Database;
 import fr.emalios.mystats.impl.storage.db.DatabaseInitializer;
 import fr.emalios.mystats.impl.adapter.StatManager;
-import fr.emalios.mystats.impl.storage.repository.SqliteInventoryRepository;
-import fr.emalios.mystats.impl.storage.repository.SqliteInventorySnapshotRepository;
-import fr.emalios.mystats.impl.storage.repository.SqlitePlayerInventoryRepository;
-import fr.emalios.mystats.impl.storage.repository.SqlitePlayerRepository;
+import fr.emalios.mystats.impl.storage.repository.*;
 import fr.emalios.mystats.network.ClientPayloadHandler;
 import fr.emalios.mystats.network.OpenMonitorMenuPayload;
 import fr.emalios.mystats.network.ServerPayloadHandler;
@@ -160,15 +157,15 @@ public class MyStats {
         LOGGER.info("HELLO from server starting");
         try {
             Database.getInstance().init();
-            DatabaseInitializer.createAll(Database.getInstance().getConnection());
-            DatabaseInitializer.createIndexes(Database.getInstance().getConnection());
+            var playerInvRepo = new SqlitePlayerInventoryRepository(Database.getInstance().getPlayerInventoryDao());
             Storage.register(
-                    new SqlitePlayerRepository(Database.getInstance().getPlayerDao()),
-                    new SqlitePlayerInventoryRepository(Database.getInstance().getPlayerInventoryDao()),
-                    new SqliteInventoryRepository(Database.getInstance().getInventoryDao()),
+                    new SqlitePlayerRepository(Database.getInstance().getPlayerDao(), playerInvRepo),
+                    playerInvRepo,
+                    new SqliteInventoryRepository(Database.getInstance().getInventoryDao(), Database.getInstance().getInventoryPositionsDao()),
                     new SqliteInventorySnapshotRepository(
                             Database.getInstance().getInventorySnapshotDao(),
-                            Database.getInstance().getRecordDao())
+                            Database.getInstance().getRecordDao()),
+                    new SqliteInventoryPositionsRepository(Database.getInstance().getInventoryPositionsDao())
             );
             StatManager.getInstance().init(event.getServer());
             //TODO: insert inventories into StatManager

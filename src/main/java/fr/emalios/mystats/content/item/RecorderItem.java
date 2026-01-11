@@ -1,9 +1,10 @@
 package fr.emalios.mystats.content.item;
 
 import fr.emalios.mystats.api.Inventory;
+import fr.emalios.mystats.api.Position;
 import fr.emalios.mystats.api.StatPlayer;
 import fr.emalios.mystats.api.storage.Storage;
-import fr.emalios.mystats.impl.storage.db.Database;
+import fr.emalios.mystats.helper.ConnectedBlocksFinder;
 import fr.emalios.mystats.api.stat.IHandler;
 import fr.emalios.mystats.impl.adapter.StatManager;
 import fr.emalios.mystats.helper.Utils;
@@ -21,8 +22,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.HitResult;
 
-import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Main item of the mod used to add and remove monitored blocks. Also used to show the stats for a clicked block
@@ -30,7 +31,6 @@ import java.util.*;
  */
 public class RecorderItem extends Item {
 
-    private final Database database = Database.getInstance();
     private final StatManager statManager = StatManager.getInstance();
 
     public RecorderItem(Properties props) {
@@ -96,49 +96,64 @@ public class RecorderItem extends Item {
         if(handlers.isEmpty()) {
             return InteractionResult.PASS;
         }
-        try {
-            return this.processClick(mode, player, level, handlers, pos);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        return this.processClick(mode, player, level, handlers, pos);
     }
 
     private void sendMessage(String txt, Player player) {
         player.displayClientMessage(Component.literal(txt), true);
     }
 
-    private InteractionResult processClick(RecorderDataComponent.RecorderMode mode, Player player, Level level, List<IHandler> handlers, BlockPos pos) throws SQLException {
+    private InteractionResult processClick(RecorderDataComponent.RecorderMode mode, Player player, Level level, List<IHandler> handlers, BlockPos pos) {
         String playerName = player.getName().getString();
+        String world = level.dimension().location().toString();
+        StatPlayer statPlayer = Storage.players().getOrCreate(playerName);
+        Set<BlockPos> connected = ConnectedBlocksFinder.getConnectedBlocks(level, pos, handlers);
+        Set<Position> positions = connected.stream().map(blockPos -> new Position(
+                world, blockPos.getX(), blockPos.getY(), blockPos.getZ()
+        )).collect(Collectors.toSet());
+
+        Optional<Inventory> optInv = Storage.inventories().findByPos(new Position(
+                world, pos.getX(), pos.getY(), pos.getZ()
+        ));
+
         //TODO: bug sometimes this method is executed two times, might be already resolved.
         switch (mode) {
             case REMOVE:
-                Optional<Inventory> optInv = Storage.inventories().findByPos(
-                        level.dimension().location().toString(),
-                        pos.getX(), pos.getY(), pos.getZ());
                 if(optInv.isEmpty()) {
                     this.sendMessage("This block in not monitored.", player);
                     return InteractionResult.PASS;
                 }
+                if(!statPlayer.hasInventory(optInv.get())) {
+                    this.sendMessage("You did not monitored this block.", player);
+                    return InteractionResult.PASS;
+                }
+                Storage.playerInventories().removeInventory(statPlayer, optInv.get());
                 this.statManager.unmonitore(optInv.get());
                 this.sendMessage("Removed inventory from monitoring.", player);
                 return InteractionResult.SUCCESS;
             case ADD:
-                StatPlayer statPlayer = Storage.players().getOrCreate(playerName);
-                Inventory inventory = Storage.inventories().getOrCreate(
-                        level.dimension().location().toString(),
-                        pos.getX(), pos.getY(), pos.getZ());
-                inventory.addHandlers(handlers);
-                if(statPlayer.hasInventory(inventory)) {
-                    this.sendMessage("Already monitored.", player);
-                    return InteractionResult.PASS;
+                if(optInv.isPresent()) {
+                    if(statPlayer.hasInventory(optInv.get())) {
+                        this.sendMessage("Already monitored.", player);
+                        return InteractionResult.PASS;
+                    }
+                    this.addInventoryToPlayer(optInv.get(), statPlayer, player, handlers);
+                    return InteractionResult.SUCCESS;
                 }
-                statPlayer.addInventory(inventory);
-                //start monitoring for the block
-                this.statManager.add(inventory);
-                this.sendMessage("Added inventory to monitoring.", player);
+                Inventory inventory = new Inventory(positions);
+                Storage.inventories().save(inventory);
+                this.addInventoryToPlayer(inventory, statPlayer, player, handlers);
                 return InteractionResult.SUCCESS;
         }
         System.err.println("UNKNOW MODE '" + mode + "'");
         return InteractionResult.PASS;
+    }
+
+    private void addInventoryToPlayer(Inventory inventory, StatPlayer statPlayer, Player player, List<IHandler> handlers) {
+        Storage.playerInventories().addInventory(statPlayer, inventory);
+        inventory.addHandlers(handlers);
+        this.statManager.monitore(inventory);
+        this.sendMessage("Added inventory to monitoring.", player);
+
     }
 }

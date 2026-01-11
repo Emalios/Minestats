@@ -1,9 +1,9 @@
 package minestats.api;
 
 import fr.emalios.mystats.api.CountUnit;
+import fr.emalios.mystats.helper.Pair;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import oshi.util.tuples.Pair;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

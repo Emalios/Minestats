@@ -1,6 +1,7 @@
 package fr.emalios.mystats.impl.adapter;
 
 import fr.emalios.mystats.api.Inventory;
+import fr.emalios.mystats.api.Position;
 import fr.emalios.mystats.api.stat.IHandler;
 import fr.emalios.mystats.api.Record;
 import fr.emalios.mystats.api.storage.Storage;
@@ -44,7 +45,7 @@ public class StatManager {
         return instance;
     }
 
-    public void add(Inventory inventory) {
+    public void monitore(Inventory inventory) {
         this.monitored.add(inventory);
     }
 
@@ -63,13 +64,13 @@ public class StatManager {
     public void scan() {
         for (Inventory inventory : this.monitored) {
             if(inventory.isValid()) inventory.recordContent();
-            else this.unmonitore(inventory);
+            else Storage.inventories().delete(inventory);
         }
     }
 
     public void unmonitore(Inventory inventory) {
         this.monitored.remove(inventory);
-        Storage.inventories().delete(inventory);
+        //Storage.inventories().delete(inventory);
     }
 
     //load inventories in database
@@ -79,13 +80,19 @@ public class StatManager {
             levels.put(level.dimension().location().toString(), level);
         });
         for (Inventory inventory : Storage.inventories().getAll()) {
-            List<IHandler> handlers = Utils.getIHandlers(
-                    levels.get(inventory.getWorld()),
-                    new BlockPos(inventory.getX(), inventory.getY(), inventory.getZ()));
-            inventory.addHandlers(handlers);
-
-            if (!inventory.isValid()) this.unmonitore(inventory);
-            else this.add(inventory);
+            for (Position invPosition : inventory.getInvPositions()) {
+                List<IHandler> handlers = Utils.getIHandlers(
+                        levels.get(invPosition.getWorld()),
+                        new BlockPos(invPosition.getX(), invPosition.getY(), invPosition.getZ()));
+                //no handlers detected on the position
+                if(handlers.isEmpty()) {
+                    Storage.inventoryPositions().removePosition(inventory, invPosition);
+                }
+                inventory.addHandlers(handlers);
+            }
+            if(inventory.isValid()) this.monitore(inventory);
+            //if there is no available handlers delete the block
+            else Storage.inventories().delete(inventory);
         }
     }
 }

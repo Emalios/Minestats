@@ -7,17 +7,16 @@ import fr.emalios.mystats.api.stat.Stat;
 import fr.emalios.mystats.api.stat.utils.StatCalculator;
 import fr.emalios.mystats.api.storage.Storage;
 import fr.emalios.mystats.impl.storage.dao.*;
+import fr.emalios.mystats.impl.storage.db.Database;
 import fr.emalios.mystats.impl.storage.repository.SqliteInventoryRepository;
 import fr.emalios.mystats.impl.storage.repository.SqliteInventorySnapshotRepository;
 import fr.emalios.mystats.impl.storage.repository.SqlitePlayerInventoryRepository;
 import fr.emalios.mystats.impl.storage.repository.SqlitePlayerRepository;
 import minestats.api.storage.DatabaseTest;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -48,12 +47,19 @@ public class MathTest {
     };
 
     @BeforeAll
-    public static void setup() {
+    public static void setup() throws SQLException {
         Connection conn = DatabaseTest.getConnection();
+        DatabaseTest.makeMigrations();
+        var playerInvRepo = new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn));
         Storage.registerInventorySnapshotRepo(new SqliteInventorySnapshotRepository(new InventorySnapshotDao(conn), new RecordDao(conn)));
-        Storage.registerPlayerInventoriesRepo(new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn)));
-        Storage.registerPlayerRepo(new SqlitePlayerRepository(new PlayerDao(conn)));
-        Storage.registerInventoryRepo(new SqliteInventoryRepository(new InventoryDao(conn)));
+        Storage.registerPlayerInventoriesRepo(playerInvRepo);
+        Storage.registerPlayerRepo(new SqlitePlayerRepository(new PlayerDao(conn), playerInvRepo));
+        Storage.registerInventoryRepo(new SqliteInventoryRepository(new InventoryDao(conn), new InventoryPositionsDao(conn)));
+    }
+
+    @AfterAll
+    static void teardown() {
+        DatabaseTest.close();
     }
 
 
@@ -61,7 +67,7 @@ public class MathTest {
     @DisplayName("Two snapshot test")
     public void twoSnapshotTest() throws InterruptedException {
         StatPlayer player = Storage.players().getOrCreate("test-stat-math-two-snapshot");
-        Inventory inv1 = Storage.inventories().getOrCreate("test-stat-math-two-snapshot", 0, 0, 0);
+        Inventory inv1 = Storage.inventories().getOrCreate(new Position("test-stat-math-two-snapshot", 0, 0, 0));
         count = 1;
         inv1.addHandler(basicHandler);
         inv1.recordContent();
@@ -84,7 +90,7 @@ public class MathTest {
     @DisplayName("ten snapshot test")
     public void tenSnapshotTest() throws InterruptedException {
         StatPlayer player = Storage.players().getOrCreate("test-stat-math-ten-snapshot");
-        Inventory inv1 = Storage.inventories().getOrCreate("test-stat-math-ten-snapshot", 0, 0, 0);
+        Inventory inv1 = Storage.inventories().getOrCreate(new Position("test-stat-math-ten-snapshot", 0, 0, 0));
         inv1.addHandler(basicHandler);
         count = 1;
         //non linear values to be able to see if stats are made with these lines (5 lines)
@@ -115,7 +121,7 @@ public class MathTest {
     @DisplayName("Negative result")
     public void negativeStat() throws InterruptedException {
         StatPlayer player = Storage.players().getOrCreate("test-stat-math-negative");
-        Inventory inv1 = Storage.inventories().getOrCreate("test-stat-math-negative", 0, 0, 0);
+        Inventory inv1 = Storage.inventories().getOrCreate(new Position("test-stat-math-negative", 0, 0, 0));
         count = -1;
         inv1.addHandler(basicHandler);
         inv1.recordContent();
@@ -138,7 +144,7 @@ public class MathTest {
     @DisplayName("zero result")
     public void zeroResult() throws InterruptedException {
         StatPlayer player = Storage.players().getOrCreate("test-stat-math-zero");
-        Inventory inv1 = Storage.inventories().getOrCreate("test-stat-math-zero", 0, 0, 0);
+        Inventory inv1 = Storage.inventories().getOrCreate(new Position("test-stat-math-zero", 0, 0, 0));
         count = 1;
         inv1.addHandler(basicHandler);
         inv1.recordContent();
@@ -160,8 +166,8 @@ public class MathTest {
     public void multiInvMerge() throws InterruptedException {
         int numberOfInvs = 2;
         StatPlayer player = Storage.players().getOrCreate("test-stat-math-multi-inv-snapshot");
-        Inventory inv1 = Storage.inventories().getOrCreate("test-stat-math-multi-1", 0, 0, 0);
-        Inventory inv2 = Storage.inventories().getOrCreate("test-stat-math-multi-2", 0, 0, 0);
+        Inventory inv1 = Storage.inventories().getOrCreate(new Position("test-stat-math-multi-1", 0, 0, 0));
+        Inventory inv2 = Storage.inventories().getOrCreate(new Position("test-stat-math-multi-2", 0, 0, 0));
         inv1.addHandler(basicHandler);
         inv2.addHandler(basicHandler);
         count = 1;
@@ -186,6 +192,7 @@ public class MathTest {
         var result = StatCalculator.getInstance().genPerSecond(player.getInventories());
         Assertions.assertFalse(result.isEmpty());
         Assertions.assertEquals(3, result.size());
+        System.out.println(result);
         Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:dirt", numberOfInvs*10, CountUnit.ITEM), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
         Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:stone", numberOfInvs*64, CountUnit.ITEM), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
         Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.FLUID, "minecraft:water", numberOfInvs*1000, CountUnit.MB), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));

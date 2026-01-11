@@ -4,10 +4,14 @@ import fr.emalios.mystats.api.StatPlayer;
 import fr.emalios.mystats.api.storage.PlayerRepository;
 import fr.emalios.mystats.api.storage.Storage;
 import fr.emalios.mystats.impl.storage.dao.PlayerDao;
+import fr.emalios.mystats.impl.storage.dao.PlayerInventoryDao;
+import fr.emalios.mystats.impl.storage.db.Database;
+import fr.emalios.mystats.impl.storage.repository.SqlitePlayerInventoryRepository;
 import fr.emalios.mystats.impl.storage.repository.SqlitePlayerRepository;
 import org.junit.jupiter.api.*;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Optional;
 
 @DisplayName("PlayerRepository test")
@@ -17,11 +21,12 @@ public class SqlitePlayerRepositoryTest {
     private PlayerRepository repository;
 
     @BeforeAll
-    void setup() {
+    void setup() throws SQLException {
         Connection conn = DatabaseTest.getConnection();
-
+        DatabaseTest.makeMigrations();
         PlayerDao playerDao = new PlayerDao(conn);
-        repository = new SqlitePlayerRepository(playerDao);
+        var playerInvRepo = new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn));
+        repository = new SqlitePlayerRepository(playerDao, playerInvRepo);
 
         Storage.registerPlayerRepo(repository);
     }

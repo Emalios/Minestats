@@ -10,10 +10,7 @@ import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ItemAdapter implements IHandler {
 
@@ -39,7 +36,24 @@ public class ItemAdapter implements IHandler {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        ItemAdapter that = (ItemAdapter) o;
+        return Objects.equals(capabilityCache.getCapability(), that.capabilityCache.getCapability());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(capabilityCache.getCapability());
+    }
+
+    @Override
     public boolean exists() {
         return this.capabilityCache.getCapability() != null;
+    }
+
+    @Override
+    public String toString() {
+        return this.capabilityCache.getCapability().toString();
     }
 }

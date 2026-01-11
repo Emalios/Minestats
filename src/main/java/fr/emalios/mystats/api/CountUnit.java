@@ -1,6 +1,7 @@
 package fr.emalios.mystats.api;
 
-import oshi.util.tuples.Pair;
+
+import fr.emalios.mystats.helper.Pair;
 
 public enum CountUnit {
 

@@ -21,10 +21,6 @@ public class StatCalculator {
 
     private static StatCalculator instance = new StatCalculator();
 
-    private final PlayerInventoryDao playerInventoryDao = Database.getInstance().getPlayerInventoryDao();
-    private final InventorySnapshotDao inventorySnapshotDao = Database.getInstance().getInventorySnapshotDao();
-    private final RecordDao recordDao = Database.getInstance().getRecordDao();
-
     private StatCalculator() { }
 
     public static synchronized StatCalculator getInstance() {

@@ -4,28 +4,18 @@ import fr.emalios.mystats.api.stat.IHandler;
 import fr.emalios.mystats.api.storage.Persistable;
 import fr.emalios.mystats.api.storage.Storage;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Inventory extends Persistable {
 
     private final List<IHandler> handlers = new ArrayList<>();
-    private final String world;
-    private final int x;
-    private final int y;
-    private final int z;
+    private final Set<Position> invPositions = new HashSet<>();
 
-    private final String blockId;
+    public Inventory() { }
 
-    public Inventory(String world, int x, int y, int z) {
-        this.world = world;
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.blockId = world + ":" + x + ":" + y + ":" + z;
+    public Inventory(Set<Position> invPositions) {
+        this.invPositions.addAll(invPositions);
     }
 
     /**
@@ -72,6 +62,22 @@ public class Inventory extends Persistable {
         return this.handlers.stream().filter(IHandler::exists).toList();
     }
 
+    public void addPosition(Position position) {
+        this.invPositions.add(position);
+    }
+
+    public void addPositions(Collection<Position> position) {
+        position.forEach(this::addPosition);
+    }
+
+    public void removePosition(Position position) {
+        this.invPositions.remove(position);
+    }
+
+    public Set<Position> getInvPositions() {
+        return invPositions;
+    }
+
     public Collection<Snapshot> getSnapshots(int limit) {
         return Storage.inventorySnapshots().findLastByInventory(this, limit);
     }
@@ -80,46 +86,15 @@ public class Inventory extends Persistable {
         return Storage.inventorySnapshots().findAllByInventory(this);
     }
 
-    public String getBlockId() {
-        return this.blockId;
-    }
-
-    public String getWorld() {
-        return world;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public int getZ() {
-        return z;
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Inventory inventory = (Inventory) o;
-        return Objects.equals(blockId, inventory.blockId);
+        return Objects.equals(invPositions, inventory.invPositions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(blockId);
-    }
-
-    @Override
-    public String toString() {
-        return "Inventory{" +
-                "world='" + world + '\'' +
-                ", x=" + x +
-                ", y=" + y +
-                ", z=" + z +
-                '}';
+        return Objects.hash(invPositions);
     }
 }

@@ -1,10 +1,14 @@
 package fr.emalios.mystats.impl.storage.dao;
 
+import fr.emalios.mystats.api.Inventory;
+import fr.emalios.mystats.api.Position;
 import fr.emalios.mystats.impl.storage.db.Database;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Link a player and his inventories
@@ -104,35 +108,49 @@ public class PlayerInventoryDao {
         return list;
     }
 
-    public List<PlayerInventoryWithInventoryRecord> findInventoriesByPlayer(int playerId)
-            throws SQLException {
+    public List<Inventory> findInventoriesByPlayer(int playerId) {
 
         String sql = """
-            SELECT i.id, i.world, i.x, i.y, i.z
-            FROM inventories i
-            JOIN player_inventories pi ON pi.inventory_id = i.id
-            WHERE pi.player_id = ?;
-        """;
+        SELECT i.id AS inventory_id,
+               p.world,
+               p.x,
+               p.y,
+               p.z
+        FROM inventories i
+        JOIN player_inventories pi ON pi.inventory_id = i.id
+        JOIN inventory_pos p ON p.inventory_id = i.id
+        WHERE pi.player_id = ?;
+    """;
 
-        List<PlayerInventoryWithInventoryRecord> result = new ArrayList<>();
+        Map<Integer, Inventory> inventoryMap = new HashMap<>();
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, playerId);
-            ResultSet rs = ps.executeQuery();
+            try (ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) {
-                result.add(new PlayerInventoryWithInventoryRecord(
-                        rs.getInt("id"),
-                        rs.getString("world"),
-                        rs.getInt("x"),
-                        rs.getInt("y"),
-                        rs.getInt("z")
-                ));
+                while (rs.next()) {
+                    int invId = rs.getInt("inventory_id");
+                    String world = rs.getString("world");
+                    int x = rs.getInt("x");
+                    int y = rs.getInt("y");
+                    int z = rs.getInt("z");
+
+                    Inventory inventory = inventoryMap.computeIfAbsent(invId, id -> {
+                        Inventory inv = new Inventory();
+                        inv.assignId(id);
+                        return inv;
+                    });
+
+                    inventory.addPosition(new Position(world, x, y, z));
+                }
             }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
 
-        return result;
+        return new ArrayList<>(inventoryMap.values());
     }
+
 
     public boolean delete(int playerId, int inventoryId) throws SQLException {
         String sql = """

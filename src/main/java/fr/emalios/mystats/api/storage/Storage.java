@@ -6,6 +6,7 @@ public final class Storage {
     private static PlayerInventoryRepository playerInventoryRepository;
     private static InventoryRepository inventoryRepository;
     private static InventorySnapshotRepository inventorySnapshotRepository;
+    private static InventoryPositionsRepository inventoryPositionsRepository;
 
     private Storage() {}
 
@@ -25,16 +26,26 @@ public final class Storage {
         return inventorySnapshotRepository;
     }
 
+    public static InventoryPositionsRepository inventoryPositions() {return inventoryPositionsRepository;}
+
     public static void register(
             PlayerRepository playerRepo,
             PlayerInventoryRepository playerInventoryRepo,
             InventoryRepository inventoryRepo,
-            InventorySnapshotRepository inventorySnapshotRepo
+            InventorySnapshotRepository inventorySnapshotRepo,
+            InventoryPositionsRepository inventoryPositionsRepo
     ) {
         playerRepository = playerRepo;
         playerInventoryRepository = playerInventoryRepo;
         inventoryRepository = inventoryRepo;
         inventorySnapshotRepository = inventorySnapshotRepo;
+        inventoryPositionsRepository = inventoryPositionsRepo;
+    }
+
+    public static void registerInventoryPositionRepo(
+            InventoryPositionsRepository inventoryPositionsRepo
+    ) {
+        inventoryPositionsRepository = inventoryPositionsRepo;
     }
 
     public static void registerInventorySnapshotRepo(InventorySnapshotRepository inventorySnapshots) {
