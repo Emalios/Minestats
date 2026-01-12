@@ -136,36 +136,7 @@ public class DatabaseInitializer {
         }
     }
 
-    public static void deleteDb() {
-        Database.getInstance().executeWriteAsync(conn -> {
-            try (Statement st = conn.createStatement()) {
-                st.execute("PRAGMA foreign_keys=OFF;");
-            }
-
-            try (Statement s = conn.createStatement();
-                 ResultSet rs = s.executeQuery(
-                         "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';"
-                 )) {
-
-                while (rs.next()) {
-                    String table = rs.getString("name");
-                    System.out.println("Dropping table: " + table);
-
-                    try (Statement drop = conn.createStatement()) {
-                        drop.execute("DROP TABLE IF EXISTS \"" + table + "\";");
-                    }
-                }
-            }
-
-            try (Statement st = conn.createStatement()) {
-                st.execute("PRAGMA foreign_keys=ON;");
-            }
-
-            //conn.commit();
-        });
-    }
-
-    public static void olddeleteDb() throws SQLException {
+    public static void deleteDb() throws SQLException {
 
         Connection connection = Database.getInstance().getConnection();
 

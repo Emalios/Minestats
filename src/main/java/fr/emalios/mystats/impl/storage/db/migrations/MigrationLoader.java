@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 public final class MigrationLoader {
 
     private static final Pattern FILE_PATTERN =
-            Pattern.compile("^V(\\d+)__.+\\.sql$");
+            Pattern.compile("^v(\\d+)__.+\\.sql$");
 
     private final Path path;
 

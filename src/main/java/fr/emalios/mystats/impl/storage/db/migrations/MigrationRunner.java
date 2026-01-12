@@ -1,5 +1,7 @@
 package fr.emalios.mystats.impl.storage.db.migrations;
 
+import fr.emalios.mystats.MyStats;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,28 +10,23 @@ import java.util.List;
 
 public final class MigrationRunner {
 
-    public static void migrate(Connection conn, Path pathToMigration) throws SQLException {
-        if (!Files.exists(pathToMigration)) {
-            try {
-                Files.createDirectories(pathToMigration);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
+    public static void migrate(Connection conn, List<Migration> migrations) throws SQLException {
+        //MyStats.LOGGER.info("Starting migrations... Available: {}", migrations);
         try (Statement st = conn.createStatement()) {
             st.execute("PRAGMA foreign_keys = ON;");
         }
 
         int currentVersion = getCurrentVersion(conn);
-
-        List<Migration> migrations = new MigrationLoader(pathToMigration).loadAll();
+        //MyStats.LOGGER.info("Current version: {}", currentVersion);
 
         for (Migration m : migrations) {
             if (m.version() > currentVersion) {
+                //MyStats.LOGGER.info("Applying migration {}", m.version());
                 applyMigration(conn, m);
+                //MyStats.LOGGER.info("Migration applied");
             }
         }
+        //MyStats.LOGGER.info("Migrations finished.");
     }
 
     public static int getCurrentVersion(Connection conn) throws SQLException {

@@ -1,12 +1,15 @@
 package fr.emalios.mystats.impl.storage.db;
 
 import fr.emalios.mystats.impl.storage.dao.*;
+import fr.emalios.mystats.impl.storage.db.migrations.Migration;
 import fr.emalios.mystats.impl.storage.db.migrations.MigrationRunner;
 import net.neoforged.fml.loading.FMLPaths;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,7 +23,7 @@ public final class Database {
     private static Database instance;
     private Connection connection;
 
-    private ExecutorService dbExecutor;
+    private final List<Migration> migrations = new ArrayList<>();
 
     //dao
     private InventorySnapshotDao inventorySnapshotDao;
@@ -30,8 +33,22 @@ public final class Database {
     private RecordDao recordDao;
     private InventoryDao inventoryDao;
 
-    private Database() throws SQLException {
-        this.init();
+    private Database() {
+    }
+
+    public static synchronized Database getInstance() {
+        if (instance == null) {
+            instance = new Database();
+        }
+        return instance;
+    }
+
+    private void openConnection() throws SQLException {
+        if(connection != null && !connection.isClosed()) throw new RuntimeException("Connection already open");
+        this.connection = DriverManager.getConnection("jdbc:sqlite:mystats.db");
+    }
+
+    private void initDaos() {
         this.inventoryDao = new InventoryDao(connection);
         this.inventorySnapshotDao = new InventorySnapshotDao(connection);
         this.playerDao = new PlayerDao(connection);
@@ -40,68 +57,40 @@ public final class Database {
         this.recordDao = new RecordDao(connection);
     }
 
-    public static synchronized Database getInstance() {
-        if (instance == null) {
-            try {
-                instance = new Database();
-            } catch (SQLException e) {
-                throw new RuntimeException("Failed to initialize database", e);
-            }
-        }
-        return instance;
-    }
-
     public void init() {
         try {
-            this.connection = DriverManager.getConnection("jdbc:sqlite:mystats.db");
-            //this.connection.setAutoCommit(false);
-            MigrationRunner.migrate(this.connection, pathToMigrationsTest);
+            this.openConnection();
+            this.initDaos();
+            this.makeMigrations();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        this.dbExecutor = Executors.newSingleThreadExecutor(r -> {
-            Thread t = new Thread(r, "MyStats-DB-Thread");
-            return t;
-        });
+    }
+
+    public void makeMigrations() {
+        try {
+            MigrationRunner.migrate(this.connection, this.migrations);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Connection getConnection() {
         return connection;
     }
 
-    public void executeWriteAsync(SQLConsumer operation) {
-        dbExecutor.submit(() -> {
-            try {
-                operation.accept(connection);
-                //connection.commit();
-            } catch (SQLException e) {
-                logDatabaseBusy(e, "<write operation>");
-            }
-        });
-    }
-
-    public <T> CompletableFuture<T> executeQueryAsync(SQLFunction<T> operation) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return operation.apply(connection);
-            } catch (SQLException e) {
-                logDatabaseBusy(e, "<query operation>");
-                throw new RuntimeException(e);
-            }
-        }, dbExecutor);
-    }
-
     public void close() {
-        dbExecutor.shutdown();
-        try {
-            if (!dbExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                dbExecutor.shutdownNow();
-            }
-        } catch (InterruptedException ignored) {}
-
         try {
             if (connection != null) connection.close();
         } catch (Exception ignored) {}
+    }
+
+    public void registerMigration(Migration migration) {
+        this.migrations.add(migration);
+    }
+
+    public void resetMigrations() {
+        this.migrations.clear();
     }
 
     public InventorySnapshotDao getInventorySnapshotDao() {
@@ -137,4 +126,5 @@ public final class Database {
         e.printStackTrace();
         System.err.println("==========================================");
     }
+
 }

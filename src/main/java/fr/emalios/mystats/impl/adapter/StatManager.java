@@ -25,11 +25,6 @@ public class StatManager {
     private final int BATCH_SIZE = 100;
     private final int FLUSH_INTERVAL_SECONDS = 5;
 
-    private final Database db = Database.getInstance();
-    private final InventorySnapshotDao inventorySnapshotDao = db.getInventorySnapshotDao();
-    private final InventoryDao inventoryDao = db.getInventoryDao();
-    private final RecordDao recordDao = db.getRecordDao();
-
     //link an inventoryId to associated capability handlers
     //might be necessary to use coordinates/level here
     private final Set<Inventory> monitored = new HashSet<>();
@@ -43,6 +38,10 @@ public class StatManager {
             instance = new StatManager();
         }
         return instance;
+    }
+
+    private void reset() {
+        this.monitored.clear();
     }
 
     public void monitore(Inventory inventory) {
@@ -75,6 +74,7 @@ public class StatManager {
 
     //load inventories in database
     public void init(MinecraftServer server) throws SQLException {
+        this.reset();
         Map<String, ServerLevel> levels = new HashMap<>();
         server.getAllLevels().forEach(level -> {
             levels.put(level.dimension().location().toString(), level);

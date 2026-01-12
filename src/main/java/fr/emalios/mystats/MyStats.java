@@ -2,6 +2,7 @@ package fr.emalios.mystats;
 
 import fr.emalios.mystats.api.storage.Storage;
 import fr.emalios.mystats.command.StatCommand;
+import fr.emalios.mystats.common.MinestatsReloader;
 import fr.emalios.mystats.content.block.StatMonitorBlock;
 import fr.emalios.mystats.content.item.RecorderItem;
 import fr.emalios.mystats.impl.storage.dao.PlayerDao;
@@ -21,6 +22,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.common.util.Lazy;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -115,7 +117,7 @@ public class MyStats {
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (MyStats) to respond directly to events.
         // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
-        NeoForge.EVENT_BUS.register(this);
+        //NeoForge.EVENT_BUS.register(this);
 
         // Register the item to a creative tab
         modEventBus.addListener(this::commonSetup);
@@ -125,6 +127,7 @@ public class MyStats {
         final IEventBus GAME_BUS = NeoForge.EVENT_BUS;
 
         GAME_BUS.addListener(this::registerCommands);
+        GAME_BUS.addListener(this::registerReloadListener);
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
@@ -174,7 +177,9 @@ public class MyStats {
     }
 
 
-
+    private void registerReloadListener(final AddReloadListenerEvent event) {
+        event.addListener(new MinestatsReloader("migration"));
+    }
 
     private void registerCommands(final RegisterCommandsEvent event) {
         event.getDispatcher().register(StatCommand.register("minestats"));

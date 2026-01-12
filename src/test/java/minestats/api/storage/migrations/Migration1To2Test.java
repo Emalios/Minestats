@@ -11,7 +11,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-import static minestats.api.storage.migrations.MigrationTest.pathToMigration;
+import static minestats.utils.Const.pathToMigrations;
 
 @DisplayName("Test migration 1 to 2")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -21,7 +21,7 @@ public class Migration1To2Test {
 
     @BeforeAll
     void beforeAll() {
-        migrations = new MigrationLoader(pathToMigration).loadAll();
+        migrations = new MigrationLoader(pathToMigrations).loadAll();
     }
 
     @AfterAll

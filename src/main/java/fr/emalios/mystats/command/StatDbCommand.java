@@ -46,7 +46,7 @@ public class StatDbCommand {
                 .requires(cs -> cs.hasPermission(2))
                 .executes(ctx -> {
                     try {
-                        DatabaseInitializer.olddeleteDb();
+                        DatabaseInitializer.deleteDb();
                     } catch (SQLException e) {
                         throw new RuntimeException(e);
                     }

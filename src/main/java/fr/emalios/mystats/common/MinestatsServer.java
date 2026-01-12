@@ -1,4 +1,4 @@
-package fr.emalios.mystats.event;
+package fr.emalios.mystats.common;
 
 import fr.emalios.mystats.MyStats;
 import fr.emalios.mystats.api.storage.Storage;
@@ -31,7 +31,7 @@ public class MinestatsServer {
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {
+    public static void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
         try {
@@ -56,7 +56,7 @@ public class MinestatsServer {
     }
 
     @SubscribeEvent
-    public void onServerStopping(ServerStoppingEvent event) {
+    public static void onServerStopping(ServerStoppingEvent event) {
         Database.getInstance().close();
         LOGGER.info("[Minestats] Db unloaded.");
         LOGGER.info("[Minestats] StatManager unloaded.");

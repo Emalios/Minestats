@@ -20,7 +20,6 @@ import static minestats.utils.Const.pathToMigrations;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MigrationTest {
 
-    static final Path pathToMigration = pathToMigrations;
     private static final int lastMigrationVersion = 2;
 
     private List<Migration> migrations;
@@ -28,7 +27,7 @@ public class MigrationTest {
 
     @BeforeAll
     void beforeAll() throws SQLException {
-        migrations = new MigrationLoader(pathToMigration).loadAll();
+        migrations = new MigrationLoader(pathToMigrations).loadAll();
         connection = DriverManager.getConnection("jdbc:sqlite::memory:");
     }
 
