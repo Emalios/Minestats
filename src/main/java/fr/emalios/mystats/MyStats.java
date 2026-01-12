@@ -150,39 +150,6 @@ public class MyStats {
         }
     }
 
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
-    @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {
-        // Do something when the server starts
-        LOGGER.info("HELLO from server starting");
-        try {
-            Database.getInstance().init();
-            var playerInvRepo = new SqlitePlayerInventoryRepository(Database.getInstance().getPlayerInventoryDao());
-            Storage.register(
-                    new SqlitePlayerRepository(Database.getInstance().getPlayerDao(), playerInvRepo),
-                    playerInvRepo,
-                    new SqliteInventoryRepository(Database.getInstance().getInventoryDao(), Database.getInstance().getInventoryPositionsDao()),
-                    new SqliteInventorySnapshotRepository(
-                            Database.getInstance().getInventorySnapshotDao(),
-                            Database.getInstance().getRecordDao()),
-                    new SqliteInventoryPositionsRepository(Database.getInstance().getInventoryPositionsDao())
-            );
-            StatManager.getInstance().init(event.getServer());
-            //TODO: insert inventories into StatManager
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        LOGGER.info("[Minestats] Db loaded.");
-        LOGGER.info("[Minestats] StatManager loaded.");
-    }
-
-    @SubscribeEvent
-    public void onServerStopping(ServerStoppingEvent event) {
-        Database.getInstance().close();
-        LOGGER.info("[Minestats] Db unloaded.");
-        LOGGER.info("[Minestats] StatManager unloaded.");
-    }
-
     private void registerPayload(final RegisterPayloadHandlersEvent event) {
         // Sets the current network version
         final PayloadRegistrar registrar = event.registrar("1");
