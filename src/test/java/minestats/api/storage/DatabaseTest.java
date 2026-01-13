@@ -4,6 +4,7 @@ import fr.emalios.mystats.impl.storage.db.DatabaseInitializer;
 import fr.emalios.mystats.impl.storage.db.migrations.Migration;
 import fr.emalios.mystats.impl.storage.db.migrations.MigrationLoader;
 import fr.emalios.mystats.impl.storage.db.migrations.MigrationRunner;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -38,7 +39,7 @@ public final class DatabaseTest {
     }
 
     public static void makeMigrations() throws SQLException {
-        MigrationRunner.migrate(getConnection(), migrations);
+        MigrationRunner.migrate(getConnection(), migrations, LoggerFactory.getLogger(DatabaseTest.class));
     }
 
     public static void close() {

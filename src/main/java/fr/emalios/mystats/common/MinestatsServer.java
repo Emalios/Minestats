@@ -1,6 +1,7 @@
 package fr.emalios.mystats.common;
 
 import fr.emalios.mystats.MyStats;
+import fr.emalios.mystats.api.StatPlayer;
 import fr.emalios.mystats.api.storage.Storage;
 import fr.emalios.mystats.impl.adapter.StatManager;
 import fr.emalios.mystats.impl.storage.db.Database;
@@ -12,6 +13,7 @@ import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 import java.sql.SQLException;
+import java.util.Optional;
 
 import static fr.emalios.mystats.MyStats.LOGGER;
 
@@ -33,7 +35,6 @@ public class MinestatsServer {
     @SubscribeEvent
     public static void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
-        LOGGER.info("HELLO from server starting");
         try {
             Database.getInstance().init();
             var playerInvRepo = new SqlitePlayerInventoryRepository(Database.getInstance().getPlayerInventoryDao());
@@ -46,8 +47,10 @@ public class MinestatsServer {
                             Database.getInstance().getRecordDao()),
                     new SqliteInventoryPositionsRepository(Database.getInstance().getInventoryPositionsDao())
             );
+            LOGGER.debug("Load player Dev");
+            Optional<StatPlayer> player = Storage.players().findByName("Dev");
+            LOGGER.debug(player.get().getInventories().toString());
             StatManager.getInstance().init(event.getServer());
-            //TODO: insert inventories into StatManager
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -57,6 +60,9 @@ public class MinestatsServer {
 
     @SubscribeEvent
     public static void onServerStopping(ServerStoppingEvent event) {
+        LOGGER.debug("UNLOAD player Dev");
+        Optional<StatPlayer> player = Storage.players().findByName("Dev");
+        LOGGER.debug(player.get().getInventories().toString());
         Database.getInstance().close();
         LOGGER.info("[Minestats] Db unloaded.");
         LOGGER.info("[Minestats] StatManager unloaded.");

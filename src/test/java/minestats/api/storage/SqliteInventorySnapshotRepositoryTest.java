@@ -208,9 +208,6 @@ public class SqliteInventorySnapshotRepositoryTest {
             TimeUnit.SECONDS.sleep(1);
         }
         var invSnapshots = Storage.inventorySnapshots().findAllByInventory(inventory);
-        invSnapshots.forEach(snapshot -> {
-            System.out.println(snapshot.getTimestamp());
-        });
         Assertions.assertEquals(numberOfSnapshots, invSnapshots.size());
         assertOrder(invSnapshots);
     }
@@ -232,8 +229,6 @@ public class SqliteInventorySnapshotRepositoryTest {
         Assertions.assertEquals(wantedNumberOfSnapshots, invSnapshots.size());
         //assert the got snapshots are the last of the db
         var totalSnapshots = Storage.inventorySnapshots().findAllByInventory(inventory);
-        System.out.println("total: " + totalSnapshots);
-        System.out.println("got: " + invSnapshots);
         int startingIndex = numberOfSnapshots - wantedNumberOfSnapshots;
         for (int i = startingIndex; i < numberOfSnapshots; i++) {
             Snapshot s1 = totalSnapshots.get(i);

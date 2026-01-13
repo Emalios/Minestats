@@ -1,5 +1,6 @@
 package fr.emalios.mystats.impl.adapter;
 
+import fr.emalios.mystats.MyStats;
 import fr.emalios.mystats.api.Inventory;
 import fr.emalios.mystats.api.Position;
 import fr.emalios.mystats.api.stat.IHandler;
@@ -84,8 +85,11 @@ public class StatManager {
                 List<IHandler> handlers = Utils.getIHandlers(
                         levels.get(invPosition.getWorld()),
                         new BlockPos(invPosition.getX(), invPosition.getY(), invPosition.getZ()));
+                MyStats.LOGGER.debug("Looking at {} at {} ", invPosition, invPosition.getWorld());
+                MyStats.LOGGER.debug("Handlers: {}", handlers);
                 //no handlers detected on the position
                 if(handlers.isEmpty()) {
+                    MyStats.LOGGER.debug("Deleting inventory {}", inventory);
                     Storage.inventoryPositions().removePosition(inventory, invPosition);
                 }
                 inventory.addHandlers(handlers);

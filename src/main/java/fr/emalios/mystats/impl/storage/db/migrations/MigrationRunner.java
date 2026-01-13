@@ -1,6 +1,7 @@
 package fr.emalios.mystats.impl.storage.db.migrations;
 
 import fr.emalios.mystats.MyStats;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,23 +11,23 @@ import java.util.List;
 
 public final class MigrationRunner {
 
-    public static void migrate(Connection conn, List<Migration> migrations) throws SQLException {
-        //MyStats.LOGGER.info("Starting migrations... Available: {}", migrations);
+    public static void migrate(Connection conn, List<Migration> migrations, Logger logger) throws SQLException {
+        logger.info("Starting migrations... Available: {}", migrations);
         try (Statement st = conn.createStatement()) {
             st.execute("PRAGMA foreign_keys = ON;");
         }
 
         int currentVersion = getCurrentVersion(conn);
-        //MyStats.LOGGER.info("Current version: {}", currentVersion);
+        logger.info("Current version: {}", currentVersion);
 
         for (Migration m : migrations) {
             if (m.version() > currentVersion) {
-                //MyStats.LOGGER.info("Applying migration {}", m.version());
+                logger.info("Applying migration {}", m.version());
                 applyMigration(conn, m);
-                //MyStats.LOGGER.info("Migration applied");
+                logger.info("Migration applied");
             }
         }
-        //MyStats.LOGGER.info("Migrations finished.");
+        logger.info("Migrations finished.");
     }
 
     public static int getCurrentVersion(Connection conn) throws SQLException {
@@ -55,7 +56,6 @@ public final class MigrationRunner {
         )) {
             ps.setInt(1, version);
             int r = ps.executeUpdate();
-            System.out.println("r: " + r);
         }
     }
 

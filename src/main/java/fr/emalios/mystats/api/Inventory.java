@@ -97,4 +97,12 @@ public class Inventory extends Persistable {
     public int hashCode() {
         return Objects.hash(invPositions);
     }
+
+    @Override
+    public String toString() {
+        return "Inventory{" +
+                "invPositions=" + invPositions +
+                ", nb handlers=" + handlers.size() +
+                '}';
+    }
 }

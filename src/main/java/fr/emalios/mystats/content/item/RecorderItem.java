@@ -1,5 +1,6 @@
 package fr.emalios.mystats.content.item;
 
+import fr.emalios.mystats.MyStats;
 import fr.emalios.mystats.api.Inventory;
 import fr.emalios.mystats.api.Position;
 import fr.emalios.mystats.api.StatPlayer;
@@ -120,7 +121,7 @@ public class RecorderItem extends Item {
         switch (mode) {
             case REMOVE:
                 if(optInv.isEmpty()) {
-                    this.sendMessage("This block in not monitored.", player);
+                    this.sendMessage("This block is not monitored.", player);
                     return InteractionResult.PASS;
                 }
                 if(!statPlayer.hasInventory(optInv.get())) {
@@ -133,6 +134,7 @@ public class RecorderItem extends Item {
                 return InteractionResult.SUCCESS;
             case ADD:
                 if(optInv.isPresent()) {
+                    //TODO: Récupérer les IHandlers du block
                     if(statPlayer.hasInventory(optInv.get())) {
                         this.sendMessage("Already monitored.", player);
                         return InteractionResult.PASS;
@@ -141,6 +143,7 @@ public class RecorderItem extends Item {
                     return InteractionResult.SUCCESS;
                 }
                 Inventory inventory = new Inventory(positions);
+                //TODO: Récupérer les IHandlers du block
                 Storage.inventories().save(inventory);
                 this.addInventoryToPlayer(inventory, statPlayer, player, handlers);
                 return InteractionResult.SUCCESS;
@@ -150,8 +153,9 @@ public class RecorderItem extends Item {
     }
 
     private void addInventoryToPlayer(Inventory inventory, StatPlayer statPlayer, Player player, List<IHandler> handlers) {
-        Storage.playerInventories().addInventory(statPlayer, inventory);
         inventory.addHandlers(handlers);
+        MyStats.LOGGER.debug("Inventory handers size {}", inventory.getHandlers().size());
+        Storage.playerInventories().addInventory(statPlayer, inventory);
         this.statManager.monitore(inventory);
         this.sendMessage("Added inventory to monitoring.", player);
 

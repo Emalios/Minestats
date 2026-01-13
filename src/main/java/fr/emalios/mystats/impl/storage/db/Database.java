@@ -1,5 +1,6 @@
 package fr.emalios.mystats.impl.storage.db;
 
+import fr.emalios.mystats.MyStats;
 import fr.emalios.mystats.impl.storage.dao.*;
 import fr.emalios.mystats.impl.storage.db.migrations.Migration;
 import fr.emalios.mystats.impl.storage.db.migrations.MigrationRunner;
@@ -69,7 +70,7 @@ public final class Database {
 
     public void makeMigrations() {
         try {
-            MigrationRunner.migrate(this.connection, this.migrations);
+            MigrationRunner.migrate(this.connection, this.migrations, MyStats.LOGGER);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

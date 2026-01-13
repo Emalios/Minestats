@@ -1,5 +1,6 @@
 package fr.emalios.mystats.impl.storage.repository;
 
+import fr.emalios.mystats.MyStats;
 import fr.emalios.mystats.api.Inventory;
 import fr.emalios.mystats.api.StatPlayer;
 import fr.emalios.mystats.api.storage.PlayerInventoryRepository;
@@ -37,6 +38,8 @@ public class SqlitePlayerRepository implements PlayerRepository {
         if (optPlayer.isPresent()) {
             StatPlayer statPlayer = optPlayer.get();
             this.playerInventoryRepository.hydrate(statPlayer);
+            MyStats.LOGGER.debug("Player '{}' has been loaded with: ", name);
+            MyStats.LOGGER.debug(statPlayer.getInventories().toString());
             return statPlayer;
         }
 

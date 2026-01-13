@@ -192,7 +192,6 @@ public class MathTest {
         var result = StatCalculator.getInstance().genPerSecond(player.getInventories());
         Assertions.assertFalse(result.isEmpty());
         Assertions.assertEquals(3, result.size());
-        System.out.println(result);
         Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:dirt", numberOfInvs*10, CountUnit.ITEM), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
         Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:stone", numberOfInvs*64, CountUnit.ITEM), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
         Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.FLUID, "minecraft:water", numberOfInvs*1000, CountUnit.MB), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
