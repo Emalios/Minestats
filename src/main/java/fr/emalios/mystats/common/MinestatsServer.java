@@ -3,6 +3,7 @@ package fr.emalios.mystats.common;
 import fr.emalios.mystats.MyStats;
 import fr.emalios.mystats.api.StatPlayer;
 import fr.emalios.mystats.api.storage.Storage;
+import fr.emalios.mystats.helper.Const;
 import fr.emalios.mystats.impl.adapter.StatManager;
 import fr.emalios.mystats.impl.storage.db.Database;
 import fr.emalios.mystats.impl.storage.repository.*;
@@ -36,20 +37,7 @@ public class MinestatsServer {
     public static void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
         try {
-            Database.getInstance().init();
-            var playerInvRepo = new SqlitePlayerInventoryRepository(Database.getInstance().getPlayerInventoryDao());
-            Storage.register(
-                    new SqlitePlayerRepository(Database.getInstance().getPlayerDao(), playerInvRepo),
-                    playerInvRepo,
-                    new SqliteInventoryRepository(Database.getInstance().getInventoryDao(), Database.getInstance().getInventoryPositionsDao()),
-                    new SqliteInventorySnapshotRepository(
-                            Database.getInstance().getInventorySnapshotDao(),
-                            Database.getInstance().getRecordDao()),
-                    new SqliteInventoryPositionsRepository(Database.getInstance().getInventoryPositionsDao())
-            );
-            LOGGER.debug("Load player Dev");
-            Optional<StatPlayer> player = Storage.players().findByName("Dev");
-            LOGGER.debug(player.get().getInventories().toString());
+            Database.getInstance().init(Const.DB_FILENAME);
             StatManager.getInstance().init(event.getServer());
         } catch (SQLException e) {
             throw new RuntimeException(e);

@@ -34,6 +34,7 @@ public class SqlitePlayerRepository implements PlayerRepository {
 
     @Override
     public StatPlayer getOrCreate(String name) {
+        System.out.println("finding by name: " + name);
         var optPlayer = findByName(name);
         if (optPlayer.isPresent()) {
             StatPlayer statPlayer = optPlayer.get();

@@ -14,6 +14,7 @@ import fr.emalios.mystats.helper.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -41,7 +42,7 @@ public class StatManager {
         return instance;
     }
 
-    private void reset() {
+    public void reset() {
         this.monitored.clear();
     }
 
@@ -82,9 +83,12 @@ public class StatManager {
         });
         for (Inventory inventory : Storage.inventories().getAll()) {
             for (Position invPosition : inventory.getInvPositions()) {
-                List<IHandler> handlers = Utils.getIHandlers(
-                        levels.get(invPosition.getWorld()),
-                        new BlockPos(invPosition.getX(), invPosition.getY(), invPosition.getZ()));
+                BlockPos pos = new BlockPos(invPosition.getX(), invPosition.getY(), invPosition.getZ());
+                Level level = levels.get(invPosition.getWorld());
+                //load block in world to be able to get capabilities
+                level.getBlockState(pos);
+                //MyStats.LOGGER.debug("State {}", state);
+                List<IHandler> handlers = Utils.getIHandlers(level, pos);
                 MyStats.LOGGER.debug("Looking at {} at {} ", invPosition, invPosition.getWorld());
                 MyStats.LOGGER.debug("Handlers: {}", handlers);
                 //no handlers detected on the position

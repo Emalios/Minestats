@@ -1,23 +1,17 @@
 package fr.emalios.mystats.impl.storage.db;
 
 import fr.emalios.mystats.MyStats;
+import fr.emalios.mystats.api.storage.Storage;
 import fr.emalios.mystats.impl.storage.dao.*;
 import fr.emalios.mystats.impl.storage.db.migrations.Migration;
 import fr.emalios.mystats.impl.storage.db.migrations.MigrationRunner;
-import net.neoforged.fml.loading.FMLPaths;
+import fr.emalios.mystats.impl.storage.repository.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-import static fr.emalios.mystats.helper.Const.pathToMigrations;
-import static fr.emalios.mystats.helper.Const.pathToMigrationsTest;
 
 public final class Database {
 
@@ -34,6 +28,9 @@ public final class Database {
     private RecordDao recordDao;
     private InventoryDao inventoryDao;
 
+    /**
+     * SHOULD ONLY BE USED FOR TESTS PURPOSES
+     */
     private Database() {
     }
 
@@ -44,9 +41,9 @@ public final class Database {
         return instance;
     }
 
-    private void openConnection() throws SQLException {
+    private void openConnection(String dbFileName) throws SQLException {
         if(connection != null && !connection.isClosed()) throw new RuntimeException("Connection already open");
-        this.connection = DriverManager.getConnection("jdbc:sqlite:mystats.db");
+        this.connection = DriverManager.getConnection("jdbc:sqlite:"+dbFileName+".db");
     }
 
     private void initDaos() {
@@ -58,11 +55,33 @@ public final class Database {
         this.recordDao = new RecordDao(connection);
     }
 
-    public void init() {
+    public void init(String dbFileName) {
         try {
-            this.openConnection();
+            this.openConnection(dbFileName);
             this.initDaos();
+            this.updateRepositories();
             this.makeMigrations();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void updateRepositories() {
+        var playerInvRepo = new SqlitePlayerInventoryRepository(Database.getInstance().getPlayerInventoryDao());
+        Storage.register(
+                new SqlitePlayerRepository(Database.getInstance().getPlayerDao(), playerInvRepo),
+                playerInvRepo,
+                new SqliteInventoryRepository(Database.getInstance().getInventoryDao(), Database.getInstance().getInventoryPositionsDao()),
+                new SqliteInventorySnapshotRepository(
+                        Database.getInstance().getInventorySnapshotDao(),
+                        Database.getInstance().getRecordDao()),
+                new SqliteInventoryPositionsRepository(Database.getInstance().getInventoryPositionsDao())
+        );
+    }
+
+    public void reset() {
+        try {
+            this.inventoryDao.deleteAll();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -82,7 +101,7 @@ public final class Database {
 
     public void close() {
         try {
-            if (connection != null) connection.close();
+            if (connection != null && !connection.isClosed()) connection.close();
         } catch (Exception ignored) {}
     }
 

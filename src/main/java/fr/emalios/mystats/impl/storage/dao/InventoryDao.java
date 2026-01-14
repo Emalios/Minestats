@@ -19,7 +19,7 @@ import java.util.Optional;
  */
 public class InventoryDao {
 
-    private final Connection connection;
+    private Connection connection;
 
     public InventoryDao(Connection connection) {
         this.connection = connection;
@@ -48,6 +48,15 @@ public class InventoryDao {
         String sql = "DELETE FROM inventories WHERE id = ?;";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
+            int rows = ps.executeUpdate();
+            //connection.commit();
+            return rows > 0;
+        }
+    }
+
+    public boolean deleteAll() throws SQLException {
+        String sql = "DELETE FROM inventories;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
             int rows = ps.executeUpdate();
             //connection.commit();
             return rows > 0;

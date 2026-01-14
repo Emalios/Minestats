@@ -1,6 +1,7 @@
 package fr.emalios.mystats.command;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
+import fr.emalios.mystats.helper.Const;
 import fr.emalios.mystats.impl.adapter.StatManager;
 import fr.emalios.mystats.impl.storage.db.Database;
 import fr.emalios.mystats.impl.storage.db.DatabaseInitializer;
@@ -58,7 +59,7 @@ public class StatDbCommand {
         return Commands.literal("init")
                 .requires(cs -> cs.hasPermission(2))
                 .executes(ctx -> {
-                    Database.getInstance().init();
+                    Database.getInstance().init(Const.DB_FILENAME);
                     return 0;
                 });
     }
