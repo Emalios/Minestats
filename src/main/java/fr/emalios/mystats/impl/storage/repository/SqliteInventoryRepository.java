@@ -95,8 +95,8 @@ public class SqliteInventoryRepository implements InventoryRepository {
     }
 
     @Override
-    public Collection<Inventory> getAllFromWorld(String world) {
-        List<Inventory> inventories = new ArrayList<>();
+    public Set<Inventory> getAllFromWorld(String world) {
+        Set<Inventory> inventories = new HashSet<>();
         try {
             var inventoriesIds = this.inventoryPositionsDao.findAllByWorld(world);
             for (Integer invId: inventoriesIds) {
@@ -114,8 +114,8 @@ public class SqliteInventoryRepository implements InventoryRepository {
     }
 
     @Override
-    public Collection<Inventory> getAll() {
-        List<Inventory> inventories = new ArrayList<>();
+    public Set<Inventory> getAll() {
+        Set<Inventory> inventories = new HashSet<>();
         try {
             var records = this.inventoryDao.getAll();
             for (Inventory inventory: records) {

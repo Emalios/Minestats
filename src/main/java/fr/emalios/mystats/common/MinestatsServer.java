@@ -48,9 +48,6 @@ public class MinestatsServer {
 
     @SubscribeEvent
     public static void onServerStopping(ServerStoppingEvent event) {
-        LOGGER.debug("UNLOAD player Dev");
-        Optional<StatPlayer> player = Storage.players().findByName("Dev");
-        LOGGER.debug(player.get().getInventories().toString());
         Database.getInstance().close();
         LOGGER.info("[Minestats] Db unloaded.");
         LOGGER.info("[Minestats] StatManager unloaded.");

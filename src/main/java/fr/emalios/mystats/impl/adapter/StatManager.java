@@ -87,13 +87,9 @@ public class StatManager {
                 Level level = levels.get(invPosition.getWorld());
                 //load block in world to be able to get capabilities
                 level.getBlockState(pos);
-                //MyStats.LOGGER.debug("State {}", state);
                 List<IHandler> handlers = Utils.getIHandlers(level, pos);
-                MyStats.LOGGER.debug("Looking at {} at {} ", invPosition, invPosition.getWorld());
-                MyStats.LOGGER.debug("Handlers: {}", handlers);
                 //no handlers detected on the position
                 if(handlers.isEmpty()) {
-                    MyStats.LOGGER.debug("Deleting inventory {}", inventory);
                     Storage.inventoryPositions().removePosition(inventory, invPosition);
                 }
                 inventory.addHandlers(handlers);

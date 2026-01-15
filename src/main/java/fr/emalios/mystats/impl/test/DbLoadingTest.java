@@ -38,47 +38,17 @@ import java.util.Set;
 public class DbLoadingTest {
 
     private static Player player;
+    private static final MineStatsTestUtils utils = MineStatsTestUtils.getInstance();
 
     @BeforeBatch(batch = "db-interact")
     public static void setup(ServerLevel level) {
+        StatManager.getInstance().reset();
     }
 
     @AfterBatch(batch = "db-interact")
     public static void teardown(ServerLevel level) {
         StatManager.getInstance().reset();
         Database.getInstance().reset();
-    }
-
-    private static Player getPlayer(GameTestHelper helper) {
-        if(player == null) {
-            player = helper.makeMockPlayer(GameType.SURVIVAL);
-        }
-        return player;
-    }
-
-    private static ItemStack getRecorder(GameTestHelper helper) {
-        String recorderId = MyStats.MODID+":recorder_item";
-        Item recorder = RegistriesTest.loadItem(recorderId);
-        helper.assertValueEqual(recorder.toString(), recorderId, "recorder item should be loaded");
-        return new ItemStack(recorder);
-    }
-
-    private static InteractionResult makePlayerRecordOn(GameTestHelper helper, BlockPos absolutePos) {
-        var player = getPlayer(helper);
-
-        ItemStack recorder = getRecorder(helper);
-        player.setItemInHand(InteractionHand.MAIN_HAND, recorder);
-        helper.assertValueEqual(recorder, player.getItemInHand(InteractionHand.MAIN_HAND), "item in hand should be recorder item");
-
-        BlockHitResult hit = new BlockHitResult(
-                Vec3.atCenterOf(absolutePos),
-                Direction.UP,
-                absolutePos,
-                false
-        );
-        return recorder.useOn(
-                new UseOnContext(player, InteractionHand.MAIN_HAND, hit)
-        );
     }
 
     private static void resetDb() {
@@ -92,7 +62,7 @@ public class DbLoadingTest {
         var chest = new BlockPos(1, 1, 0);
         var chestAbs = helper.absolutePos(chest);
 
-        InteractionResult result = makePlayerRecordOn(helper, chestAbs);
+        InteractionResult result = utils.makePlayerRecordOn(helper, chestAbs);
         helper.assertTrue(result.consumesAction(), "Recorder should interact with chest");
 
         StatPlayer statPlayer = Storage.players().getOrCreate(player.getName().getString());

@@ -37,7 +37,6 @@ public class StatPlayer extends Persistable {
         return name;
     }
 
-
     /**
      * Clear the current inventories of the player to update them
      * @param inventories updated inventories

@@ -31,9 +31,9 @@ public interface InventoryRepository {
 
     void delete(Inventory inventory);
 
-    Collection<Inventory> getAllFromWorld(String world);
+    Set<Inventory> getAllFromWorld(String world);
 
-    Collection<Inventory> getAll();
+    Set<Inventory> getAll();
 
     Inventory getById(int id);
 

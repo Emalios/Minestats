@@ -48,12 +48,6 @@ public class MyStatsClient {
         event.register(ModMenus.MONITOR_MENU.get(), StatScreen::new);
     }
 
-    @SubscribeEvent
-    static void onClientSetup(FMLClientSetupEvent event) {
-        // Some client setup code
-        MyStats.LOGGER.info("HELLO FROM CLIENT SETUP");
-    }
-
     private void registerBindings(RegisterKeyMappingsEvent event) {
         event.register(MONITOR_MAPPING.get());
     }
