@@ -1,15 +1,11 @@
 package fr.emalios.mystats.impl.adapter;
 
-import fr.emalios.mystats.MyStats;
-import fr.emalios.mystats.api.Inventory;
-import fr.emalios.mystats.api.Position;
+import fr.emalios.mystats.api.StatsAPI;
+import fr.emalios.mystats.api.models.Inventory;
+import fr.emalios.mystats.api.models.Position;
+import fr.emalios.mystats.api.services.InventoryService;
 import fr.emalios.mystats.api.stat.IHandler;
-import fr.emalios.mystats.api.Record;
-import fr.emalios.mystats.api.storage.Storage;
-import fr.emalios.mystats.impl.storage.dao.InventoryDao;
-import fr.emalios.mystats.impl.storage.dao.InventorySnapshotDao;
-import fr.emalios.mystats.impl.storage.dao.RecordDao;
-import fr.emalios.mystats.impl.storage.db.Database;
+import fr.emalios.mystats.api.models.Record;
 import fr.emalios.mystats.helper.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
@@ -32,7 +28,10 @@ public class StatManager {
     private final Set<Inventory> monitored = new HashSet<>();
     private final Queue<Record> buffer = new ConcurrentLinkedQueue<>();
 
+    private InventoryService inventoryService;
+
     private StatManager() {
+        this.inventoryService = StatsAPI.getInstance().getInventoryService();
     }
 
     public static synchronized StatManager getInstance() {
@@ -54,20 +53,7 @@ public class StatManager {
         return this.monitored.contains(inventory);
     }
 
-    /**
-     * TODO: maybe a system to detect if the inventory has changed since last scan is possible
-     * Method responsible to scan the content of every monitored blocks
-     * for each block we:
-     * - create an inventory snapshot
-     * - scan inventory content
-     * - for each item create a snapshot item
-     */
-    public void scan() {
-        for (Inventory inventory : this.monitored) {
-            if(inventory.isValid()) inventory.recordContent();
-            else Storage.inventories().delete(inventory);
-        }
-    }
+
 
     public void unmonitore(Inventory inventory) {
         this.monitored.remove(inventory);
@@ -81,7 +67,8 @@ public class StatManager {
         server.getAllLevels().forEach(level -> {
             levels.put(level.dimension().location().toString(), level);
         });
-        for (Inventory inventory : Storage.inventories().getAll()) {
+        //TODO: maybe logic to test if every handlers are the same here
+        for (Inventory inventory : this.inventoryService.getAll()) {
             for (Position invPosition : inventory.getInvPositions()) {
                 BlockPos pos = new BlockPos(invPosition.getX(), invPosition.getY(), invPosition.getZ());
                 Level level = levels.get(invPosition.getWorld());
@@ -90,13 +77,12 @@ public class StatManager {
                 List<IHandler> handlers = Utils.getIHandlers(level, pos);
                 //no handlers detected on the position
                 if(handlers.isEmpty()) {
-                    Storage.inventoryPositions().removePosition(inventory, invPosition);
-                }
-                inventory.addHandlers(handlers);
+                    this.inventoryService.removePositionFromInventory(inventory, invPosition);
+                } else inventory.addHandlers(handlers);
             }
             if(inventory.isValid()) this.monitore(inventory);
             //if there is no available handlers delete the block
-            else Storage.inventories().delete(inventory);
+            else this.inventoryService.deleteInventory(inventory);
         }
     }
 }

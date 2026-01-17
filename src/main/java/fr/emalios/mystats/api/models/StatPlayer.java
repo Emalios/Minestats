@@ -1,6 +1,5 @@
-package fr.emalios.mystats.api;
+package fr.emalios.mystats.api.models;
 
-import fr.emalios.mystats.api.Inventory;
 import fr.emalios.mystats.api.storage.Persistable;
 
 import java.util.Collection;

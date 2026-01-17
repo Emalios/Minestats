@@ -1,8 +1,6 @@
 package fr.emalios.mystats.impl.storage.repository;
 
-import fr.emalios.mystats.MyStats;
-import fr.emalios.mystats.api.Inventory;
-import fr.emalios.mystats.api.StatPlayer;
+import fr.emalios.mystats.api.models.StatPlayer;
 import fr.emalios.mystats.api.storage.PlayerInventoryRepository;
 import fr.emalios.mystats.api.storage.PlayerRepository;
 import fr.emalios.mystats.impl.storage.dao.PlayerDao;

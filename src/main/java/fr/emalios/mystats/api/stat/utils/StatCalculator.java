@@ -1,17 +1,14 @@
 package fr.emalios.mystats.api.stat.utils;
 
-import fr.emalios.mystats.api.CountUnit;
-import fr.emalios.mystats.api.Inventory;
-import fr.emalios.mystats.api.RecordType;
-import fr.emalios.mystats.impl.storage.dao.InventorySnapshotDao;
-import fr.emalios.mystats.impl.storage.dao.PlayerInventoryDao;
-import fr.emalios.mystats.impl.storage.dao.RecordDao;
-import fr.emalios.mystats.impl.storage.db.Database;
+import fr.emalios.mystats.api.StatsAPI;
+import fr.emalios.mystats.api.models.CountUnit;
+import fr.emalios.mystats.api.models.Inventory;
+import fr.emalios.mystats.api.models.RecordType;
+import fr.emalios.mystats.api.services.InventoryService;
 import fr.emalios.mystats.api.stat.*;
-import fr.emalios.mystats.api.Record;
+import fr.emalios.mystats.api.models.Record;
 import fr.emalios.mystats.helper.Utils;
 
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -19,9 +16,14 @@ import java.util.Map;
 
 public class StatCalculator {
 
+    //TODO make stat service
     private static StatCalculator instance = new StatCalculator();
 
-    private StatCalculator() { }
+    private StatsAPI statsAPI;
+
+    private StatCalculator() {
+        this.statsAPI = StatsAPI.getInstance();
+    }
 
     public static synchronized StatCalculator getInstance() {
         if (instance == null) {
@@ -39,7 +41,7 @@ public class StatCalculator {
         Map<String, RecordType> contentTypes = new HashMap<>();
         Map<String, Stat> results = new HashMap<>();
         for (Inventory inventory : inventories) {
-            var snapshots = inventory.getSnapshots(10);
+            var snapshots = this.statsAPI.getInventoryService().getLastSnapshots(inventory, 10);
             Map<Long, Collection<Record>> history = new HashMap<>();
             for (var snapshot : snapshots) {
                 var content = snapshot.getContent();

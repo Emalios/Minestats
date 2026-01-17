@@ -1,14 +1,13 @@
 package fr.emalios.mystats.impl.storage.repository;
 
-import fr.emalios.mystats.api.Inventory;
-import fr.emalios.mystats.api.Record;
-import fr.emalios.mystats.api.Snapshot;
+import fr.emalios.mystats.api.models.Inventory;
+import fr.emalios.mystats.api.models.Record;
+import fr.emalios.mystats.api.models.Snapshot;
 import fr.emalios.mystats.api.storage.InventorySnapshotRepository;
 import fr.emalios.mystats.impl.storage.dao.InventorySnapshotDao;
 import fr.emalios.mystats.impl.storage.dao.RecordDao;
 
 import java.sql.SQLException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

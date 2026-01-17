@@ -1,11 +1,11 @@
 package minestats.api.storage;
 
-import fr.emalios.mystats.api.*;
-import fr.emalios.mystats.api.Record;
+import fr.emalios.mystats.api.models.*;
+import fr.emalios.mystats.api.models.Record;
+import fr.emalios.mystats.api.services.InventoryService;
 import fr.emalios.mystats.api.stat.IHandler;
-import fr.emalios.mystats.api.storage.Storage;
+import fr.emalios.mystats.api.storage.*;
 import fr.emalios.mystats.impl.storage.dao.*;
-import fr.emalios.mystats.impl.storage.db.Database;
 import fr.emalios.mystats.impl.storage.repository.SqliteInventoryRepository;
 import fr.emalios.mystats.impl.storage.repository.SqliteInventorySnapshotRepository;
 import fr.emalios.mystats.impl.storage.repository.SqlitePlayerInventoryRepository;
@@ -68,15 +68,19 @@ public class SqliteInventorySnapshotRepositoryTest {
         }
     };
 
+    private PlayerInventoryRepository playerInventoryRepository;
+    private PlayerRepository playerRepository;
+    private InventoryRepository inventoryRepository;
+    private InventorySnapshotRepository inventorySnapshotRepository;
+    
     @BeforeAll
     void setup() throws SQLException {
         Connection conn = DatabaseTest.getConnection();
         DatabaseTest.makeMigrations();
-        var playerInvRepo = new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn));
-        Storage.registerInventorySnapshotRepo(new SqliteInventorySnapshotRepository(new InventorySnapshotDao(conn), new RecordDao(conn)));
-        Storage.registerPlayerInventoriesRepo(playerInvRepo);
-        Storage.registerPlayerRepo(new SqlitePlayerRepository(new PlayerDao(conn), playerInvRepo));
-        Storage.registerInventoryRepo(new SqliteInventoryRepository(new InventoryDao(conn), new InventoryPositionsDao(conn)));
+        this.playerInventoryRepository = new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn));
+        this.playerRepository = new SqlitePlayerRepository(new PlayerDao(conn), this.playerInventoryRepository);
+        this.inventoryRepository = new SqliteInventoryRepository(new InventoryDao(conn), new InventoryPositionsDao(conn));
+        this.inventorySnapshotRepository = new SqliteInventorySnapshotRepository(new InventorySnapshotDao(conn), new RecordDao(conn));
     }
 
     @AfterAll
@@ -87,11 +91,11 @@ public class SqliteInventorySnapshotRepositoryTest {
     @Test
     @DisplayName("Create multiple empty snapshots")
     void createMultipleEmptySnapshots() {
-        Inventory inventory = Storage.inventories().getOrCreate(new Position("minecraft:overworld", 0, 0, 0));
+        Inventory inventory = this.inventoryRepository.getOrCreate(new Position("minecraft:overworld", 0, 0, 0));
         for (int i = 0; i < 10; i++) {
-            inventory.recordContent();
+            this.inventorySnapshotRepository.addSnapshot(inventory.createSnapshot());
         }
-        var invSnapshots = Storage.inventorySnapshots().findAllByInventory(inventory);
+        var invSnapshots = this.inventorySnapshotRepository.findAllByInventory(inventory);
         Assertions.assertNotNull(invSnapshots);
         Assertions.assertFalse(invSnapshots.isEmpty());
         Assertions.assertEquals(10, invSnapshots.size());
@@ -100,10 +104,10 @@ public class SqliteInventorySnapshotRepositoryTest {
     @Test
     @DisplayName("Create item snapshot")
     void createItemSnapshot() {
-        Inventory inventory = Storage.inventories().getOrCreate(new Position("minecraft:nether", 0, 0, 0));
+        Inventory inventory = this.inventoryRepository.getOrCreate(new Position("minecraft:nether", 0, 0, 0));
         inventory.addHandler(items);
-        inventory.recordContent();
-        var invSnapshots = Storage.inventorySnapshots().findAllByInventory(inventory);
+        this.inventorySnapshotRepository.addSnapshot(inventory.createSnapshot());
+        var invSnapshots = this.inventorySnapshotRepository.findAllByInventory(inventory);
         Snapshot snapshot = invSnapshots.getFirst();
         var content = snapshot.getContent();
         Assertions.assertNotNull(content);
@@ -118,10 +122,10 @@ public class SqliteInventorySnapshotRepositoryTest {
     @Test
     @DisplayName("Create fluid snapshot")
     void createFluidSnapshot() {
-        Inventory inventory = Storage.inventories().getOrCreate(new Position("minecraft:end", 0, 0, 0));
+        Inventory inventory = this.inventoryRepository.getOrCreate(new Position("minecraft:end", 0, 0, 0));
         inventory.addHandler(fluids);
-        inventory.recordContent();
-        var invSnapshots = Storage.inventorySnapshots().findAllByInventory(inventory);
+        this.inventorySnapshotRepository.addSnapshot(inventory.createSnapshot());
+        var invSnapshots = this.inventorySnapshotRepository.findAllByInventory(inventory);
         Snapshot snapshot = invSnapshots.getFirst();
         var content = snapshot.getContent();
         Assertions.assertNotNull(content);
@@ -136,10 +140,10 @@ public class SqliteInventorySnapshotRepositoryTest {
     @Test
     @DisplayName("Create empty snapshot")
     void createEmptySnapshot() {
-        Inventory inventory = Storage.inventories().getOrCreate(new Position("minecraft:overworld", 10, 0, 0));
+        Inventory inventory = this.inventoryRepository.getOrCreate(new Position("minecraft:overworld", 10, 0, 0));
         inventory.addHandler(empty);
-        inventory.recordContent();
-        var invSnapshots = Storage.inventorySnapshots().findAllByInventory(inventory);
+        this.inventorySnapshotRepository.addSnapshot(inventory.createSnapshot());
+        var invSnapshots = this.inventorySnapshotRepository.findAllByInventory(inventory);
         Snapshot snapshot = invSnapshots.getFirst();
         var content = snapshot.getContent();
         Assertions.assertNotNull(content);
@@ -150,11 +154,11 @@ public class SqliteInventorySnapshotRepositoryTest {
     @Test
     @DisplayName("Create mixed snapshot")
     void createMixedSnapshot() {
-        Inventory inventory = Storage.inventories().getOrCreate(new Position("minecraft:overworld", 0, 10, 0));
+        Inventory inventory = this.inventoryRepository.getOrCreate(new Position("minecraft:overworld", 0, 10, 0));
         inventory.addHandler(fluids);
         inventory.addHandler(items);
-        inventory.recordContent();
-        var invSnapshots = Storage.inventorySnapshots().findAllByInventory(inventory);
+        this.inventorySnapshotRepository.addSnapshot(inventory.createSnapshot());
+        var invSnapshots = this.inventorySnapshotRepository.findAllByInventory(inventory);
         Snapshot snapshot = invSnapshots.getFirst();
         var content = snapshot.getContent();
         Assertions.assertNotNull(content);
@@ -168,12 +172,12 @@ public class SqliteInventorySnapshotRepositoryTest {
     @Test
     @DisplayName("Create mixed snapshots")
     void createMixedSnapshots() {
-        Inventory inventory = Storage.inventories().getOrCreate(new Position("minecraft:overworld", 0, 0, 10));
+        Inventory inventory = this.inventoryRepository.getOrCreate(new Position("minecraft:overworld", 0, 0, 10));
         inventory.addHandler(fluids);
         inventory.addHandler(items);
-        inventory.recordContent();
-        inventory.recordContent();
-        var invSnapshots = Storage.inventorySnapshots().findAllByInventory(inventory);
+        this.inventorySnapshotRepository.addSnapshot(inventory.createSnapshot());
+        this.inventorySnapshotRepository.addSnapshot(inventory.createSnapshot());
+        var invSnapshots = this.inventorySnapshotRepository.findAllByInventory(inventory);
         Assertions.assertEquals(2, invSnapshots.size());
     }
 
@@ -183,11 +187,11 @@ public class SqliteInventorySnapshotRepositoryTest {
     //@Test
     @DisplayName("Create snapshot with merged records")
     void createSnapshotWithMergedRecords() {
-        Inventory inventory = Storage.inventories().getOrCreate(new Position("minecraft:overworld", 10, 10, 10));
+        Inventory inventory = this.inventoryRepository.getOrCreate(new Position("minecraft:overworld", 10, 10, 10));
         inventory.addHandler(items);
         inventory.addHandler(items);
-        inventory.recordContent();
-        var invSnapshots = Storage.inventorySnapshots().findAllByInventory(inventory);
+        this.inventorySnapshotRepository.addSnapshot(inventory.createSnapshot());
+        var invSnapshots = this.inventorySnapshotRepository.findAllByInventory(inventory);
         Snapshot snapshot = invSnapshots.getFirst();
         Assertions.assertEquals(3, snapshot.getContent().size());
         Assertions.assertEquals(List.of(
@@ -200,14 +204,14 @@ public class SqliteInventorySnapshotRepositoryTest {
     @Test
     @DisplayName("Get all snapshots")
     void getAllSnapshots() throws InterruptedException {
-        Inventory inventory = Storage.inventories().getOrCreate(new Position("all-snapshot-test", 0, 0, 10));
+        Inventory inventory = this.inventoryRepository.getOrCreate(new Position("all-snapshot-test", 0, 0, 10));
         inventory.addHandler(items);
         int numberOfSnapshots = 15;
         for (int i = 0; i < numberOfSnapshots; i++) {
-            inventory.recordContent();
+            this.inventorySnapshotRepository.addSnapshot(inventory.createSnapshot());
             TimeUnit.SECONDS.sleep(1);
         }
-        var invSnapshots = Storage.inventorySnapshots().findAllByInventory(inventory);
+        var invSnapshots = this.inventorySnapshotRepository.findAllByInventory(inventory);
         Assertions.assertEquals(numberOfSnapshots, invSnapshots.size());
         assertOrder(invSnapshots);
     }
@@ -215,20 +219,20 @@ public class SqliteInventorySnapshotRepositoryTest {
     @Test
     @DisplayName("Get 10 last snapshots")
     void get10LastSnapshots() throws InterruptedException {
-        Inventory inventory = Storage.inventories().getOrCreate(new Position("10-snapshot-test", 0, 0, 10));
+        Inventory inventory = this.inventoryRepository.getOrCreate(new Position("10-snapshot-test", 0, 0, 10));
         inventory.addHandler(items);
         int numberOfSnapshots = 15;
         int wantedNumberOfSnapshots = 10;
         Assertions.assertTrue(numberOfSnapshots > wantedNumberOfSnapshots);
         for (int i = 0; i < numberOfSnapshots; i++) {
-            inventory.recordContent();
+            this.inventorySnapshotRepository.addSnapshot(inventory.createSnapshot());
             TimeUnit.SECONDS.sleep(1);
         }
-        var invSnapshots = Storage.inventorySnapshots().findLastByInventory(inventory, wantedNumberOfSnapshots);
+        var invSnapshots = this.inventorySnapshotRepository.findLastByInventory(inventory, wantedNumberOfSnapshots);
         assertOrder(invSnapshots);
         Assertions.assertEquals(wantedNumberOfSnapshots, invSnapshots.size());
         //assert the got snapshots are the last of the db
-        var totalSnapshots = Storage.inventorySnapshots().findAllByInventory(inventory);
+        var totalSnapshots = this.inventorySnapshotRepository.findAllByInventory(inventory);
         int startingIndex = numberOfSnapshots - wantedNumberOfSnapshots;
         for (int i = startingIndex; i < numberOfSnapshots; i++) {
             Snapshot s1 = totalSnapshots.get(i);

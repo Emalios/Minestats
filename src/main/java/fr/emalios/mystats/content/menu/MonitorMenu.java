@@ -1,9 +1,9 @@
 package fr.emalios.mystats.content.menu;
 
-import fr.emalios.mystats.api.StatPlayer;
+import fr.emalios.mystats.api.StatsAPI;
+import fr.emalios.mystats.api.models.StatPlayer;
 import fr.emalios.mystats.api.stat.Stat;
 import fr.emalios.mystats.api.stat.utils.StatCalculator;
-import fr.emalios.mystats.api.storage.Storage;
 import fr.emalios.mystats.network.StatPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -31,7 +31,7 @@ public class MonitorMenu extends AbstractContainerMenu {
     public MonitorMenu(int containerId, Inventory playerInv) {
         super(MONITOR_MENU.get(), containerId);
         this.player = playerInv.player;
-        this.statPlayer = Storage.players().getOrCreate(player.getName().getString());
+        this.statPlayer = StatsAPI.getInstance().getPlayerService().getOrCreateByName(player.getName().getString());
         try {
             this.updateStats();
         } catch (SQLException e) {

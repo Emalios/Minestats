@@ -1,10 +1,10 @@
 package minestats.api.storage;
 
-import fr.emalios.mystats.api.*;
-import fr.emalios.mystats.api.Record;
+import fr.emalios.mystats.api.models.*;
+import fr.emalios.mystats.api.models.Record;
+import fr.emalios.mystats.api.services.InventoryService;
 import fr.emalios.mystats.api.stat.IHandler;
-import fr.emalios.mystats.api.storage.InventoryRepository;
-import fr.emalios.mystats.api.storage.Storage;
+import fr.emalios.mystats.api.storage.*;
 import fr.emalios.mystats.impl.storage.dao.*;
 import fr.emalios.mystats.impl.storage.repository.*;
 import org.junit.jupiter.api.*;
@@ -18,18 +18,21 @@ import java.util.*;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class SqliteInventoryRepositoryTest {
 
-    private InventoryRepository repository;
+    private PlayerInventoryRepository playerInventoryRepository;
+    private PlayerRepository playerRepository;
+    private InventoryRepository inventoryRepository;
+    private InventorySnapshotRepository inventorySnapshotRepository;
+    private InventoryPositionsRepository inventoryPositionsRepository;
 
     @BeforeAll
     void setup() throws SQLException {
         Connection conn = DatabaseTest.getConnection();
         DatabaseTest.makeMigrations();
-        var playerInvRepo = new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn));
-        Storage.registerInventorySnapshotRepo(new SqliteInventorySnapshotRepository(new InventorySnapshotDao(conn), new RecordDao(conn)));
-        Storage.registerPlayerInventoriesRepo(playerInvRepo);
-        Storage.registerPlayerRepo(new SqlitePlayerRepository(new PlayerDao(conn), playerInvRepo));
-        Storage.registerInventoryRepo(new SqliteInventoryRepository(new InventoryDao(conn), new InventoryPositionsDao(conn)));
-        Storage.registerInventoryPositionRepo(new SqliteInventoryPositionsRepository(new InventoryPositionsDao(conn)));
+        this.playerInventoryRepository = new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn));
+        this.playerRepository = new SqlitePlayerRepository(new PlayerDao(conn), this.playerInventoryRepository);
+        this.inventoryRepository = new SqliteInventoryRepository(new InventoryDao(conn), new InventoryPositionsDao(conn));
+        this.inventorySnapshotRepository = new SqliteInventorySnapshotRepository(new InventorySnapshotDao(conn), new RecordDao(conn));
+        this.inventoryPositionsRepository = new SqliteInventoryPositionsRepository(new InventoryPositionsDao(conn));
     }
 
     @AfterAll
@@ -41,7 +44,7 @@ public class SqliteInventoryRepositoryTest {
     @Order(6)
     @DisplayName("Create inventory")
     void addInventoryTest() {
-        Inventory inventory = Storage.inventories().getOrCreate(new Position("create-inv", 0, 1, 2));
+        Inventory inventory = this.inventoryRepository.getOrCreate(new Position("create-inv", 0, 1, 2));
 
         Assertions.assertTrue(inventory.isPersisted());
         Assertions.assertNotNull(inventory.getId());
@@ -56,7 +59,7 @@ public class SqliteInventoryRepositoryTest {
     @Order(5)
     @DisplayName("Create multiple inventories")
     void addMultipleInventoryTest() {
-        Inventory inv1 = Storage.inventories().getOrCreate(new Position("multiple-inv-1", 0, 1, 2));
+        Inventory inv1 = this.inventoryRepository.getOrCreate(new Position("multiple-inv-1", 0, 1, 2));
 
         Assertions.assertTrue(inv1.isPersisted());
         Assertions.assertNotNull(inv1.getId());
@@ -66,7 +69,7 @@ public class SqliteInventoryRepositoryTest {
         Assertions.assertEquals(1, pos1.size());
         Assertions.assertTrue(pos1.contains(new Position("multiple-inv-1", 0, 1, 2)));
 
-        Inventory inv2 = Storage.inventories().getOrCreate(new Position("multiple-inv-2", 0, 10, 20));
+        Inventory inv2 = this.inventoryRepository.getOrCreate(new Position("multiple-inv-2", 0, 10, 20));
 
         Assertions.assertTrue(inv2.isPersisted());
         Assertions.assertNotNull(inv2.getId());
@@ -76,7 +79,7 @@ public class SqliteInventoryRepositoryTest {
         Assertions.assertEquals(1, pos2.size());
         Assertions.assertTrue(pos2.contains(new Position("multiple-inv-2", 0, 10, 20)));
 
-        Inventory inv3 = Storage.inventories().getOrCreate(new Position("multiple-inv-3", 0, 100, 200));
+        Inventory inv3 = this.inventoryRepository.getOrCreate(new Position("multiple-inv-3", 0, 100, 200));
 
         Assertions.assertTrue(inv3.isPersisted());
         Assertions.assertNotNull(inv3.getId());
@@ -99,15 +102,15 @@ public class SqliteInventoryRepositoryTest {
         positions.add(p2);
         positions.add(p3);
         Inventory inv1 = new Inventory(positions);
-        Storage.inventories().save(inv1);
+        this.inventoryRepository.save(inv1);
 
-        Inventory storedInv = Storage.inventories().getOrCreate(p1);
+        Inventory storedInv = this.inventoryRepository.getOrCreate(p1);
         Set<Position> storedInvPositions = storedInv.getInvPositions();
         Assertions.assertNotNull(storedInvPositions);
         Assertions.assertFalse(storedInvPositions.isEmpty());
         Assertions.assertEquals(3, storedInvPositions.size());
-        Assertions.assertEquals(Storage.inventories().getOrCreate(p2), storedInv);
-        Assertions.assertEquals(Storage.inventories().getOrCreate(p3), storedInv);
+        Assertions.assertEquals(this.inventoryRepository.getOrCreate(p2), storedInv);
+        Assertions.assertEquals(this.inventoryRepository.getOrCreate(p3), storedInv);
     }
 
     @Test
@@ -115,9 +118,9 @@ public class SqliteInventoryRepositoryTest {
     @DisplayName("Get existing inventory")
     void getExistingInventoryTest() {
         Inventory inv1 = new Inventory(Set.of(new Position("get-existing-inv", 3, 4, 5)));
-        Storage.inventories().save(inv1);
-        //Inventory inv1 = Storage.inventories().getOrCreate(new Position("get-existing-inv", 3, 4, 5));
-        Optional<Inventory> optInv2 = Storage.inventories().findByPos(new Position("get-existing-inv", 3, 4, 5));
+        this.inventoryRepository.save(inv1);
+        //Inventory inv1 = this.inventoryRepository.getOrCreate(new Position("get-existing-inv", 3, 4, 5));
+        Optional<Inventory> optInv2 = this.inventoryRepository.findByPos(new Position("get-existing-inv", 3, 4, 5));
         Assertions.assertTrue(optInv2.isPresent());
         Inventory inv2 = optInv2.get();
         Assertions.assertTrue(inv1.isPersisted());
@@ -130,8 +133,8 @@ public class SqliteInventoryRepositoryTest {
     @Order(2)
     @DisplayName("Get non existing inventory")
     void getNonExistingInventoryTest() {
-        Inventory inv1 = Storage.inventories().getOrCreate(new Position("get-non-existing-inv", 3, 4, 5));
-        Inventory inv2 = Storage.inventories().getOrCreate(new Position("get-non-existing-inv", 3, 4, 5));
+        Inventory inv1 = this.inventoryRepository.getOrCreate(new Position("get-non-existing-inv", 3, 4, 5));
+        Inventory inv2 = this.inventoryRepository.getOrCreate(new Position("get-non-existing-inv", 3, 4, 5));
         Assertions.assertTrue(inv1.isPersisted());
         Assertions.assertTrue(inv2.isPersisted());
         Assertions.assertEquals(inv1.getId(), inv2.getId());
@@ -146,16 +149,16 @@ public class SqliteInventoryRepositoryTest {
         Position p2 = new Position("get-all-inv-2", 3, 4, 5);
         Position p3 = new Position("get-all-inv-3", 3, 4, 5);
         Inventory inv1 = new Inventory(Set.of(p1));
-        Storage.inventories().save(inv1);
+        this.inventoryRepository.save(inv1);
         Inventory inv2 = new Inventory(Set.of(p2));
-        Storage.inventories().save(inv2);
+        this.inventoryRepository.save(inv2);
         Inventory inv3 = new Inventory(Set.of(p3));
-        Storage.inventories().save(inv3);
+        this.inventoryRepository.save(inv3);
         Assertions.assertTrue(inv1.isPersisted());
         Assertions.assertTrue(inv2.isPersisted());
         Assertions.assertTrue(inv3.isPersisted());
 
-        Collection<Inventory> inventories = Storage.inventories().getAll();
+        Collection<Inventory> inventories = this.inventoryRepository.getAll();
         Assertions.assertNotNull(inventories);
         Assertions.assertFalse(inventories.isEmpty());
         Assertions.assertEquals(3, inventories.size());
@@ -173,16 +176,16 @@ public class SqliteInventoryRepositoryTest {
         Position p2 = new Position(world, 30, 4, 5);
         Position p3 = new Position(world, 3, 40, 5);
         Inventory inv1 = new Inventory(Set.of(p1));
-        Storage.inventories().save(inv1);
+        this.inventoryRepository.save(inv1);
         Inventory inv2 = new Inventory(Set.of(p2));
-        Storage.inventories().save(inv2);
+        this.inventoryRepository.save(inv2);
         Inventory inv3 = new Inventory(Set.of(p3));
-        Storage.inventories().save(inv3);
+        this.inventoryRepository.save(inv3);
         Assertions.assertTrue(inv1.isPersisted());
         Assertions.assertTrue(inv2.isPersisted());
         Assertions.assertTrue(inv3.isPersisted());
 
-        Collection<Inventory> inventories = Storage.inventories().getAllFromWorld(world);
+        Collection<Inventory> inventories = this.inventoryRepository.getAllFromWorld(world);
         Assertions.assertNotNull(inventories);
         Assertions.assertFalse(inventories.isEmpty());
         Assertions.assertEquals(3, inventories.size());
@@ -200,11 +203,11 @@ public class SqliteInventoryRepositoryTest {
         Position p4 = new Position("get-position", 0, 1, 1);
         Set<Position> positions = Set.of(p1, p2, p3, p4);
         Inventory inventory = new Inventory(positions);
-        Storage.inventories().save(inventory);
+        this.inventoryRepository.save(inventory);
 
         //from each position we should get the inventory with all positions
         for (Position position : positions) {
-            Inventory result = Storage.inventories().getOrCreate(position);
+            Inventory result = this.inventoryRepository.getOrCreate(position);
             Assertions.assertNotNull(result);
             Assertions.assertEquals(inventory.getInvPositions(), result.getInvPositions());
             Assertions.assertEquals(inventory, result);
@@ -220,11 +223,11 @@ public class SqliteInventoryRepositoryTest {
         Position p4 = new Position("find-position", 0, 1, 1);
         Set<Position> positions = Set.of(p1, p2, p3, p4);
         Inventory inventory = new Inventory(positions);
-        Storage.inventories().save(inventory);
+        this.inventoryRepository.save(inventory);
 
         //from each position we should get the inventory with all positions
         for (Position position : positions) {
-            Optional<Inventory> result = Storage.inventories().findByPos(position);
+            Optional<Inventory> result = this.inventoryRepository.findByPos(position);
             Assertions.assertNotNull(result);
             Assertions.assertTrue(result.isPresent());
             Assertions.assertEquals(inventory.getInvPositions(), result.get().getInvPositions());
@@ -241,10 +244,10 @@ public class SqliteInventoryRepositoryTest {
         Position p4 = new Position("get-position-from-id", 0, 1, 1);
         Set<Position> positions = Set.of(p1, p2, p3, p4);
         Inventory inventory = new Inventory(positions);
-        Storage.inventories().save(inventory);
+        this.inventoryRepository.save(inventory);
         int invId = inventory.getId();
 
-        Inventory result = Storage.inventories().getById(invId);
+        Inventory result = this.inventoryRepository.getById(invId);
         Assertions.assertNotNull(result);
         Assertions.assertEquals(inventory.getInvPositions(), result.getInvPositions());
         Assertions.assertEquals(inventory, result);
@@ -254,9 +257,9 @@ public class SqliteInventoryRepositoryTest {
     @Order(8)
     @DisplayName("Delete existing inventory")
     void deleteExistingInventoryTest() {
-        Inventory inv = Storage.inventories().getOrCreate(new Position("delete-existing", 0, 0, 0));
-        Storage.inventories().delete(inv);
-        Optional<Inventory> optInv =  Storage.inventories().findByPos(new Position("delete-existing", 0, 0, 0));
+        Inventory inv = this.inventoryRepository.getOrCreate(new Position("delete-existing", 0, 0, 0));
+        this.inventoryRepository.delete(inv);
+        Optional<Inventory> optInv =  this.inventoryRepository.findByPos(new Position("delete-existing", 0, 0, 0));
         Assertions.assertFalse(optInv.isPresent());
     }
 
@@ -272,22 +275,23 @@ public class SqliteInventoryRepositoryTest {
         positions.add(p2);
         positions.add(p3);
         Inventory inv1 = new Inventory(positions);
-        Storage.inventories().save(inv1);
+        this.inventoryRepository.save(inv1);
         int invId = inv1.getId();
 
-        Storage.inventories().delete(inv1);
-        Assertions.assertThrows(IllegalArgumentException.class, () -> Storage.inventories().getById(invId));
-        Assertions.assertTrue(Storage.inventories().findByPos(p1).isEmpty());
-        Assertions.assertTrue(Storage.inventories().findByPos(p2).isEmpty());
-        Assertions.assertTrue(Storage.inventories().findByPos(p3).isEmpty());
-        Assertions.assertTrue(Storage.inventoryPositions().findAllByInventoryId(invId).isEmpty());
+        this.inventoryRepository.delete(inv1);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> this.inventoryRepository.getById(invId));
+        Assertions.assertTrue(this.inventoryRepository.findByPos(p1).isEmpty());
+        Assertions.assertTrue(this.inventoryRepository.findByPos(p2).isEmpty());
+        Assertions.assertTrue(this.inventoryRepository.findByPos(p3).isEmpty());
+
+        Assertions.assertTrue(this.inventoryPositionsRepository.findAllByInventoryId(invId).isEmpty());
     }
 
     @Test
     @Order(10)
     @DisplayName("Delete existing inventory with snapshots")
     void deleteExistingSnapshotTest() {
-        Inventory inv = Storage.inventories().getOrCreate(new Position("test-delete-inv-snapshot", 0, 0, 0));
+        Inventory inv = this.inventoryRepository.getOrCreate(new Position("test-delete-inv-snapshot", 0, 0, 0));
         inv.addHandler(new IHandler() {
             @Override
             public boolean exists() {
@@ -299,17 +303,17 @@ public class SqliteInventoryRepositoryTest {
                 return List.of(new Record(RecordType.ITEM, "test", 0, CountUnit.ITEM));
             }
         });
-        inv.recordContent();
-        inv.recordContent();
+        this.inventorySnapshotRepository.addSnapshot(inv.createSnapshot());
+        this.inventorySnapshotRepository.addSnapshot(inv.createSnapshot());
 
         int invId = inv.getId();
-        Storage.inventories().delete(inv);
-        Optional<Inventory> optInv = Storage.inventories().findByPos(new Position("test-delete-inv-snapshot-2", 0, 0, 0));
+        this.inventoryRepository.delete(inv);
+        Optional<Inventory> optInv = this.inventoryRepository.findByPos(new Position("test-delete-inv-snapshot-2", 0, 0, 0));
 
         Assertions.assertFalse(optInv.isPresent());
         Assertions.assertFalse(inv.isPersisted());
 
-        var snapshots = Storage.inventorySnapshots().findAllByInventoryId(invId);
+        var snapshots = this.inventorySnapshotRepository.findAllByInventoryId(invId);
         Assertions.assertEquals(0, snapshots.size());
     }
 
@@ -317,8 +321,8 @@ public class SqliteInventoryRepositoryTest {
     @Order(11)
     @DisplayName("Delete existing inventory associated with player")
     void deleteExistingInventoryAssociatedWithPlayerTest() {
-        StatPlayer player = Storage.players().getOrCreate("test-delete-inv-player");
-        Inventory inv = Storage.inventories().getOrCreate(new Position("test-delete-inv-player-associated", 0, 0, 0));
+        StatPlayer player = this.playerRepository.getOrCreate("test-delete-inv-player");
+        Inventory inv = this.inventoryRepository.getOrCreate(new Position("test-delete-inv-player-associated", 0, 0, 0));
         inv.addHandler(new IHandler() {
             @Override
             public boolean exists() {
@@ -331,16 +335,17 @@ public class SqliteInventoryRepositoryTest {
             }
         });
         player.addInventory(inv);
-        inv.recordContent();
-        inv.recordContent();
 
-        Storage.inventories().delete(inv);
-        Optional<Inventory> optInv = Storage.inventories().findByPos(new Position("test-delete-inv-player-associated", 0, 0, 0));
+        this.inventorySnapshotRepository.addSnapshot(inv.createSnapshot());
+        this.inventorySnapshotRepository.addSnapshot(inv.createSnapshot());
+
+        this.inventoryRepository.delete(inv);
+        Optional<Inventory> optInv = this.inventoryRepository.findByPos(new Position("test-delete-inv-player-associated", 0, 0, 0));
 
         Assertions.assertFalse(optInv.isPresent());
         Assertions.assertFalse(inv.isPersisted());
 
-        var result = Storage.playerInventories().findByPlayer(player);
+        var result = this.playerInventoryRepository.findByPlayer(player);
         Assertions.assertEquals(0, result.size());
     }
 
@@ -349,7 +354,7 @@ public class SqliteInventoryRepositoryTest {
     @DisplayName("Delete non existing inventory")
     void deleteNonExistingInventoryTest() {
         Inventory inventory = new Inventory(Set.of(new Position("delete-non-existing-inv", 0, 0, 0)));
-        Assertions.assertThrows(IllegalArgumentException.class, () -> Storage.inventories().delete(inventory));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> this.inventoryRepository.delete(inventory));
     }
 
 }

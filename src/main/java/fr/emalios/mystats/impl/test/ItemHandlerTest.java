@@ -17,11 +17,6 @@ import java.util.function.Predicate;
 @GameTestHolder(MyStats.MODID)
 public class ItemHandlerTest {
 
-    // Class name is prepended, template name is not specified
-    // Template Location at 'modid:examplegametests.exampletest'
-    @GameTest
-    public static void exampleTest(GameTestHelper helper) { /*...*/ }
-
     // C:B:C
     // S
     @PrefixGameTestTemplate(false)

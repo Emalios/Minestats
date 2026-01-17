@@ -1,5 +1,6 @@
 package fr.emalios.mystats.network;
 
+import fr.emalios.mystats.MyStats;
 import fr.emalios.mystats.content.menu.MonitorMenu;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,7 +14,7 @@ public class ServerPayloadHandler {
             ServerPlayer player = (ServerPlayer) ctx.player();
             player.openMenu(new SimpleMenuProvider(
                     (id, inv, p) -> new MonitorMenu(id, inv),
-                    Component.translatable("menu.mystats.monitor")
+                    Component.translatable("menu." + MyStats.MODID + ".monitor")
             ));
         });
     }

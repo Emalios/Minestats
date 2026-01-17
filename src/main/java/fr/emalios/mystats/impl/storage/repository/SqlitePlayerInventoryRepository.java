@@ -1,13 +1,12 @@
 package fr.emalios.mystats.impl.storage.repository;
 
-import fr.emalios.mystats.api.Inventory;
-import fr.emalios.mystats.api.StatPlayer;
+import fr.emalios.mystats.api.models.Inventory;
+import fr.emalios.mystats.api.models.StatPlayer;
 import fr.emalios.mystats.api.storage.PlayerInventoryRepository;
 import fr.emalios.mystats.impl.storage.dao.PlayerInventoryDao;
 
 import java.sql.SQLException;
 import java.util.Collection;
-import java.util.List;
 
 public class SqlitePlayerInventoryRepository implements PlayerInventoryRepository {
 

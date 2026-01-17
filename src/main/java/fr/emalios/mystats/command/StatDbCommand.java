@@ -1,6 +1,7 @@
 package fr.emalios.mystats.command;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
+import fr.emalios.mystats.api.StatsAPI;
 import fr.emalios.mystats.helper.Const;
 import fr.emalios.mystats.impl.adapter.StatManager;
 import fr.emalios.mystats.impl.storage.db.Database;
@@ -37,7 +38,7 @@ public class StatDbCommand {
         return Commands.literal("scan")
                 .requires(cs -> cs.hasPermission(2))
                 .executes(ctx -> {
-                    StatManager.getInstance().scan();
+                    StatsAPI.getInstance().getInventoryService().scan();
                     return 0;
                 });
     }

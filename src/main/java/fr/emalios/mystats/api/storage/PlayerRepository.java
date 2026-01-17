@@ -1,7 +1,6 @@
 package fr.emalios.mystats.api.storage;
 
-import fr.emalios.mystats.api.Inventory;
-import fr.emalios.mystats.api.StatPlayer;
+import fr.emalios.mystats.api.models.StatPlayer;
 
 import java.util.Optional;
 

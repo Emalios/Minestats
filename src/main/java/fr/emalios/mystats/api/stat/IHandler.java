@@ -1,6 +1,6 @@
 package fr.emalios.mystats.api.stat;
 
-import fr.emalios.mystats.api.Record;
+import fr.emalios.mystats.api.models.Record;
 
 import java.util.Collection;
 

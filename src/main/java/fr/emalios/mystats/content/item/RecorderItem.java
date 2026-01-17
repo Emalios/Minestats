@@ -1,10 +1,9 @@
 package fr.emalios.mystats.content.item;
 
-import fr.emalios.mystats.MyStats;
-import fr.emalios.mystats.api.Inventory;
-import fr.emalios.mystats.api.Position;
-import fr.emalios.mystats.api.StatPlayer;
-import fr.emalios.mystats.api.storage.Storage;
+import fr.emalios.mystats.api.StatsAPI;
+import fr.emalios.mystats.api.models.Inventory;
+import fr.emalios.mystats.api.models.Position;
+import fr.emalios.mystats.api.models.StatPlayer;
 import fr.emalios.mystats.helper.ConnectedBlocksFinder;
 import fr.emalios.mystats.api.stat.IHandler;
 import fr.emalios.mystats.impl.adapter.StatManager;
@@ -33,6 +32,7 @@ import java.util.stream.Collectors;
 public class RecorderItem extends Item {
 
     private final StatManager statManager = StatManager.getInstance();
+    private final StatsAPI statsAPI = StatsAPI.getInstance();
 
     public RecorderItem(Properties props) {
         super(props
@@ -107,13 +107,13 @@ public class RecorderItem extends Item {
     private InteractionResult processClick(RecorderDataComponent.RecorderMode mode, Player player, Level level, List<IHandler> handlers, BlockPos pos) {
         String playerName = player.getName().getString();
         String world = level.dimension().location().toString();
-        StatPlayer statPlayer = Storage.players().getOrCreate(playerName);
+        StatPlayer statPlayer = statsAPI.getPlayerService().getOrCreateByName(playerName);
         Set<BlockPos> connected = ConnectedBlocksFinder.getConnectedBlocks(level, pos, handlers);
         Set<Position> positions = connected.stream().map(blockPos -> new Position(
                 world, blockPos.getX(), blockPos.getY(), blockPos.getZ()
         )).collect(Collectors.toSet());
 
-        Optional<Inventory> optInv = Storage.inventories().findByPos(new Position(
+        Optional<Inventory> optInv = statsAPI.getInventoryService().findByPos(new Position(
                 world, pos.getX(), pos.getY(), pos.getZ()
         ));
 
@@ -127,7 +127,7 @@ public class RecorderItem extends Item {
                     this.sendMessage("You did not monitored this block.", player);
                     return InteractionResult.PASS;
                 }
-                Storage.playerInventories().removeInventory(statPlayer, optInv.get());
+                this.statsAPI.getInventoryService().removeInventoryFromPlayer(statPlayer, optInv.get());
                 this.statManager.unmonitore(optInv.get());
                 this.sendMessage("Removed inventory from monitoring.", player);
                 return InteractionResult.SUCCESS;
@@ -141,7 +141,7 @@ public class RecorderItem extends Item {
                     return InteractionResult.SUCCESS;
                 }
                 Inventory inventory = new Inventory(positions);
-                Storage.inventories().save(inventory);
+                this.statsAPI.getInventoryService().create(inventory);
                 this.addInventoryToPlayer(inventory, statPlayer, player, handlers);
                 return InteractionResult.SUCCESS;
         }
@@ -151,8 +151,8 @@ public class RecorderItem extends Item {
 
     private void addInventoryToPlayer(Inventory inventory, StatPlayer statPlayer, Player player, List<IHandler> handlers) {
         inventory.addHandlers(handlers);
-        Storage.playerInventories().addInventory(statPlayer, inventory);
         this.statManager.monitore(inventory);
+        this.statsAPI.getInventoryService().addInventoryToPlayer(statPlayer, inventory);
         this.sendMessage("Added inventory to monitoring.", player);
 
     }

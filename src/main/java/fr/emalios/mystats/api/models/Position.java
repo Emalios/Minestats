@@ -1,4 +1,4 @@
-package fr.emalios.mystats.api;
+package fr.emalios.mystats.api.models;
 
 import java.util.Objects;
 

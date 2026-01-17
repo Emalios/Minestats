@@ -1,25 +1,16 @@
 package fr.emalios.mystats.impl.test;
 
 import fr.emalios.mystats.MyStats;
-import fr.emalios.mystats.api.Inventory;
-import fr.emalios.mystats.api.Position;
-import fr.emalios.mystats.api.StatPlayer;
-import fr.emalios.mystats.api.storage.Storage;
-import fr.emalios.mystats.helper.Const;
+import fr.emalios.mystats.api.StatsAPI;
+import fr.emalios.mystats.api.models.Inventory;
+import fr.emalios.mystats.api.models.StatPlayer;
 import fr.emalios.mystats.impl.adapter.StatManager;
-import fr.emalios.mystats.impl.storage.db.Database;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.AfterBatch;
-import net.minecraft.gametest.framework.BeforeBatch;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-
-import java.util.Set;
 
 @GameTestHolder(MyStats.MODID)
 public class InventoryBreakingTest {
@@ -40,16 +31,16 @@ public class InventoryBreakingTest {
         //delete block
         helper.getLevel().destroyBlock(chestAbs, false);
 
-        StatPlayer statPlayer = Storage.players().getOrCreate(player.getName().getString());
+        StatPlayer statPlayer = StatsAPI.getInstance().getPlayerService().getOrCreateByName(player.getName().getString());
 
         //assert deleted after next scan
         helper.assertTrue(statPlayer.hasInventory(inventory), "Player should have inventory");
         helper.assertTrue(StatManager.getInstance().isMonitored(inventory), "Inventory should be monitored");
-        StatManager.getInstance().scan();
+        StatsAPI.getInstance().getInventoryService().scan();
 
         helper.assertFalse(statPlayer.hasInventory(inventory), "Player should not have inventory");
         helper.assertFalse(StatManager.getInstance().isMonitored(inventory), "Inventory should not be monitored");
-        statPlayer = Storage.players().getOrCreate(player.getName().getString());
+        statPlayer = StatsAPI.getInstance().getPlayerService().getOrCreateByName(player.getName().getString());
         helper.assertFalse(statPlayer.hasInventory(inventory), "Player should not have inventory");
 
         helper.succeed();

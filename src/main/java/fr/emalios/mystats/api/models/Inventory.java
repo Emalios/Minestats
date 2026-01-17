@@ -1,8 +1,7 @@
-package fr.emalios.mystats.api;
+package fr.emalios.mystats.api.models;
 
 import fr.emalios.mystats.api.stat.IHandler;
 import fr.emalios.mystats.api.storage.Persistable;
-import fr.emalios.mystats.api.storage.Storage;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,27 +18,15 @@ public class Inventory extends Persistable {
     }
 
     /**
-     * Scan content contained in every valid IHandler and create an associated snapshot
+     * Scan content contained in every valid IHandler and create an associated snapshot that is not persisted
+     * @return snapshot with the content of the valid iihandlers of the inventory
      * <!> Inventory must exist in storage implementation </!>
      */
-    public void recordContent() {
-        /*
-        assuming every record in different handlers are different, we can simply merge list without
-        trying to merge records with each other
-        */
+    public Snapshot createSnapshot() {
         Collection<Record> records = this.getHandlers().stream()
                 .flatMap(iHandler -> iHandler.getContent().stream())
                 .collect(Collectors.toSet());
-        Snapshot snapshot = new Snapshot(this.getId(), records);
-        Storage.inventorySnapshots().addSnapshot(snapshot);
-    }
-
-    public void recordContent(long timestamp) {
-        Collection<Record> records = this.getHandlers().stream()
-                .flatMap(iHandler -> iHandler.getContent().stream())
-                .collect(Collectors.toSet());
-        Snapshot snapshot = new Snapshot(this.getId(), records, timestamp);
-        Storage.inventorySnapshots().addSnapshot(snapshot);
+        return new Snapshot(this.getId(), records);
     }
 
     /**
@@ -47,7 +34,7 @@ public class Inventory extends Persistable {
      * @return true if it has at least one valid IHandler, else false
      */
     public boolean isValid() {
-        return !this.getHandlers().isEmpty();
+        return !this.getHandlers().isEmpty() || !this.isPersisted();
     }
 
     public void addHandler(IHandler handler) {
@@ -74,16 +61,12 @@ public class Inventory extends Persistable {
         this.invPositions.remove(position);
     }
 
+    public boolean containsPosition(Position position) {
+        return this.invPositions.contains(position);
+    }
+
     public Set<Position> getInvPositions() {
         return invPositions;
-    }
-
-    public Collection<Snapshot> getSnapshots(int limit) {
-        return Storage.inventorySnapshots().findLastByInventory(this, limit);
-    }
-
-    public Collection<Snapshot> getAllSnapshots() {
-        return Storage.inventorySnapshots().findAllByInventory(this);
     }
 
     @Override

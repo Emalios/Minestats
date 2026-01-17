@@ -1,7 +1,7 @@
 package fr.emalios.mystats.impl.storage.db;
 
 import fr.emalios.mystats.MyStats;
-import fr.emalios.mystats.api.storage.Storage;
+import fr.emalios.mystats.api.StatsAPI;
 import fr.emalios.mystats.impl.storage.dao.*;
 import fr.emalios.mystats.impl.storage.db.migrations.Migration;
 import fr.emalios.mystats.impl.storage.db.migrations.MigrationRunner;
@@ -43,6 +43,7 @@ public final class Database {
 
     private void openConnection(String dbFileName) throws SQLException {
         if(connection != null && !connection.isClosed()) throw new RuntimeException("Connection already open");
+        MyStats.LOGGER.info("[Minestats] Opening DB connection.");
         this.connection = DriverManager.getConnection("jdbc:sqlite:"+dbFileName+".db");
     }
 
@@ -68,15 +69,13 @@ public final class Database {
 
     private void updateRepositories() {
         var playerInvRepo = new SqlitePlayerInventoryRepository(Database.getInstance().getPlayerInventoryDao());
-        Storage.register(
-                new SqlitePlayerRepository(Database.getInstance().getPlayerDao(), playerInvRepo),
-                playerInvRepo,
+        StatsAPI.getInstance().init(new SqlitePlayerRepository(Database.getInstance().getPlayerDao(), playerInvRepo),
                 new SqliteInventoryRepository(Database.getInstance().getInventoryDao(), Database.getInstance().getInventoryPositionsDao()),
+                playerInvRepo,
                 new SqliteInventorySnapshotRepository(
                         Database.getInstance().getInventorySnapshotDao(),
                         Database.getInstance().getRecordDao()),
-                new SqliteInventoryPositionsRepository(Database.getInstance().getInventoryPositionsDao())
-        );
+                new SqliteInventoryPositionsRepository(Database.getInstance().getInventoryPositionsDao()));
     }
 
     public void reset() {
@@ -101,7 +100,10 @@ public final class Database {
 
     public void close() {
         try {
-            if (connection != null && !connection.isClosed()) connection.close();
+            if (connection != null && !connection.isClosed()) {
+                MyStats.LOGGER.info("[Minestats] Closing DB connection.");
+                connection.close();
+            }
         } catch (Exception ignored) {}
     }
 

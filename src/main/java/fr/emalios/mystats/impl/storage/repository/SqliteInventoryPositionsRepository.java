@@ -1,10 +1,8 @@
 package fr.emalios.mystats.impl.storage.repository;
 
-import fr.emalios.mystats.api.Inventory;
-import fr.emalios.mystats.api.Position;
+import fr.emalios.mystats.api.models.Inventory;
+import fr.emalios.mystats.api.models.Position;
 import fr.emalios.mystats.api.storage.InventoryPositionsRepository;
-import fr.emalios.mystats.api.storage.InventoryRepository;
-import fr.emalios.mystats.impl.storage.dao.InventoryDao;
 import fr.emalios.mystats.impl.storage.dao.InventoryPositionsDao;
 
 import java.sql.SQLException;

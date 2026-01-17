@@ -1,6 +1,6 @@
 package minestats.api;
 
-import fr.emalios.mystats.api.CountUnit;
+import fr.emalios.mystats.api.models.CountUnit;
 import fr.emalios.mystats.helper.Pair;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

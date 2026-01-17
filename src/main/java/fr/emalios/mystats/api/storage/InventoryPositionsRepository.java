@@ -1,10 +1,8 @@
 package fr.emalios.mystats.api.storage;
 
-import fr.emalios.mystats.api.Inventory;
-import fr.emalios.mystats.api.Position;
-import fr.emalios.mystats.api.Snapshot;
+import fr.emalios.mystats.api.models.Inventory;
+import fr.emalios.mystats.api.models.Position;
 
-import java.util.List;
 import java.util.Set;
 
 public interface InventoryPositionsRepository {

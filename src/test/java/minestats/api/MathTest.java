@@ -1,17 +1,16 @@
 package minestats.api;
 
-import fr.emalios.mystats.api.*;
-import fr.emalios.mystats.api.Record;
+import fr.emalios.mystats.api.StatsAPI;
+import fr.emalios.mystats.api.models.*;
+import fr.emalios.mystats.api.models.Record;
+import fr.emalios.mystats.api.services.InventoryService;
+import fr.emalios.mystats.api.services.StatPlayerService;
 import fr.emalios.mystats.api.stat.IHandler;
 import fr.emalios.mystats.api.stat.Stat;
 import fr.emalios.mystats.api.stat.utils.StatCalculator;
-import fr.emalios.mystats.api.storage.Storage;
+import fr.emalios.mystats.api.storage.*;
 import fr.emalios.mystats.impl.storage.dao.*;
-import fr.emalios.mystats.impl.storage.db.Database;
-import fr.emalios.mystats.impl.storage.repository.SqliteInventoryRepository;
-import fr.emalios.mystats.impl.storage.repository.SqliteInventorySnapshotRepository;
-import fr.emalios.mystats.impl.storage.repository.SqlitePlayerInventoryRepository;
-import fr.emalios.mystats.impl.storage.repository.SqlitePlayerRepository;
+import fr.emalios.mystats.impl.storage.repository.*;
 import minestats.api.storage.DatabaseTest;
 import org.junit.jupiter.api.*;
 
@@ -22,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @DisplayName("Math test")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MathTest {
 
     private static int count = 1;
@@ -46,19 +46,26 @@ public class MathTest {
         }
     };
 
+    private StatPlayerService playerService;
+    private InventoryService inventoryService;
+
     @BeforeAll
-    public static void setup() throws SQLException {
+    public void setup() throws SQLException {
         Connection conn = DatabaseTest.getConnection();
         DatabaseTest.makeMigrations();
-        var playerInvRepo = new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn));
-        Storage.registerInventorySnapshotRepo(new SqliteInventorySnapshotRepository(new InventorySnapshotDao(conn), new RecordDao(conn)));
-        Storage.registerPlayerInventoriesRepo(playerInvRepo);
-        Storage.registerPlayerRepo(new SqlitePlayerRepository(new PlayerDao(conn), playerInvRepo));
-        Storage.registerInventoryRepo(new SqliteInventoryRepository(new InventoryDao(conn), new InventoryPositionsDao(conn)));
+        StatsAPI statsAPI = StatsAPI.getInstance();
+        var playerInventoryRepository = new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn));
+        var playerRepository = new SqlitePlayerRepository(new PlayerDao(conn), playerInventoryRepository);
+        var inventoryRepository = new SqliteInventoryRepository(new InventoryDao(conn), new InventoryPositionsDao(conn));
+        var inventorySnapshotRepository = new SqliteInventorySnapshotRepository(new InventorySnapshotDao(conn), new RecordDao(conn));
+        var inventoryPositionsRepository = new SqliteInventoryPositionsRepository(new InventoryPositionsDao(conn));
+        statsAPI.init(playerRepository, inventoryRepository, playerInventoryRepository, inventorySnapshotRepository, inventoryPositionsRepository);
+        this.inventoryService = statsAPI.getInventoryService();
+        this.playerService = statsAPI.getPlayerService();
     }
 
     @AfterAll
-    static void teardown() {
+    public void teardown() {
         DatabaseTest.close();
     }
 
@@ -66,15 +73,15 @@ public class MathTest {
     @Test
     @DisplayName("Two snapshot test")
     public void twoSnapshotTest() throws InterruptedException {
-        StatPlayer player = Storage.players().getOrCreate("test-stat-math-two-snapshot");
-        Inventory inv1 = Storage.inventories().getOrCreate(new Position("test-stat-math-two-snapshot", 0, 0, 0));
+        StatPlayer player = this.playerService.getOrCreateByName("test-stat-math-two-snapshot");
+        Inventory inv1 = this.inventoryService.getOrCreate(new Position("test-stat-math-two-snapshot", 0, 0, 0));
         count = 1;
         inv1.addHandler(basicHandler);
-        inv1.recordContent();
+        this.inventoryService.recordInventoryContent(inv1);
         count++;
 
         TimeUnit.SECONDS.sleep(1);
-        inv1.recordContent();
+        this.inventoryService.recordInventoryContent(inv1);
 
         player.addInventory(inv1);
         var result = StatCalculator.getInstance().genPerSecond(player.getInventories());
@@ -89,20 +96,20 @@ public class MathTest {
     @Test
     @DisplayName("ten snapshot test")
     public void tenSnapshotTest() throws InterruptedException {
-        StatPlayer player = Storage.players().getOrCreate("test-stat-math-ten-snapshot");
-        Inventory inv1 = Storage.inventories().getOrCreate(new Position("test-stat-math-ten-snapshot", 0, 0, 0));
+        StatPlayer player = this.playerService.getOrCreateByName("test-stat-math-ten-snapshot");
+        Inventory inv1 = this.inventoryService.getOrCreate(new Position("test-stat-math-ten-snapshot", 0, 0, 0));
         inv1.addHandler(basicHandler);
         count = 1;
         //non linear values to be able to see if stats are made with these lines (5 lines)
         for (int i = 0; i < 5; i++) {
-            inv1.recordContent();
+            this.inventoryService.recordInventoryContent(inv1);
             count*=10;
             TimeUnit.SECONDS.sleep(1);
         }
         //linear values to make stats with (10 lines)
         count = 1;
         for (int i = 0; i < 10; i++) {
-            inv1.recordContent();
+            this.inventoryService.recordInventoryContent(inv1);
             count++;
             TimeUnit.SECONDS.sleep(1);
         }
@@ -120,15 +127,15 @@ public class MathTest {
     @Test
     @DisplayName("Negative result")
     public void negativeStat() throws InterruptedException {
-        StatPlayer player = Storage.players().getOrCreate("test-stat-math-negative");
-        Inventory inv1 = Storage.inventories().getOrCreate(new Position("test-stat-math-negative", 0, 0, 0));
+        StatPlayer player = this.playerService.getOrCreateByName("test-stat-math-negative");
+        Inventory inv1 = this.inventoryService.getOrCreate(new Position("test-stat-math-negative", 0, 0, 0));
         count = -1;
         inv1.addHandler(basicHandler);
-        inv1.recordContent();
+        this.inventoryService.recordInventoryContent(inv1);
         count--;
 
         TimeUnit.SECONDS.sleep(1);
-        inv1.recordContent();
+        this.inventoryService.recordInventoryContent(inv1);
 
         player.addInventory(inv1);
         var result = StatCalculator.getInstance().genPerSecond(player.getInventories());
@@ -143,14 +150,14 @@ public class MathTest {
     @Test
     @DisplayName("zero result")
     public void zeroResult() throws InterruptedException {
-        StatPlayer player = Storage.players().getOrCreate("test-stat-math-zero");
-        Inventory inv1 = Storage.inventories().getOrCreate(new Position("test-stat-math-zero", 0, 0, 0));
+        StatPlayer player = this.playerService.getOrCreateByName("test-stat-math-zero");
+        Inventory inv1 = this.inventoryService.getOrCreate(new Position("test-stat-math-zero", 0, 0, 0));
         count = 1;
         inv1.addHandler(basicHandler);
-        inv1.recordContent();
+        this.inventoryService.recordInventoryContent(inv1);
 
         TimeUnit.SECONDS.sleep(1);
-        inv1.recordContent();
+        this.inventoryService.recordInventoryContent(inv1);
 
         player.addInventory(inv1);
         var result = StatCalculator.getInstance().genPerSecond(player.getInventories());
@@ -165,24 +172,24 @@ public class MathTest {
     @DisplayName("multi inv test")
     public void multiInvMerge() throws InterruptedException {
         int numberOfInvs = 2;
-        StatPlayer player = Storage.players().getOrCreate("test-stat-math-multi-inv-snapshot");
-        Inventory inv1 = Storage.inventories().getOrCreate(new Position("test-stat-math-multi-1", 0, 0, 0));
-        Inventory inv2 = Storage.inventories().getOrCreate(new Position("test-stat-math-multi-2", 0, 0, 0));
+        StatPlayer player = this.playerService.getOrCreateByName("test-stat-math-multi-inv-snapshot");
+        Inventory inv1 = this.inventoryService.getOrCreate(new Position("test-stat-math-multi-1", 0, 0, 0));
+        Inventory inv2 = this.inventoryService.getOrCreate(new Position("test-stat-math-multi-2", 0, 0, 0));
         inv1.addHandler(basicHandler);
         inv2.addHandler(basicHandler);
         count = 1;
         //non linear values to be able to see if stats are made with these lines (5 lines)
         for (int i = 0; i < 5; i++) {
-            inv1.recordContent();
-            inv2.recordContent();
+            this.inventoryService.recordInventoryContent(inv1);
+            this.inventoryService.recordInventoryContent(inv2);
             count*=10;
             TimeUnit.SECONDS.sleep(1);
         }
         //linear values to make stats with (10 lines)
         count = 1;
         for (int i = 0; i < 10; i++) {
-            inv1.recordContent();
-            inv2.recordContent();
+            this.inventoryService.recordInventoryContent(inv1);
+            this.inventoryService.recordInventoryContent(inv2);
             count++;
             TimeUnit.SECONDS.sleep(1);
         }

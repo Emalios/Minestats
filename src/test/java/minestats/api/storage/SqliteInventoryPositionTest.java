@@ -1,16 +1,10 @@
 package minestats.api.storage;
 
-import fr.emalios.mystats.api.Inventory;
-import fr.emalios.mystats.api.Position;
-import fr.emalios.mystats.api.storage.Storage;
-import fr.emalios.mystats.impl.storage.dao.InventoryDao;
-import fr.emalios.mystats.impl.storage.dao.InventoryPositionsDao;
-import fr.emalios.mystats.impl.storage.dao.PlayerDao;
-import fr.emalios.mystats.impl.storage.dao.PlayerInventoryDao;
-import fr.emalios.mystats.impl.storage.repository.SqliteInventoryPositionsRepository;
-import fr.emalios.mystats.impl.storage.repository.SqliteInventoryRepository;
-import fr.emalios.mystats.impl.storage.repository.SqlitePlayerInventoryRepository;
-import fr.emalios.mystats.impl.storage.repository.SqlitePlayerRepository;
+import fr.emalios.mystats.api.models.Inventory;
+import fr.emalios.mystats.api.models.Position;
+import fr.emalios.mystats.api.storage.*;
+import fr.emalios.mystats.impl.storage.dao.*;
+import fr.emalios.mystats.impl.storage.repository.*;
 import org.junit.jupiter.api.*;
 import org.sqlite.SQLiteException;
 
@@ -23,15 +17,21 @@ import java.util.Set;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SqliteInventoryPositionTest {
 
+    private PlayerInventoryRepository playerInventoryRepository;
+    private PlayerRepository playerRepository;
+    private InventoryRepository inventoryRepository;
+    private InventorySnapshotRepository inventorySnapshotRepository;
+    private InventoryPositionsRepository inventoryPositionsRepository;
+
     @BeforeAll
     void setup() throws SQLException {
         Connection conn = DatabaseTest.getConnection();
         DatabaseTest.makeMigrations();
-        var playerInvRepo = new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn));
-        Storage.registerPlayerInventoriesRepo(playerInvRepo);
-        Storage.registerPlayerRepo(new SqlitePlayerRepository(new PlayerDao(conn), playerInvRepo));
-        Storage.registerInventoryRepo(new SqliteInventoryRepository(new InventoryDao(conn), new InventoryPositionsDao(conn)));
-        Storage.registerInventoryPositionRepo(new SqliteInventoryPositionsRepository(new InventoryPositionsDao(conn)));
+        this.playerInventoryRepository = new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn));
+        this.playerRepository = new SqlitePlayerRepository(new PlayerDao(conn), this.playerInventoryRepository);
+        this.inventoryRepository = new SqliteInventoryRepository(new InventoryDao(conn), new InventoryPositionsDao(conn));
+        this.inventorySnapshotRepository = new SqliteInventorySnapshotRepository(new InventorySnapshotDao(conn), new RecordDao(conn));
+        this.inventoryPositionsRepository = new SqliteInventoryPositionsRepository(new InventoryPositionsDao(conn));
     }
 
     @AfterAll
@@ -44,13 +44,13 @@ public class SqliteInventoryPositionTest {
     public void addPositionToInventory() {
         Position p1 = new Position("add-position", 0, 0, 0);
         Position p2 = new Position("add-position", 0, 1, 0);
-        Inventory inventory = Storage.inventories().getOrCreate(p1);
+        Inventory inventory = this.inventoryRepository.getOrCreate(p1);
 
-        Assertions.assertTrue(Storage.inventoryPositions().hasPosition(inventory, p1));
-        Assertions.assertFalse(Storage.inventoryPositions().hasPosition(inventory, p2));
+        Assertions.assertTrue(this.inventoryPositionsRepository.hasPosition(inventory, p1));
+        Assertions.assertFalse(this.inventoryPositionsRepository.hasPosition(inventory, p2));
 
-        Storage.inventoryPositions().addPosition(inventory, p2);
-        Assertions.assertTrue(Storage.inventoryPositions().hasPosition(inventory, p2));
+        this.inventoryPositionsRepository.addPosition(inventory, p2);
+        Assertions.assertTrue(this.inventoryPositionsRepository.hasPosition(inventory, p2));
     }
 
     @Test
@@ -60,7 +60,7 @@ public class SqliteInventoryPositionTest {
         Inventory inventory = new Inventory(Set.of(p1));
         Assertions.assertFalse(inventory.isPersisted());
 
-        Assertions.assertThrows(IllegalStateException.class, () -> Storage.inventoryPositions().addPosition(inventory, p1));
+        Assertions.assertThrows(IllegalStateException.class, () -> this.inventoryPositionsRepository.addPosition(inventory, p1));
     }
 
     @Test
@@ -70,9 +70,9 @@ public class SqliteInventoryPositionTest {
         Position p2 = new Position("add-position-duplicated", 0, 0, 0);
         Assertions.assertEquals(p1, p2);
 
-        Inventory inventory = Storage.inventories().getOrCreate(p1);
+        Inventory inventory = this.inventoryRepository.getOrCreate(p1);
 
-        var e = Assertions.assertThrows(RuntimeException.class, () -> Storage.inventoryPositions().addPosition(inventory, p2));
+        var e = Assertions.assertThrows(RuntimeException.class, () -> this.inventoryPositionsRepository.addPosition(inventory, p2));
         Assertions.assertInstanceOf(SQLiteException.class, e.getCause());
     }
 
@@ -85,9 +85,9 @@ public class SqliteInventoryPositionTest {
         Position p4 = new Position("get-position-from-inv", 0, 1, 1);
         Set<Position> positions = Set.of(p1, p2, p3, p4);
         Inventory inventory = new Inventory(positions);
-        Storage.inventories().save(inventory);
+        this.inventoryRepository.save(inventory);
 
-        var results = Storage.inventoryPositions().findAllByInventory(inventory);
+        var results = this.inventoryPositionsRepository.findAllByInventory(inventory);
         Assertions.assertNotNull(results);
         Assertions.assertEquals(inventory.getInvPositions(), results);
     }
@@ -102,7 +102,7 @@ public class SqliteInventoryPositionTest {
         Set<Position> positions = Set.of(p1, p2, p3, p4);
         Inventory inventory = new Inventory(positions);
 
-        Assertions.assertThrows(IllegalStateException.class, () -> Storage.inventoryPositions().findAllByInventory(inventory));
+        Assertions.assertThrows(IllegalStateException.class, () -> this.inventoryPositionsRepository.findAllByInventory(inventory));
     }
 
     @Test
@@ -114,9 +114,9 @@ public class SqliteInventoryPositionTest {
         Position p4 = new Position("get-position-from-inv-id", 0, 1, 1);
         Set<Position> positions = Set.of(p1, p2, p3, p4);
         Inventory inventory = new Inventory(positions);
-        Storage.inventories().save(inventory);
+        this.inventoryRepository.save(inventory);
 
-        var results = Storage.inventoryPositions().findAllByInventoryId(inventory.getId());
+        var results = this.inventoryPositionsRepository.findAllByInventoryId(inventory.getId());
         Assertions.assertNotNull(results);
         Assertions.assertEquals(inventory.getInvPositions(), results);
     }
@@ -128,9 +128,9 @@ public class SqliteInventoryPositionTest {
         Position p2 = new Position("get-position-from-null-inv-id", 0, 1, 0);
         Set<Position> positions = Set.of(p1, p2);
         Inventory inventory = new Inventory(positions);
-        Storage.inventories().save(inventory);
+        this.inventoryRepository.save(inventory);
 
-        var results = Storage.inventoryPositions().findAllByInventoryId(-1);
+        var results = this.inventoryPositionsRepository.findAllByInventoryId(-1);
         Assertions.assertTrue(results.isEmpty());
     }
 
@@ -146,7 +146,7 @@ public class SqliteInventoryPositionTest {
 
         //from each position we should get the inventory with all positions
         for (Position position : positions) {
-            Optional<Inventory> result = Storage.inventories().findByPos(position);
+            Optional<Inventory> result = this.inventoryRepository.findByPos(position);
             Assertions.assertTrue(result.isEmpty());
         }
     }
@@ -160,31 +160,31 @@ public class SqliteInventoryPositionTest {
         Position p4 = new Position("delete-position", 0, 1, 1);
         Set<Position> positions = Set.of(p1, p2, p3, p4);
         Inventory inventory = new Inventory(positions);
-        Storage.inventories().save(inventory);
+        this.inventoryRepository.save(inventory);
 
-        Assertions.assertTrue(Storage.inventoryPositions().removePosition(inventory, p1));
-        Assertions.assertFalse(Storage.inventoryPositions().hasPosition(inventory, p1));
-        Assertions.assertTrue(Storage.inventoryPositions().hasPosition(inventory, p2));
-        Assertions.assertTrue(Storage.inventoryPositions().hasPosition(inventory, p3));
-        Assertions.assertTrue(Storage.inventoryPositions().hasPosition(inventory, p4));
+        Assertions.assertTrue(this.inventoryPositionsRepository.removePosition(inventory, p1));
+        Assertions.assertFalse(this.inventoryPositionsRepository.hasPosition(inventory, p1));
+        Assertions.assertTrue(this.inventoryPositionsRepository.hasPosition(inventory, p2));
+        Assertions.assertTrue(this.inventoryPositionsRepository.hasPosition(inventory, p3));
+        Assertions.assertTrue(this.inventoryPositionsRepository.hasPosition(inventory, p4));
 
-        Assertions.assertTrue(Storage.inventoryPositions().removePosition(inventory, p2));
-        Assertions.assertFalse(Storage.inventoryPositions().hasPosition(inventory, p1));
-        Assertions.assertFalse(Storage.inventoryPositions().hasPosition(inventory, p2));
-        Assertions.assertTrue(Storage.inventoryPositions().hasPosition(inventory, p3));
-        Assertions.assertTrue(Storage.inventoryPositions().hasPosition(inventory, p4));
+        Assertions.assertTrue(this.inventoryPositionsRepository.removePosition(inventory, p2));
+        Assertions.assertFalse(this.inventoryPositionsRepository.hasPosition(inventory, p1));
+        Assertions.assertFalse(this.inventoryPositionsRepository.hasPosition(inventory, p2));
+        Assertions.assertTrue(this.inventoryPositionsRepository.hasPosition(inventory, p3));
+        Assertions.assertTrue(this.inventoryPositionsRepository.hasPosition(inventory, p4));
 
-        Assertions.assertTrue(Storage.inventoryPositions().removePosition(inventory, p3));
-        Assertions.assertFalse(Storage.inventoryPositions().hasPosition(inventory, p1));
-        Assertions.assertFalse(Storage.inventoryPositions().hasPosition(inventory, p2));
-        Assertions.assertFalse(Storage.inventoryPositions().hasPosition(inventory, p3));
-        Assertions.assertTrue(Storage.inventoryPositions().hasPosition(inventory, p4));
+        Assertions.assertTrue(this.inventoryPositionsRepository.removePosition(inventory, p3));
+        Assertions.assertFalse(this.inventoryPositionsRepository.hasPosition(inventory, p1));
+        Assertions.assertFalse(this.inventoryPositionsRepository.hasPosition(inventory, p2));
+        Assertions.assertFalse(this.inventoryPositionsRepository.hasPosition(inventory, p3));
+        Assertions.assertTrue(this.inventoryPositionsRepository.hasPosition(inventory, p4));
 
-        Assertions.assertTrue(Storage.inventoryPositions().removePosition(inventory, p4));
-        Assertions.assertFalse(Storage.inventoryPositions().hasPosition(inventory, p1));
-        Assertions.assertFalse(Storage.inventoryPositions().hasPosition(inventory, p2));
-        Assertions.assertFalse(Storage.inventoryPositions().hasPosition(inventory, p3));
-        Assertions.assertFalse(Storage.inventoryPositions().hasPosition(inventory, p4));
+        Assertions.assertTrue(this.inventoryPositionsRepository.removePosition(inventory, p4));
+        Assertions.assertFalse(this.inventoryPositionsRepository.hasPosition(inventory, p1));
+        Assertions.assertFalse(this.inventoryPositionsRepository.hasPosition(inventory, p2));
+        Assertions.assertFalse(this.inventoryPositionsRepository.hasPosition(inventory, p3));
+        Assertions.assertFalse(this.inventoryPositionsRepository.hasPosition(inventory, p4));
     }
 
     @Test
@@ -197,10 +197,10 @@ public class SqliteInventoryPositionTest {
         Set<Position> positions = Set.of(p1, p2, p3, p4);
         Inventory inventory = new Inventory(positions);
 
-        Assertions.assertThrows(IllegalStateException.class, () -> Storage.inventoryPositions().removePosition(inventory, p1));
-        Assertions.assertThrows(IllegalStateException.class, () -> Storage.inventoryPositions().removePosition(inventory, p2));
-        Assertions.assertThrows(IllegalStateException.class, () -> Storage.inventoryPositions().removePosition(inventory, p3));
-        Assertions.assertThrows(IllegalStateException.class, () -> Storage.inventoryPositions().removePosition(inventory, p4));
+        Assertions.assertThrows(IllegalStateException.class, () -> this.inventoryPositionsRepository.removePosition(inventory, p1));
+        Assertions.assertThrows(IllegalStateException.class, () -> this.inventoryPositionsRepository.removePosition(inventory, p2));
+        Assertions.assertThrows(IllegalStateException.class, () -> this.inventoryPositionsRepository.removePosition(inventory, p3));
+        Assertions.assertThrows(IllegalStateException.class, () -> this.inventoryPositionsRepository.removePosition(inventory, p4));
     }
 
     @Test
@@ -212,9 +212,9 @@ public class SqliteInventoryPositionTest {
         Position p4 = new Position("delete-position-null", 0, 1, 1);
         Set<Position> positions = Set.of(p1, p2, p3);
         Inventory inventory = new Inventory(positions);
-        Storage.inventories().save(inventory);
+        this.inventoryRepository.save(inventory);
 
-        Assertions.assertFalse(Storage.inventoryPositions().removePosition(inventory, p4));
+        Assertions.assertFalse(this.inventoryPositionsRepository.removePosition(inventory, p4));
     }
 
 }
