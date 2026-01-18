@@ -1,8 +1,8 @@
 package fr.emalios.mystats.content.screen;
 
 import fr.emalios.mystats.content.menu.MonitorMenu;
-import fr.emalios.mystats.api.models.CountUnit;
-import fr.emalios.mystats.api.stat.Stat;
+import fr.emalios.mystats.api.models.record.CountUnit;
+import fr.emalios.mystats.api.models.stat.Stat;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.registries.BuiltInRegistries;

@@ -1,7 +1,7 @@
 package minestats.api.storage;
 
-import fr.emalios.mystats.api.models.Inventory;
-import fr.emalios.mystats.api.models.Position;
+import fr.emalios.mystats.api.models.inventory.Inventory;
+import fr.emalios.mystats.api.models.inventory.Position;
 import fr.emalios.mystats.api.models.StatPlayer;
 import fr.emalios.mystats.api.storage.InventoryRepository;
 import fr.emalios.mystats.api.storage.PlayerInventoryRepository;
@@ -45,7 +45,8 @@ public class SqlitePlayerInventoriesRepositoryTest {
     @Test
     @DisplayName("Assign inventory")
     void assignInventoryTest() {
-        StatPlayer statPlayer = this.playerRepository.getOrCreate("assign-classic-player");
+        String playerName = "assign-classic-player";
+        StatPlayer statPlayer = this.playerRepository.getOrCreate(playerName);
         Inventory inventory = this.inventoryRepository.getOrCreate(new Position("minecraft:overworld", 0, 1, 2));
 
         this.playerInventoryRepository.addInventory(statPlayer, inventory);
@@ -53,8 +54,9 @@ public class SqlitePlayerInventoriesRepositoryTest {
         Assertions.assertTrue(statPlayer.hasInventory(inventory));
         Assertions.assertTrue(this.playerInventoryRepository.hasInventory(statPlayer, inventory));
 
-        StatPlayer updatedPlayer = this.playerRepository.getOrCreate("assign-classic-player");
-        Assertions.assertTrue(updatedPlayer.hasInventory(inventory));
+        StatPlayer updatedPlayer = this.playerRepository.getOrCreate(playerName);
+        //it is no more the responsibility of repository to handle inventories logic in StatPlayer model but to the service
+        Assertions.assertFalse(updatedPlayer.hasInventory(inventory));
         Assertions.assertTrue(this.playerInventoryRepository.hasInventory(updatedPlayer, inventory));
     }
 

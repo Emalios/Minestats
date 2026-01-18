@@ -2,9 +2,8 @@ package fr.emalios.mystats.impl.test;
 
 import fr.emalios.mystats.MyStats;
 import fr.emalios.mystats.api.StatsAPI;
-import fr.emalios.mystats.api.models.Inventory;
+import fr.emalios.mystats.api.models.inventory.Inventory;
 import fr.emalios.mystats.api.models.StatPlayer;
-import fr.emalios.mystats.impl.adapter.StatManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -35,11 +34,11 @@ public class InventoryBreakingTest {
 
         //assert deleted after next scan
         helper.assertTrue(statPlayer.hasInventory(inventory), "Player should have inventory");
-        helper.assertTrue(StatManager.getInstance().isMonitored(inventory), "Inventory should be monitored");
+        helper.assertTrue(StatsAPI.getInstance().getInventoryService().isLoaded(inventory), "Inventory should be loaded");
         StatsAPI.getInstance().getInventoryService().scan();
 
         helper.assertFalse(statPlayer.hasInventory(inventory), "Player should not have inventory");
-        helper.assertFalse(StatManager.getInstance().isMonitored(inventory), "Inventory should not be monitored");
+        helper.assertFalse(StatsAPI.getInstance().getInventoryService().isLoaded(inventory), "Inventory should not be loaded");
         statPlayer = StatsAPI.getInstance().getPlayerService().getOrCreateByName(player.getName().getString());
         helper.assertFalse(statPlayer.hasInventory(inventory), "Player should not have inventory");
 

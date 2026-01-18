@@ -1,12 +1,11 @@
-package fr.emalios.mystats.api.stat.utils;
+package fr.emalios.mystats.api.services;
 
-import fr.emalios.mystats.api.StatsAPI;
-import fr.emalios.mystats.api.models.CountUnit;
-import fr.emalios.mystats.api.models.Inventory;
-import fr.emalios.mystats.api.models.RecordType;
-import fr.emalios.mystats.api.services.InventoryService;
-import fr.emalios.mystats.api.stat.*;
-import fr.emalios.mystats.api.models.Record;
+import fr.emalios.mystats.api.models.record.CountUnit;
+import fr.emalios.mystats.api.models.inventory.Inventory;
+import fr.emalios.mystats.api.models.record.Record;
+import fr.emalios.mystats.api.models.record.RecordType;
+import fr.emalios.mystats.api.models.stat.Stat;
+import fr.emalios.mystats.api.models.stat.TimeUnit;
 import fr.emalios.mystats.helper.Utils;
 
 import java.util.Collection;
@@ -14,34 +13,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class StatCalculator {
+public class StatCalculatorService {
 
-    //TODO make stat service
-    private static StatCalculator instance = new StatCalculator();
+    private final InventoryService inventoryService;
 
-    private StatsAPI statsAPI;
-
-    private StatCalculator() {
-        this.statsAPI = StatsAPI.getInstance();
+    public StatCalculatorService(InventoryService inventoryService) {
+        this.inventoryService = inventoryService;
     }
 
-    public static synchronized StatCalculator getInstance() {
-        if (instance == null) {
-            instance = new StatCalculator();
-        }
-        return instance;
-    }
-
-    /**
-     * Calculate for every monitored items in every inventories the delta per second
-     * @return map of items id associated to their delta/s
-     */
     public List<Stat> genPerSecond(Collection<Inventory> inventories) {
         //don't know if there is a better option to merge record with same resourceId
         Map<String, RecordType> contentTypes = new HashMap<>();
         Map<String, Stat> results = new HashMap<>();
         for (Inventory inventory : inventories) {
-            var snapshots = this.statsAPI.getInventoryService().getLastSnapshots(inventory, 10);
+            var snapshots = this.inventoryService.getLastSnapshots(inventory, 10);
             Map<Long, Collection<Record>> history = new HashMap<>();
             for (var snapshot : snapshots) {
                 var content = snapshot.getContent();

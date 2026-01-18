@@ -1,8 +1,9 @@
-package minestats.api.stat;
+package minestats.api.models;
 
-import fr.emalios.mystats.api.stat.*;
-import fr.emalios.mystats.api.models.CountUnit;
-import fr.emalios.mystats.api.models.RecordType;
+import fr.emalios.mystats.api.models.stat.Stat;
+import fr.emalios.mystats.api.models.stat.TimeUnit;
+import fr.emalios.mystats.api.models.record.CountUnit;
+import fr.emalios.mystats.api.models.record.RecordType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

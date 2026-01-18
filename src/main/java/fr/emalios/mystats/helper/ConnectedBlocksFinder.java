@@ -1,6 +1,6 @@
 package fr.emalios.mystats.helper;
 
-import fr.emalios.mystats.api.stat.IHandler;
+import fr.emalios.mystats.api.models.inventory.IHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import java.util.*;

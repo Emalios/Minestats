@@ -1,7 +1,7 @@
 package fr.emalios.mystats.network;
 
 import fr.emalios.mystats.MyStats;
-import fr.emalios.mystats.api.stat.Stat;
+import fr.emalios.mystats.api.models.stat.Stat;
 import fr.emalios.mystats.registries.StatCodec;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;

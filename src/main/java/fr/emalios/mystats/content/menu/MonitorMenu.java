@@ -2,8 +2,8 @@ package fr.emalios.mystats.content.menu;
 
 import fr.emalios.mystats.api.StatsAPI;
 import fr.emalios.mystats.api.models.StatPlayer;
-import fr.emalios.mystats.api.stat.Stat;
-import fr.emalios.mystats.api.stat.utils.StatCalculator;
+import fr.emalios.mystats.api.services.StatCalculatorService;
+import fr.emalios.mystats.api.models.stat.Stat;
 import fr.emalios.mystats.network.StatPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -25,7 +25,7 @@ public class MonitorMenu extends AbstractContainerMenu {
 
     private final Player player;
     private final StatPlayer statPlayer;
-    private final StatCalculator statCalculator = StatCalculator.getInstance();
+    private final StatCalculatorService statCalculator = StatsAPI.getInstance().getStatCalculatorService();
     private List<Stat> stats = new ArrayList<>();
 
     public MonitorMenu(int containerId, Inventory playerInv) {

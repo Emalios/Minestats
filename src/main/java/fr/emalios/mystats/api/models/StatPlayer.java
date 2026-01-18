@@ -1,16 +1,17 @@
 package fr.emalios.mystats.api.models;
 
+import fr.emalios.mystats.api.models.inventory.Inventory;
 import fr.emalios.mystats.api.storage.Persistable;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class StatPlayer extends Persistable {
 
     private final String name;
-    private final Set<Inventory> inventories = new HashSet<>();
+    private Set<Inventory> inventories = new HashSet<>();
 
     public StatPlayer(String name) {
         this.name = name;
@@ -29,7 +30,9 @@ public class StatPlayer extends Persistable {
     }
 
     public Set<Inventory> getInventories() {
-        return Collections.unmodifiableSet(inventories);
+        var filteredInv = this.inventories.stream().filter(Inventory::isPersisted).collect(Collectors.toSet());
+        this.inventories = filteredInv;
+        return filteredInv;
     }
 
     public String getName() {

@@ -1,6 +1,6 @@
 package fr.emalios.mystats.impl.storage.dao;
 
-import fr.emalios.mystats.api.models.Position;
+import fr.emalios.mystats.api.models.inventory.Position;
 
 import java.sql.*;
 import java.util.*;

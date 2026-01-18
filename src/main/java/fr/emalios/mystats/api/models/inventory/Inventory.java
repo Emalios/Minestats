@@ -1,6 +1,6 @@
-package fr.emalios.mystats.api.models;
+package fr.emalios.mystats.api.models.inventory;
 
-import fr.emalios.mystats.api.stat.IHandler;
+import fr.emalios.mystats.api.models.record.Record;
 import fr.emalios.mystats.api.storage.Persistable;
 
 import java.util.*;
@@ -33,8 +33,8 @@ public class Inventory extends Persistable {
      * Test if the inventory is still valid by testing is IHandler
      * @return true if it has at least one valid IHandler, else false
      */
-    public boolean isValid() {
-        return !this.getHandlers().isEmpty() || !this.isPersisted();
+    public boolean hasHandlers() {
+        return !this.getHandlers().isEmpty();
     }
 
     public void addHandler(IHandler handler) {
@@ -45,6 +45,10 @@ public class Inventory extends Persistable {
         handlers.forEach(this::addHandler);
     }
 
+    /**
+     * Get all existing handlers present in the inventory, filtered by IHandler::exists
+     * @return existing inventory's handlers
+     */
     public Collection<IHandler> getHandlers() {
         return this.handlers.stream().filter(IHandler::exists).toList();
     }
@@ -73,12 +77,12 @@ public class Inventory extends Persistable {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Inventory inventory = (Inventory) o;
-        return Objects.equals(invPositions, inventory.invPositions);
+        return Objects.equals(handlers, inventory.handlers) && Objects.equals(invPositions, inventory.invPositions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(invPositions);
+        return Objects.hash(handlers, invPositions);
     }
 
     @Override

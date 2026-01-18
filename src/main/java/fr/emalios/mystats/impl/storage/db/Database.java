@@ -2,10 +2,12 @@ package fr.emalios.mystats.impl.storage.db;
 
 import fr.emalios.mystats.MyStats;
 import fr.emalios.mystats.api.StatsAPI;
+import fr.emalios.mystats.impl.adapter.McHandlersLoader;
 import fr.emalios.mystats.impl.storage.dao.*;
 import fr.emalios.mystats.impl.storage.db.migrations.Migration;
 import fr.emalios.mystats.impl.storage.db.migrations.MigrationRunner;
 import fr.emalios.mystats.impl.storage.repository.*;
+import net.minecraft.server.MinecraftServer;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -56,18 +58,18 @@ public final class Database {
         this.recordDao = new RecordDao(connection);
     }
 
-    public void init(String dbFileName) {
+    public void init(String dbFileName, MinecraftServer server) {
         try {
             this.openConnection(dbFileName);
             this.initDaos();
-            this.updateRepositories();
+            this.updateRepositories(server);
             this.makeMigrations();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void updateRepositories() {
+    private void updateRepositories(MinecraftServer server) {
         var playerInvRepo = new SqlitePlayerInventoryRepository(Database.getInstance().getPlayerInventoryDao());
         StatsAPI.getInstance().init(new SqlitePlayerRepository(Database.getInstance().getPlayerDao(), playerInvRepo),
                 new SqliteInventoryRepository(Database.getInstance().getInventoryDao(), Database.getInstance().getInventoryPositionsDao()),
@@ -75,7 +77,9 @@ public final class Database {
                 new SqliteInventorySnapshotRepository(
                         Database.getInstance().getInventorySnapshotDao(),
                         Database.getInstance().getRecordDao()),
-                new SqliteInventoryPositionsRepository(Database.getInstance().getInventoryPositionsDao()));
+                new SqliteInventoryPositionsRepository(Database.getInstance().getInventoryPositionsDao()),
+                new McHandlersLoader(server)
+        );
     }
 
     public void reset() {

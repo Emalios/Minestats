@@ -1,7 +1,7 @@
 package fr.emalios.mystats.api.storage;
 
-import fr.emalios.mystats.api.models.Inventory;
-import fr.emalios.mystats.api.models.Position;
+import fr.emalios.mystats.api.models.inventory.Inventory;
+import fr.emalios.mystats.api.models.inventory.Position;
 
 import java.util.Set;
 

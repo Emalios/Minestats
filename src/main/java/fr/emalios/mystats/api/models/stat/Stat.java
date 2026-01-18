@@ -1,8 +1,8 @@
-package fr.emalios.mystats.api.stat;
+package fr.emalios.mystats.api.models.stat;
 
-import fr.emalios.mystats.api.models.Record;
-import fr.emalios.mystats.api.models.CountUnit;
-import fr.emalios.mystats.api.models.RecordType;
+import fr.emalios.mystats.api.models.record.Record;
+import fr.emalios.mystats.api.models.record.CountUnit;
+import fr.emalios.mystats.api.models.record.RecordType;
 
 import java.util.Objects;
 

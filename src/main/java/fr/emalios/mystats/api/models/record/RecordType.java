@@ -1,4 +1,4 @@
-package fr.emalios.mystats.api.models;
+package fr.emalios.mystats.api.models.record;
 
 public enum RecordType {
 

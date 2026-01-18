@@ -1,5 +1,6 @@
-package fr.emalios.mystats.api.models;
+package fr.emalios.mystats.api.models.inventory;
 
+import fr.emalios.mystats.api.models.record.Record;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
@@ -9,17 +10,17 @@ import java.util.Objects;
 public class Snapshot implements Comparable<Snapshot> {
 
 
-    private final Collection<Record> content;
+    private final Collection<fr.emalios.mystats.api.models.record.Record> content;
     private final int inventoryId;
     private final long timestamp;
 
-    public Snapshot(int inventoryId, Collection<Record> content) {
+    public Snapshot(int inventoryId, Collection<fr.emalios.mystats.api.models.record.Record> content) {
         this.timestamp = Instant.now().getEpochSecond();
         this.content = content;
         this.inventoryId = inventoryId;
     }
 
-    public Snapshot(int inventoryId, Collection<Record> content, long timestamp) {
+    public Snapshot(int inventoryId, Collection<fr.emalios.mystats.api.models.record.Record> content, long timestamp) {
         this.inventoryId = inventoryId;
         this.content = content;
         this.timestamp = timestamp;

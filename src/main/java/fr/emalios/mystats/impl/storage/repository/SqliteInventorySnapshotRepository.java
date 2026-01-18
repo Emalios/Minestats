@@ -1,8 +1,8 @@
 package fr.emalios.mystats.impl.storage.repository;
 
-import fr.emalios.mystats.api.models.Inventory;
-import fr.emalios.mystats.api.models.Record;
-import fr.emalios.mystats.api.models.Snapshot;
+import fr.emalios.mystats.api.models.inventory.Inventory;
+import fr.emalios.mystats.api.models.record.Record;
+import fr.emalios.mystats.api.models.inventory.Snapshot;
 import fr.emalios.mystats.api.storage.InventorySnapshotRepository;
 import fr.emalios.mystats.impl.storage.dao.InventorySnapshotDao;
 import fr.emalios.mystats.impl.storage.dao.RecordDao;

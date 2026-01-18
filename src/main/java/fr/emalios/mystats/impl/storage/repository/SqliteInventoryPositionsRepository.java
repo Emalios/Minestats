@@ -1,7 +1,7 @@
 package fr.emalios.mystats.impl.storage.repository;
 
-import fr.emalios.mystats.api.models.Inventory;
-import fr.emalios.mystats.api.models.Position;
+import fr.emalios.mystats.api.models.inventory.Inventory;
+import fr.emalios.mystats.api.models.inventory.Position;
 import fr.emalios.mystats.api.storage.InventoryPositionsRepository;
 import fr.emalios.mystats.impl.storage.dao.InventoryPositionsDao;
 

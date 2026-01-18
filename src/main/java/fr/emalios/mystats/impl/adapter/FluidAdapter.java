@@ -1,9 +1,9 @@
 package fr.emalios.mystats.impl.adapter;
 
-import fr.emalios.mystats.api.models.CountUnit;
-import fr.emalios.mystats.api.stat.IHandler;
-import fr.emalios.mystats.api.models.Record;
-import fr.emalios.mystats.api.models.RecordType;
+import fr.emalios.mystats.api.models.record.CountUnit;
+import fr.emalios.mystats.api.models.inventory.IHandler;
+import fr.emalios.mystats.api.models.record.Record;
+import fr.emalios.mystats.api.models.record.RecordType;
 import net.minecraft.core.Direction;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.fluids.FluidStack;

@@ -2,16 +2,20 @@ package minestats.api;
 
 import fr.emalios.mystats.api.StatsAPI;
 import fr.emalios.mystats.api.models.*;
-import fr.emalios.mystats.api.models.Record;
+import fr.emalios.mystats.api.models.record.CountUnit;
+import fr.emalios.mystats.api.models.record.Record;
+import fr.emalios.mystats.api.models.inventory.Inventory;
+import fr.emalios.mystats.api.models.inventory.Position;
+import fr.emalios.mystats.api.models.record.RecordType;
 import fr.emalios.mystats.api.services.InventoryService;
+import fr.emalios.mystats.api.services.StatCalculatorService;
 import fr.emalios.mystats.api.services.StatPlayerService;
-import fr.emalios.mystats.api.stat.IHandler;
-import fr.emalios.mystats.api.stat.Stat;
-import fr.emalios.mystats.api.stat.utils.StatCalculator;
-import fr.emalios.mystats.api.storage.*;
+import fr.emalios.mystats.api.models.inventory.IHandler;
+import fr.emalios.mystats.api.models.stat.Stat;
 import fr.emalios.mystats.impl.storage.dao.*;
 import fr.emalios.mystats.impl.storage.repository.*;
 import minestats.api.storage.DatabaseTest;
+import minestats.api.storage.TestHandlerLoader;
 import org.junit.jupiter.api.*;
 
 import java.sql.Connection;
@@ -48,6 +52,7 @@ public class MathTest {
 
     private StatPlayerService playerService;
     private InventoryService inventoryService;
+    private StatCalculatorService statCalculatorService;
 
     @BeforeAll
     public void setup() throws SQLException {
@@ -59,9 +64,10 @@ public class MathTest {
         var inventoryRepository = new SqliteInventoryRepository(new InventoryDao(conn), new InventoryPositionsDao(conn));
         var inventorySnapshotRepository = new SqliteInventorySnapshotRepository(new InventorySnapshotDao(conn), new RecordDao(conn));
         var inventoryPositionsRepository = new SqliteInventoryPositionsRepository(new InventoryPositionsDao(conn));
-        statsAPI.init(playerRepository, inventoryRepository, playerInventoryRepository, inventorySnapshotRepository, inventoryPositionsRepository);
+        statsAPI.init(playerRepository, inventoryRepository, playerInventoryRepository, inventorySnapshotRepository, inventoryPositionsRepository, new TestHandlerLoader());
         this.inventoryService = statsAPI.getInventoryService();
         this.playerService = statsAPI.getPlayerService();
+        this.statCalculatorService = statsAPI.getStatCalculatorService();
     }
 
     @AfterAll
@@ -84,13 +90,13 @@ public class MathTest {
         this.inventoryService.recordInventoryContent(inv1);
 
         player.addInventory(inv1);
-        var result = StatCalculator.getInstance().genPerSecond(player.getInventories());
+        var result = this.statCalculatorService.genPerSecond(player.getInventories());
 
         Assertions.assertFalse(result.isEmpty());
         Assertions.assertEquals(3, result.size());
-        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:dirt", 10, CountUnit.ITEM), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
-        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:stone", 64, CountUnit.ITEM), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
-        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.FLUID, "minecraft:water", 1000, CountUnit.MB), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
+        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:dirt", 10, CountUnit.ITEM), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));
+        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:stone", 64, CountUnit.ITEM), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));
+        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.FLUID, "minecraft:water", 1000, CountUnit.MB), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));
     }
 
     @Test
@@ -115,13 +121,13 @@ public class MathTest {
         }
 
         player.addInventory(inv1);
-        var result = StatCalculator.getInstance().genPerSecond(player.getInventories());
+        var result = this.statCalculatorService.genPerSecond(player.getInventories());
 
         Assertions.assertFalse(result.isEmpty());
         Assertions.assertEquals(3, result.size());
-        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:dirt", 10, CountUnit.ITEM), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
-        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:stone", 64, CountUnit.ITEM), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
-        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.FLUID, "minecraft:water", 1000, CountUnit.MB), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
+        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:dirt", 10, CountUnit.ITEM), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));
+        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:stone", 64, CountUnit.ITEM), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));
+        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.FLUID, "minecraft:water", 1000, CountUnit.MB), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));
     }
 
     @Test
@@ -138,13 +144,13 @@ public class MathTest {
         this.inventoryService.recordInventoryContent(inv1);
 
         player.addInventory(inv1);
-        var result = StatCalculator.getInstance().genPerSecond(player.getInventories());
+        var result = this.statCalculatorService.genPerSecond(player.getInventories());
 
         Assertions.assertFalse(result.isEmpty());
         Assertions.assertEquals(3, result.size());
-        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:dirt", -10, CountUnit.ITEM), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
-        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:stone", -64, CountUnit.ITEM), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
-        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.FLUID, "minecraft:water", -1000, CountUnit.MB), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
+        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:dirt", -10, CountUnit.ITEM), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));
+        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:stone", -64, CountUnit.ITEM), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));
+        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.FLUID, "minecraft:water", -1000, CountUnit.MB), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));
     }
 
     @Test
@@ -160,12 +166,12 @@ public class MathTest {
         this.inventoryService.recordInventoryContent(inv1);
 
         player.addInventory(inv1);
-        var result = StatCalculator.getInstance().genPerSecond(player.getInventories());
+        var result = this.statCalculatorService.genPerSecond(player.getInventories());
         Assertions.assertFalse(result.isEmpty());
         Assertions.assertEquals(3, result.size());
-        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:dirt", 0, CountUnit.ITEM), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
-        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:stone", 0, CountUnit.ITEM), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
-        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.FLUID, "minecraft:water", 0, CountUnit.MB), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
+        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:dirt", 0, CountUnit.ITEM), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));
+        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:stone", 0, CountUnit.ITEM), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));
+        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.FLUID, "minecraft:water", 0, CountUnit.MB), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));
     }
 
     @Test
@@ -196,12 +202,12 @@ public class MathTest {
 
         player.addInventory(inv1);
         player.addInventory(inv2);
-        var result = StatCalculator.getInstance().genPerSecond(player.getInventories());
+        var result = this.statCalculatorService.genPerSecond(player.getInventories());
         Assertions.assertFalse(result.isEmpty());
         Assertions.assertEquals(3, result.size());
-        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:dirt", numberOfInvs*10, CountUnit.ITEM), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
-        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:stone", numberOfInvs*64, CountUnit.ITEM), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
-        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.FLUID, "minecraft:water", numberOfInvs*1000, CountUnit.MB), fr.emalios.mystats.api.stat.TimeUnit.SECOND)));
+        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:dirt", numberOfInvs*10, CountUnit.ITEM), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));
+        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:stone", numberOfInvs*64, CountUnit.ITEM), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));
+        Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.FLUID, "minecraft:water", numberOfInvs*1000, CountUnit.MB), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));
     }
 
 }

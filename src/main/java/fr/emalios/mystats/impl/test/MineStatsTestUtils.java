@@ -1,8 +1,8 @@
 package fr.emalios.mystats.impl.test;
 
 import fr.emalios.mystats.MyStats;
-import fr.emalios.mystats.api.models.Inventory;
-import fr.emalios.mystats.api.models.Position;
+import fr.emalios.mystats.api.models.inventory.Inventory;
+import fr.emalios.mystats.api.models.inventory.Position;
 import fr.emalios.mystats.impl.test.snippet.RegistriesTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

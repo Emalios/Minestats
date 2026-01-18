@@ -1,7 +1,7 @@
 package fr.emalios.mystats.api.storage;
 
-import fr.emalios.mystats.api.models.Inventory;
-import fr.emalios.mystats.api.models.Position;
+import fr.emalios.mystats.api.models.inventory.Inventory;
+import fr.emalios.mystats.api.models.inventory.Position;
 
 import java.util.Optional;
 import java.util.Set;
@@ -28,7 +28,17 @@ public interface InventoryRepository {
      */
     Inventory getOrCreate(Position position);
 
+    /**
+     * Delete the given inventory if present in storage and remove is internal id.
+     * @param inventory to delete
+     */
     void delete(Inventory inventory);
+
+    /**
+     * Delete all present inventories in storage.
+     * <!> DOES NOT delete the id in Inventory.Persisted </!>
+     */
+    void deleteAll();
 
     Set<Inventory> getAllFromWorld(String world);
 

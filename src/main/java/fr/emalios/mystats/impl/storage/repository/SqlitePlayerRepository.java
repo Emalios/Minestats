@@ -34,9 +34,7 @@ public class SqlitePlayerRepository implements PlayerRepository {
     public StatPlayer getOrCreate(String name) {
         var optPlayer = findByName(name);
         if (optPlayer.isPresent()) {
-            StatPlayer statPlayer = optPlayer.get();
-            this.playerInventoryRepository.hydrate(statPlayer);
-            return statPlayer;
+            return optPlayer.get();
         }
 
         StatPlayer statPlayer = new StatPlayer(name);
@@ -56,7 +54,6 @@ public class SqlitePlayerRepository implements PlayerRepository {
         if (record == null) return Optional.empty();
         StatPlayer statPlayer = new StatPlayer(record.name());
         statPlayer.assignId(record.id());
-        this.playerInventoryRepository.hydrate(statPlayer);
         return Optional.of(statPlayer);
     }
 }

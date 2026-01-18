@@ -1,9 +1,12 @@
 package minestats.api.storage;
 
-import fr.emalios.mystats.api.models.*;
-import fr.emalios.mystats.api.models.Record;
-import fr.emalios.mystats.api.services.InventoryService;
-import fr.emalios.mystats.api.stat.IHandler;
+import fr.emalios.mystats.api.models.inventory.Snapshot;
+import fr.emalios.mystats.api.models.record.CountUnit;
+import fr.emalios.mystats.api.models.record.Record;
+import fr.emalios.mystats.api.models.inventory.IHandler;
+import fr.emalios.mystats.api.models.inventory.Inventory;
+import fr.emalios.mystats.api.models.inventory.Position;
+import fr.emalios.mystats.api.models.record.RecordType;
 import fr.emalios.mystats.api.storage.*;
 import fr.emalios.mystats.impl.storage.dao.*;
 import fr.emalios.mystats.impl.storage.repository.SqliteInventoryRepository;

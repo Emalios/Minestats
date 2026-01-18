@@ -2,20 +2,19 @@ package fr.emalios.mystats.impl.test;
 
 import fr.emalios.mystats.MyStats;
 import fr.emalios.mystats.api.StatsAPI;
-import fr.emalios.mystats.api.models.Inventory;
-import fr.emalios.mystats.api.models.Position;
+import fr.emalios.mystats.api.models.inventory.Inventory;
+import fr.emalios.mystats.api.models.inventory.Position;
 import fr.emalios.mystats.api.models.StatPlayer;
 import fr.emalios.mystats.helper.Const;
-import fr.emalios.mystats.impl.adapter.StatManager;
 import fr.emalios.mystats.impl.storage.db.Database;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.AfterBatch;
 import net.minecraft.gametest.framework.BeforeBatch;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -43,9 +42,9 @@ public class DbLoadingTest {
         Database.getInstance().reset();
     }
 
-    private static void resetDb() {
+    private static void resetDb(MinecraftServer server) {
         Database.getInstance().close();
-        Database.getInstance().init(Const.DB_FILENAME);
+        Database.getInstance().init(Const.DB_FILENAME, server);
     }
 
     @PrefixGameTestTemplate(false)
@@ -66,7 +65,7 @@ public class DbLoadingTest {
         )));
         helper.assertTrue(statPlayer.hasInventory(inventory), "player should have inventory");
 
-        resetDb();
+        resetDb(helper.getLevel().getServer());
 
         statPlayer = StatsAPI.getInstance().getPlayerService().getOrCreateByName(player.getName().getString());
         helper.assertTrue(statPlayer.hasInventory(inventory), "player should have inventory");

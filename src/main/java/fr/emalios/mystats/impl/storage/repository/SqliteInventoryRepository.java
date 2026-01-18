@@ -1,7 +1,7 @@
 package fr.emalios.mystats.impl.storage.repository;
 
-import fr.emalios.mystats.api.models.Inventory;
-import fr.emalios.mystats.api.models.Position;
+import fr.emalios.mystats.api.models.inventory.Inventory;
+import fr.emalios.mystats.api.models.inventory.Position;
 import fr.emalios.mystats.api.storage.InventoryRepository;
 import fr.emalios.mystats.impl.storage.dao.InventoryDao;
 import fr.emalios.mystats.impl.storage.dao.InventoryPositionsDao;
@@ -89,6 +89,15 @@ public class SqliteInventoryRepository implements InventoryRepository {
         try {
             this.inventoryDao.deleteById(inventory.getId());
             inventory.delete();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void deleteAll() {
+        try {
+            this.inventoryDao.deleteAll();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
