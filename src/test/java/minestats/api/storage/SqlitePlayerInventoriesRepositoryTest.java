@@ -10,15 +10,20 @@ import fr.emalios.mystats.impl.storage.dao.InventoryDao;
 import fr.emalios.mystats.impl.storage.dao.InventoryPositionsDao;
 import fr.emalios.mystats.impl.storage.dao.PlayerDao;
 import fr.emalios.mystats.impl.storage.dao.PlayerInventoryDao;
+import fr.emalios.mystats.impl.storage.db.Database;
+import fr.emalios.mystats.impl.storage.db.migrations.MigrationLoader;
 import fr.emalios.mystats.impl.storage.repository.SqliteInventoryRepository;
 import fr.emalios.mystats.impl.storage.repository.SqlitePlayerInventoryRepository;
 import fr.emalios.mystats.impl.storage.repository.SqlitePlayerRepository;
 import org.junit.jupiter.api.*;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
+
+import static minestats.utils.Const.pathToMigrations;
 
 @DisplayName("PlayerInventoriesRepository test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -28,18 +33,22 @@ public class SqlitePlayerInventoriesRepositoryTest {
     private PlayerRepository playerRepository;
     private InventoryRepository inventoryRepository;
 
+    private Database database;
+
     @BeforeAll
-    void setup() throws SQLException {
-        Connection conn = DatabaseTest.getConnection();
-        DatabaseTest.makeMigrations();
+    void setup() {
+        database = new Database();
+        new MigrationLoader(pathToMigrations).loadAll().forEach(database::registerMigration);
+        database.init(":memory:", LoggerFactory.getLogger(SqlitePlayerInventoriesRepositoryTest.class));
+        Connection conn = database.getConnection();
         this.playerInventoryRepository = new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn));
-        this.playerRepository = new SqlitePlayerRepository(new PlayerDao(conn), this.playerInventoryRepository);
+        this.playerRepository = new SqlitePlayerRepository(new PlayerDao(conn));
         this.inventoryRepository = new SqliteInventoryRepository(new InventoryDao(conn), new InventoryPositionsDao(conn));
     }
 
     @AfterAll
     void teardown() {
-        DatabaseTest.close();
+        this.database.close();
     }
 
     @Test

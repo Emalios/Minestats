@@ -11,11 +11,9 @@ import java.util.Optional;
 public class SqlitePlayerRepository implements PlayerRepository {
 
     private final PlayerDao dao;
-    private final PlayerInventoryRepository playerInventoryRepository;
 
-    public SqlitePlayerRepository(PlayerDao dao, PlayerInventoryRepository playerInventoryRepository) {
+    public SqlitePlayerRepository(PlayerDao dao) {
         this.dao = dao;
-        this.playerInventoryRepository = playerInventoryRepository;
     }
 
     @Override

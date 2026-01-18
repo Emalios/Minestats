@@ -6,33 +6,21 @@ import fr.emalios.mystats.api.services.StatCalculatorService;
 import fr.emalios.mystats.api.services.StatPlayerService;
 import fr.emalios.mystats.api.storage.*;
 
-public class StatsAPI {
-
-    private static StatsAPI instance;
+public abstract class StatsAPI {
 
     private StatPlayerService playerService;
     private InventoryService inventoryService;
     private StatCalculatorService statCalculatorService;
 
-    private StatsAPI() { }
-
-    public static StatsAPI getInstance() {
-        if (instance == null) {
-            instance = new StatsAPI();
-        }
-        return instance;
+    public void init() {
+        this.onInit();
+        this.inventoryService = new InventoryService(this.buildInventoryRepository(), this.buildPlayerInventoryRepository(), this.buildInventorySnapshotRepository(), this.getIHandlerLoader(), this.buildInventoryPositionsRepository());
+        this.playerService = new StatPlayerService(this.buildPlayerRepository(), this.buildPlayerInventoryRepository(), this.inventoryService);
+        this.statCalculatorService = new StatCalculatorService(inventoryService);
     }
 
-    public void init(PlayerRepository playerRepository,
-                     InventoryRepository inventoryRepository,
-                     PlayerInventoryRepository playerInventoryRepository,
-                     InventorySnapshotRepository inventorySnapshotRepository,
-                     InventoryPositionsRepository inventoryPositionsRepository,
-                     IHandlerLoader iHandlerLoader
-    ) {
-        this.inventoryService = new InventoryService(inventoryRepository, playerInventoryRepository, inventorySnapshotRepository, iHandlerLoader, inventoryPositionsRepository);
-        this.playerService = new StatPlayerService(playerRepository, playerInventoryRepository);
-        this.statCalculatorService = new StatCalculatorService(inventoryService);
+    public void close() {
+        this.onShutdown();
     }
 
     public InventoryService getInventoryService() {
@@ -43,8 +31,18 @@ public class StatsAPI {
         return playerService;
     }
 
-
     public StatCalculatorService getStatCalculatorService() {
         return statCalculatorService;
     }
+
+    public abstract PlayerRepository buildPlayerRepository();
+    public abstract PlayerInventoryRepository buildPlayerInventoryRepository();
+    public abstract InventorySnapshotRepository buildInventorySnapshotRepository();
+    public abstract InventoryPositionsRepository buildInventoryPositionsRepository();
+    public abstract InventoryRepository buildInventoryRepository();
+
+    public abstract IHandlerLoader getIHandlerLoader();
+
+    public abstract void onInit();
+    public abstract void onShutdown();
 }

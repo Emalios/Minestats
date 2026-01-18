@@ -3,6 +3,7 @@ package fr.emalios.mystats.command;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import fr.emalios.mystats.api.StatsAPI;
 import fr.emalios.mystats.helper.Const;
+import fr.emalios.mystats.impl.McStatsAPI;
 import fr.emalios.mystats.impl.storage.db.Database;
 import fr.emalios.mystats.impl.storage.db.DatabaseInitializer;
 import net.minecraft.commands.CommandSourceStack;
@@ -37,7 +38,7 @@ public class StatDbCommand {
         return Commands.literal("scan")
                 .requires(cs -> cs.hasPermission(2))
                 .executes(ctx -> {
-                    StatsAPI.getInstance().getInventoryService().scan();
+                    McStatsAPI.getInstance().getInventoryService().scan();
                     return 0;
                 });
     }
@@ -59,7 +60,7 @@ public class StatDbCommand {
         return Commands.literal("init")
                 .requires(cs -> cs.hasPermission(2))
                 .executes(ctx -> {
-                    Database.getInstance().init(Const.DB_FILENAME, ctx.getSource().getServer());
+                    McStatsAPI.getInstance().init();
                     return 0;
                 });
     }

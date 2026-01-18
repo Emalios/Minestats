@@ -3,6 +3,7 @@ package fr.emalios.mystats.common;
 import fr.emalios.mystats.MyStats;
 import fr.emalios.mystats.api.StatsAPI;
 import fr.emalios.mystats.helper.Const;
+import fr.emalios.mystats.impl.McStatsAPI;
 import fr.emalios.mystats.impl.storage.db.Database;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -22,18 +23,16 @@ public class MinestatsServer {
         counter++;
         if(counter < 300) return;
         counter = 0;
-        StatsAPI.getInstance().getInventoryService().scan();
+        McStatsAPI.getInstance().getInventoryService().scan();
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
     public static void onServerStarting(ServerStartingEvent event) {
-        // Do something when the server starts
-        //init api (in db init for now)
-        StatsAPI statsAPI = StatsAPI.getInstance();
-        //init storage
-        Database.getInstance().init(Const.DB_FILENAME, event.getServer());
-        LOGGER.info("[Minestats] Db loaded.");
+        //init api
+        McStatsAPI statsAPI = McStatsAPI.getInstance();
+        statsAPI.initImpl(event.getServer());
+        statsAPI.init();
         //load inventories to start scanning
         statsAPI.getInventoryService().loadAll();
         LOGGER.info("[Minestats] Inventories loaded.");

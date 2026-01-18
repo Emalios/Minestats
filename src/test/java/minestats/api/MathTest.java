@@ -12,14 +12,8 @@ import fr.emalios.mystats.api.services.StatCalculatorService;
 import fr.emalios.mystats.api.services.StatPlayerService;
 import fr.emalios.mystats.api.models.inventory.IHandler;
 import fr.emalios.mystats.api.models.stat.Stat;
-import fr.emalios.mystats.impl.storage.dao.*;
-import fr.emalios.mystats.impl.storage.repository.*;
-import minestats.api.storage.DatabaseTest;
-import minestats.api.storage.TestHandlerLoader;
 import org.junit.jupiter.api.*;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -55,16 +49,10 @@ public class MathTest {
     private StatCalculatorService statCalculatorService;
 
     @BeforeAll
-    public void setup() throws SQLException {
-        Connection conn = DatabaseTest.getConnection();
-        DatabaseTest.makeMigrations();
-        StatsAPI statsAPI = StatsAPI.getInstance();
-        var playerInventoryRepository = new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn));
-        var playerRepository = new SqlitePlayerRepository(new PlayerDao(conn), playerInventoryRepository);
-        var inventoryRepository = new SqliteInventoryRepository(new InventoryDao(conn), new InventoryPositionsDao(conn));
-        var inventorySnapshotRepository = new SqliteInventorySnapshotRepository(new InventorySnapshotDao(conn), new RecordDao(conn));
-        var inventoryPositionsRepository = new SqliteInventoryPositionsRepository(new InventoryPositionsDao(conn));
-        statsAPI.init(playerRepository, inventoryRepository, playerInventoryRepository, inventorySnapshotRepository, inventoryPositionsRepository, new TestHandlerLoader());
+    public void setup() {
+        StatsAPI statsAPI = TestStatsAPI.getInstance();
+        statsAPI.init();
+
         this.inventoryService = statsAPI.getInventoryService();
         this.playerService = statsAPI.getPlayerService();
         this.statCalculatorService = statsAPI.getStatCalculatorService();
@@ -72,9 +60,8 @@ public class MathTest {
 
     @AfterAll
     public void teardown() {
-        DatabaseTest.close();
+        TestStatsAPI.getInstance().close();
     }
-
 
     @Test
     @DisplayName("Two snapshot test")
@@ -114,7 +101,7 @@ public class MathTest {
         }
         //linear values to make stats with (10 lines)
         count = 1;
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 11; i++) {
             this.inventoryService.recordInventoryContent(inv1);
             count++;
             TimeUnit.SECONDS.sleep(1);
@@ -125,6 +112,7 @@ public class MathTest {
 
         Assertions.assertFalse(result.isEmpty());
         Assertions.assertEquals(3, result.size());
+        result.forEach(System.out::println);
         Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:dirt", 10, CountUnit.ITEM), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));
         Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.ITEM, "minecraft:stone", 64, CountUnit.ITEM), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));
         Assertions.assertTrue(result.contains(new Stat(new Record(RecordType.FLUID, "minecraft:water", 1000, CountUnit.MB), fr.emalios.mystats.api.models.stat.TimeUnit.SECOND)));

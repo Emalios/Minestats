@@ -4,14 +4,19 @@ import fr.emalios.mystats.api.models.inventory.Inventory;
 import fr.emalios.mystats.api.models.inventory.Position;
 import fr.emalios.mystats.api.storage.*;
 import fr.emalios.mystats.impl.storage.dao.*;
+import fr.emalios.mystats.impl.storage.db.Database;
+import fr.emalios.mystats.impl.storage.db.migrations.MigrationLoader;
 import fr.emalios.mystats.impl.storage.repository.*;
 import org.junit.jupiter.api.*;
+import org.slf4j.LoggerFactory;
 import org.sqlite.SQLiteException;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Optional;
 import java.util.Set;
+
+import static minestats.utils.Const.pathToMigrations;
 
 @DisplayName("InventoriesPositions test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -23,12 +28,18 @@ public class SqliteInventoryPositionTest {
     private InventorySnapshotRepository inventorySnapshotRepository;
     private InventoryPositionsRepository inventoryPositionsRepository;
 
+    private Database database;
+
     @BeforeAll
-    void setup() throws SQLException {
-        Connection conn = DatabaseTest.getConnection();
-        DatabaseTest.makeMigrations();
+    void setup() {
+        this.database = new Database();
+        new MigrationLoader(pathToMigrations).loadAll().forEach(database::registerMigration);
+        this.database.init(":memory:", LoggerFactory.getLogger(SqliteInventoryPositionTest.class));
+
+        Connection conn = database.getConnection();
+
         this.playerInventoryRepository = new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn));
-        this.playerRepository = new SqlitePlayerRepository(new PlayerDao(conn), this.playerInventoryRepository);
+        this.playerRepository = new SqlitePlayerRepository(new PlayerDao(conn));
         this.inventoryRepository = new SqliteInventoryRepository(new InventoryDao(conn), new InventoryPositionsDao(conn));
         this.inventorySnapshotRepository = new SqliteInventorySnapshotRepository(new InventorySnapshotDao(conn), new RecordDao(conn));
         this.inventoryPositionsRepository = new SqliteInventoryPositionsRepository(new InventoryPositionsDao(conn));
@@ -36,7 +47,7 @@ public class SqliteInventoryPositionTest {
 
     @AfterAll
     void teardown() {
-        DatabaseTest.close();
+        this.database.close();
     }
 
     @Test

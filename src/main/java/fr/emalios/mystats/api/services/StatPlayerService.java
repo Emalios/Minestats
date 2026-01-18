@@ -14,12 +14,14 @@ public class StatPlayerService {
 
     private final PlayerRepository playerRepository;
     private final PlayerInventoryRepository playerInventoryRepository;
+    private final InventoryService inventoryService;
 
     private final Map<String, StatPlayer> loadedPlayers = new HashMap<>();
 
-    public StatPlayerService(PlayerRepository playerRepository, PlayerInventoryRepository playerInventoryRepository) {
+    public StatPlayerService(PlayerRepository playerRepository, PlayerInventoryRepository playerInventoryRepository, InventoryService inventoryService) {
         this.playerRepository = playerRepository;
         this.playerInventoryRepository = playerInventoryRepository;
+        this.inventoryService = inventoryService;
     }
 
     public StatPlayer getOrCreateByName(String playerName) {
@@ -48,7 +50,7 @@ public class StatPlayerService {
 
     private void loadPlayer(String playerName, StatPlayer statPlayer) {
         this.loadedPlayers.put(playerName, statPlayer);
-        StatsAPI.getInstance().getInventoryService().loadInventories(statPlayer);
+        this.inventoryService.loadInventories(statPlayer);
     }
 
     public void addInventoryToPlayer(StatPlayer statPlayer, Inventory inventory) {

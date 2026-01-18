@@ -4,6 +4,7 @@ import fr.emalios.mystats.api.StatsAPI;
 import fr.emalios.mystats.api.models.StatPlayer;
 import fr.emalios.mystats.api.services.StatCalculatorService;
 import fr.emalios.mystats.api.models.stat.Stat;
+import fr.emalios.mystats.impl.McStatsAPI;
 import fr.emalios.mystats.network.StatPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -25,13 +26,13 @@ public class MonitorMenu extends AbstractContainerMenu {
 
     private final Player player;
     private final StatPlayer statPlayer;
-    private final StatCalculatorService statCalculator = StatsAPI.getInstance().getStatCalculatorService();
+    private final StatCalculatorService statCalculator = McStatsAPI.getInstance().getStatCalculatorService();
     private List<Stat> stats = new ArrayList<>();
 
     public MonitorMenu(int containerId, Inventory playerInv) {
         super(MONITOR_MENU.get(), containerId);
         this.player = playerInv.player;
-        this.statPlayer = StatsAPI.getInstance().getPlayerService().getOrCreateByName(player.getName().getString());
+        this.statPlayer = McStatsAPI.getInstance().getPlayerService().getOrCreateByName(player.getName().getString());
         try {
             this.updateStats();
         } catch (SQLException e) {

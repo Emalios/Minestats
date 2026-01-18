@@ -6,14 +6,9 @@ import fr.emalios.mystats.api.models.inventory.Position;
 import fr.emalios.mystats.api.models.StatPlayer;
 import fr.emalios.mystats.api.services.InventoryService;
 import fr.emalios.mystats.api.services.StatPlayerService;
-import fr.emalios.mystats.impl.storage.dao.*;
-import fr.emalios.mystats.impl.storage.repository.*;
-import minestats.api.storage.DatabaseTest;
-import minestats.api.storage.TestHandlerLoader;
+import minestats.api.TestStatsAPI;
 import org.junit.jupiter.api.*;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Optional;
 import java.util.Set;
 
@@ -25,24 +20,16 @@ public class StatPlayerServiceTest {
     private InventoryService inventoryService;
 
     @BeforeAll
-    void setup() throws SQLException {
-        Connection conn = DatabaseTest.getConnection();
-        DatabaseTest.makeMigrations();
-        StatsAPI statsAPI = StatsAPI.getInstance();
-        var playerInvRepo = new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn));
-        statsAPI.init(
-                new SqlitePlayerRepository(new PlayerDao(conn), playerInvRepo),
-                new SqliteInventoryRepository(new InventoryDao(conn), new InventoryPositionsDao(conn)),
-                playerInvRepo,
-                new SqliteInventorySnapshotRepository(new InventorySnapshotDao(conn), new RecordDao(conn)),
-                new SqliteInventoryPositionsRepository(new InventoryPositionsDao(conn)), new TestHandlerLoader());
+    void setup() {
+        StatsAPI statsAPI = TestStatsAPI.getInstance();
+        statsAPI.init();
         this.statPlayerService = statsAPI.getPlayerService();
         this.inventoryService = statsAPI.getInventoryService();
     }
 
     @AfterAll
     void teardown() {
-        DatabaseTest.close();
+        TestStatsAPI.getInstance().close();
     }
 
     @Test

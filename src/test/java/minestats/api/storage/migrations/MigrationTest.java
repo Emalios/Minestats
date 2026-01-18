@@ -4,11 +4,10 @@ import fr.emalios.mystats.impl.storage.db.Database;
 import fr.emalios.mystats.impl.storage.db.migrations.Migration;
 import fr.emalios.mystats.impl.storage.db.migrations.MigrationLoader;
 import fr.emalios.mystats.impl.storage.db.migrations.MigrationRunner;
-import minestats.api.storage.DatabaseTest;
 import org.junit.jupiter.api.*;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -25,16 +24,20 @@ public class MigrationTest {
     private List<Migration> migrations;
     private Connection connection;
 
+    private Database database;
+
     @BeforeAll
     void beforeAll() throws SQLException {
         migrations = new MigrationLoader(pathToMigrations).loadAll();
         connection = DriverManager.getConnection("jdbc:sqlite::memory:");
+        database = new Database();
+        database.init(":memory:", LoggerFactory.getLogger(MigrationTest.class));
     }
 
     @AfterAll
     void teardown() throws SQLException {
         connection.close();
-        DatabaseTest.close();
+        database.close();
     }
 
     @Test
@@ -74,9 +77,10 @@ public class MigrationTest {
     @Test
     @DisplayName("Do all migrations")
     public void doAllMigrations() throws SQLException, IOException {
-        var dbConnection = DatabaseTest.getConnection();
+        var dbConnection = database.getConnection();
+        this.migrations.forEach(database::registerMigration);
         Assertions.assertEquals(0, MigrationRunner.getCurrentVersion(dbConnection));
-        DatabaseTest.makeMigrations();
+        database.makeMigrations(LoggerFactory.getLogger(MigrationTest.class));
         Assertions.assertEquals(lastMigrationVersion, MigrationRunner.getCurrentVersion(dbConnection));
         Assertions.assertTrue(tableExists(dbConnection, "players"));
         Assertions.assertTrue(tableExists(dbConnection, "inventories"));

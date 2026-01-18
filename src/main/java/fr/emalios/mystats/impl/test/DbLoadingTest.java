@@ -6,6 +6,7 @@ import fr.emalios.mystats.api.models.inventory.Inventory;
 import fr.emalios.mystats.api.models.inventory.Position;
 import fr.emalios.mystats.api.models.StatPlayer;
 import fr.emalios.mystats.helper.Const;
+import fr.emalios.mystats.impl.McStatsAPI;
 import fr.emalios.mystats.impl.storage.db.Database;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.AfterBatch;
@@ -29,7 +30,7 @@ import java.util.Set;
 public class DbLoadingTest {
 
     private static final MineStatsTestUtils utils = MineStatsTestUtils.getInstance();
-    private static final StatsAPI statsApi = StatsAPI.getInstance();
+    private static final StatsAPI statsApi = McStatsAPI.getInstance();
 
     @BeforeBatch(batch = "db-interact")
     public static void setup(ServerLevel level) {
@@ -43,8 +44,8 @@ public class DbLoadingTest {
     }
 
     private static void resetDb(MinecraftServer server) {
-        Database.getInstance().close();
-        Database.getInstance().init(Const.DB_FILENAME, server);
+        statsApi.close();
+        statsApi.init();
     }
 
     @PrefixGameTestTemplate(false)
@@ -57,7 +58,7 @@ public class DbLoadingTest {
         InteractionResult result = utils.makePlayerRecordOn(helper, chestAbs);
         helper.assertTrue(result.consumesAction(), "Recorder should interact with chest");
 
-        StatPlayer statPlayer = StatsAPI.getInstance().getPlayerService().getOrCreateByName(player.getName().getString());
+        StatPlayer statPlayer = McStatsAPI.getInstance().getPlayerService().getOrCreateByName(player.getName().getString());
         helper.assertValueEqual(1, statPlayer.getInventories().size(), "player should have registered the inventory");
         Inventory inventory = new Inventory(Set.of(new Position(
                 helper.getLevel().dimension().location().toString(),
@@ -67,7 +68,7 @@ public class DbLoadingTest {
 
         resetDb(helper.getLevel().getServer());
 
-        statPlayer = StatsAPI.getInstance().getPlayerService().getOrCreateByName(player.getName().getString());
+        statPlayer = McStatsAPI.getInstance().getPlayerService().getOrCreateByName(player.getName().getString());
         helper.assertTrue(statPlayer.hasInventory(inventory), "player should have inventory");
 
         helper.succeed();

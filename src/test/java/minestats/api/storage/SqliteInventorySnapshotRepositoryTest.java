@@ -9,17 +9,22 @@ import fr.emalios.mystats.api.models.inventory.Position;
 import fr.emalios.mystats.api.models.record.RecordType;
 import fr.emalios.mystats.api.storage.*;
 import fr.emalios.mystats.impl.storage.dao.*;
+import fr.emalios.mystats.impl.storage.db.Database;
+import fr.emalios.mystats.impl.storage.db.migrations.MigrationLoader;
 import fr.emalios.mystats.impl.storage.repository.SqliteInventoryRepository;
 import fr.emalios.mystats.impl.storage.repository.SqliteInventorySnapshotRepository;
 import fr.emalios.mystats.impl.storage.repository.SqlitePlayerInventoryRepository;
 import fr.emalios.mystats.impl.storage.repository.SqlitePlayerRepository;
 import org.junit.jupiter.api.*;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static minestats.utils.Const.pathToMigrations;
 
 @DisplayName("InventorySnapshotRepository test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -75,20 +80,25 @@ public class SqliteInventorySnapshotRepositoryTest {
     private PlayerRepository playerRepository;
     private InventoryRepository inventoryRepository;
     private InventorySnapshotRepository inventorySnapshotRepository;
-    
+
+    private Database database;
+
     @BeforeAll
-    void setup() throws SQLException {
-        Connection conn = DatabaseTest.getConnection();
-        DatabaseTest.makeMigrations();
+    void setup() {
+        database = new Database();
+        new MigrationLoader(pathToMigrations).loadAll().forEach(database::registerMigration);
+        database.init(":memory:", LoggerFactory.getLogger(SqliteInventorySnapshotRepositoryTest.class));
+        Connection conn = database.getConnection();
+
         this.playerInventoryRepository = new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn));
-        this.playerRepository = new SqlitePlayerRepository(new PlayerDao(conn), this.playerInventoryRepository);
+        this.playerRepository = new SqlitePlayerRepository(new PlayerDao(conn));
         this.inventoryRepository = new SqliteInventoryRepository(new InventoryDao(conn), new InventoryPositionsDao(conn));
         this.inventorySnapshotRepository = new SqliteInventorySnapshotRepository(new InventorySnapshotDao(conn), new RecordDao(conn));
     }
 
     @AfterAll
     void teardown() {
-        DatabaseTest.close();
+        this.database.close();
     }
 
     @Test

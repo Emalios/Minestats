@@ -10,6 +10,6 @@ public class Const {
     public static Path pathToMigrations = Path.of("src/main/resources/db/migrations");
     public static Path pathToMigrationsTest = FMLPaths.CONFIGDIR.get().resolve(MyStats.MODID + "/migrations");
 
-    public static final String DB_FILENAME = "mystats";
+    public static final String DB_FILENAME = "mystats.db";
 
 }

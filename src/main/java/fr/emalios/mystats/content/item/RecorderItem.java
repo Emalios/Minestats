@@ -7,6 +7,7 @@ import fr.emalios.mystats.api.models.StatPlayer;
 import fr.emalios.mystats.helper.ConnectedBlocksFinder;
 import fr.emalios.mystats.api.models.inventory.IHandler;
 import fr.emalios.mystats.helper.Utils;
+import fr.emalios.mystats.impl.McStatsAPI;
 import fr.emalios.mystats.registries.StatDataComponent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
  */
 public class RecorderItem extends Item {
 
-    private final StatsAPI statsAPI = StatsAPI.getInstance();
+    private final StatsAPI statsAPI = McStatsAPI.getInstance();
 
     public RecorderItem(Properties props) {
         super(props

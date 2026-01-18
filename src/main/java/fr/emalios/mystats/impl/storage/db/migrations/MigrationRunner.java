@@ -1,11 +1,7 @@
 package fr.emalios.mystats.impl.storage.db.migrations;
 
-import fr.emalios.mystats.MyStats;
 import org.slf4j.Logger;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.sql.*;
 import java.util.List;
 
@@ -19,6 +15,7 @@ public final class MigrationRunner {
 
         int currentVersion = getCurrentVersion(conn);
         logger.info("Current version: {}", currentVersion);
+        System.out.println("Current version: " + currentVersion);
 
         for (Migration m : migrations) {
             if (m.version() > currentVersion) {
@@ -63,7 +60,6 @@ public final class MigrationRunner {
             throws SQLException {
 
         conn.setAutoCommit(false);
-
         try (Statement st = conn.createStatement()) {
             for (String sql : m.sqlStatements()) {
                 st.execute(sql);

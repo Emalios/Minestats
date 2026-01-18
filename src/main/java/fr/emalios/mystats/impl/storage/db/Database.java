@@ -5,14 +5,17 @@ import fr.emalios.mystats.api.StatsAPI;
 import fr.emalios.mystats.impl.adapter.McHandlersLoader;
 import fr.emalios.mystats.impl.storage.dao.*;
 import fr.emalios.mystats.impl.storage.db.migrations.Migration;
+import fr.emalios.mystats.impl.storage.db.migrations.MigrationLoader;
 import fr.emalios.mystats.impl.storage.db.migrations.MigrationRunner;
 import fr.emalios.mystats.impl.storage.repository.*;
 import net.minecraft.server.MinecraftServer;
+import org.slf4j.Logger;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public final class Database {
@@ -30,12 +33,6 @@ public final class Database {
     private RecordDao recordDao;
     private InventoryDao inventoryDao;
 
-    /**
-     * SHOULD ONLY BE USED FOR TESTS PURPOSES
-     */
-    private Database() {
-    }
-
     public static synchronized Database getInstance() {
         if (instance == null) {
             instance = new Database();
@@ -45,8 +42,8 @@ public final class Database {
 
     private void openConnection(String dbFileName) throws SQLException {
         if(connection != null && !connection.isClosed()) throw new RuntimeException("Connection already open");
-        MyStats.LOGGER.info("[Minestats] Opening DB connection.");
-        this.connection = DriverManager.getConnection("jdbc:sqlite:"+dbFileName+".db");
+        //MyStats.LOGGER.info("[Minestats] Opening DB connection.");
+        this.connection = DriverManager.getConnection("jdbc:sqlite:"+dbFileName);
     }
 
     private void initDaos() {
@@ -58,28 +55,19 @@ public final class Database {
         this.recordDao = new RecordDao(connection);
     }
 
-    public void init(String dbFileName, MinecraftServer server) {
+    /**
+     * Initialize the database and make migrations. Assume migrations are already loaded
+     * @param dbFileName file name of the db
+     * @param logger logger to send output log
+     */
+    public void init(String dbFileName, Logger logger) {
         try {
             this.openConnection(dbFileName);
             this.initDaos();
-            this.updateRepositories(server);
-            this.makeMigrations();
+            this.makeMigrations(logger);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private void updateRepositories(MinecraftServer server) {
-        var playerInvRepo = new SqlitePlayerInventoryRepository(Database.getInstance().getPlayerInventoryDao());
-        StatsAPI.getInstance().init(new SqlitePlayerRepository(Database.getInstance().getPlayerDao(), playerInvRepo),
-                new SqliteInventoryRepository(Database.getInstance().getInventoryDao(), Database.getInstance().getInventoryPositionsDao()),
-                playerInvRepo,
-                new SqliteInventorySnapshotRepository(
-                        Database.getInstance().getInventorySnapshotDao(),
-                        Database.getInstance().getRecordDao()),
-                new SqliteInventoryPositionsRepository(Database.getInstance().getInventoryPositionsDao()),
-                new McHandlersLoader(server)
-        );
     }
 
     public void reset() {
@@ -90,12 +78,17 @@ public final class Database {
         }
     }
 
-    public void makeMigrations() {
+    public void makeMigrations(Logger logger) {
         try {
-            MigrationRunner.migrate(this.connection, this.migrations, MyStats.LOGGER);
+            MigrationRunner.migrate(this.connection, this.migrations, logger);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public List<Migration> getMigrations() {
+        Collections.sort(this.migrations);
+        return migrations;
     }
 
     public Connection getConnection() {
@@ -105,14 +98,14 @@ public final class Database {
     public void close() {
         try {
             if (connection != null && !connection.isClosed()) {
-                MyStats.LOGGER.info("[Minestats] Closing DB connection.");
+                //MyStats.LOGGER.info("[Minestats] Closing DB connection.");
                 connection.close();
             }
         } catch (Exception ignored) {}
     }
 
     public void registerMigration(Migration migration) {
-        this.migrations.add(migration);
+        if(!this.migrations.contains(migration)) this.migrations.add(migration);
     }
 
     public void resetMigrations() {
@@ -141,16 +134,6 @@ public final class Database {
 
     public InventoryPositionsDao getInventoryPositionsDao() {
         return inventoryPositionsDao;
-    }
-
-    public static void logDatabaseBusy(SQLException e, String sql) {
-        if (!e.getMessage().contains("SQLITE_BUSY")) return;
-
-        System.err.println("========== SQLITE BUSY DETECTED ==========");
-        System.err.println("Thread: " + Thread.currentThread().getName());
-        System.err.println("While executing SQL: " + sql);
-        e.printStackTrace();
-        System.err.println("==========================================");
     }
 
 }

@@ -3,13 +3,18 @@ package minestats.api.storage;
 import fr.emalios.mystats.api.models.StatPlayer;
 import fr.emalios.mystats.impl.storage.dao.PlayerDao;
 import fr.emalios.mystats.impl.storage.dao.PlayerInventoryDao;
+import fr.emalios.mystats.impl.storage.db.Database;
+import fr.emalios.mystats.impl.storage.db.migrations.MigrationLoader;
 import fr.emalios.mystats.impl.storage.repository.SqlitePlayerInventoryRepository;
 import fr.emalios.mystats.impl.storage.repository.SqlitePlayerRepository;
 import org.junit.jupiter.api.*;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Optional;
+
+import static minestats.utils.Const.pathToMigrations;
 
 @DisplayName("PlayerRepository test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -17,17 +22,21 @@ public class SqlitePlayerRepositoryTest {
 
     private SqlitePlayerRepository sqlitePlayerRepository;
 
+    private Database database;
+
     @BeforeAll
     void setup() throws SQLException {
-        Connection conn = DatabaseTest.getConnection();
-        DatabaseTest.makeMigrations();
+        database = new Database();
+        new MigrationLoader(pathToMigrations).loadAll().forEach(database::registerMigration);
+        database.init(":memory:", LoggerFactory.getLogger(SqlitePlayerRepositoryTest.class));
+        Connection conn = database.getConnection();
         var playerInvRepo = new SqlitePlayerInventoryRepository(new PlayerInventoryDao(conn));
-        this.sqlitePlayerRepository = new SqlitePlayerRepository(new PlayerDao(conn), playerInvRepo);
+        this.sqlitePlayerRepository = new SqlitePlayerRepository(new PlayerDao(conn));
     }
 
     @AfterAll
     void teardown() {
-        DatabaseTest.close();
+        this.database.close();
     }
 
     @Test
