@@ -1,15 +1,14 @@
 package minestats.api;
 
-import fr.emalios.mystats.api.StatsAPI;
-import fr.emalios.mystats.api.models.inventory.IHandlerLoader;
-import fr.emalios.mystats.api.storage.*;
-import fr.emalios.mystats.impl.storage.db.Database;
-import fr.emalios.mystats.impl.storage.db.migrations.MigrationLoader;
-import fr.emalios.mystats.impl.storage.repository.*;
+import fr.emalios.minestats.api.StatsAPI;
+import fr.emalios.minestats.api.models.inventory.IHandlerLoader;
+import fr.emalios.minestats.api.storage.*;
+import fr.emalios.minestats.helper.Const;
+import fr.emalios.minestats.impl.storage.db.Database;
+import fr.emalios.minestats.impl.storage.db.migrations.MigrationLoader;
+import fr.emalios.minestats.impl.storage.repository.*;
 import minestats.api.storage.TestHandlerLoader;
 import org.slf4j.LoggerFactory;
-
-import static minestats.utils.Const.pathToMigrations;
 
 public class TestStatsAPI extends StatsAPI {
 
@@ -29,7 +28,7 @@ public class TestStatsAPI extends StatsAPI {
 
     @Override
     public void init() {
-        new MigrationLoader(pathToMigrations).loadAll().forEach(database::registerMigration);
+        new MigrationLoader(Const.MIGRATIONS_STRING_PATH).loadAll().forEach(database::registerMigration);
         super.init();
     }
 

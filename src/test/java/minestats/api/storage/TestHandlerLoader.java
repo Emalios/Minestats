@@ -1,9 +1,9 @@
 package minestats.api.storage;
 
-import fr.emalios.mystats.api.models.inventory.IHandler;
-import fr.emalios.mystats.api.models.inventory.IHandlerLoader;
-import fr.emalios.mystats.api.models.inventory.Position;
-import fr.emalios.mystats.api.models.record.Record;
+import fr.emalios.minestats.api.models.inventory.IHandler;
+import fr.emalios.minestats.api.models.inventory.IHandlerLoader;
+import fr.emalios.minestats.api.models.inventory.Position;
+import fr.emalios.minestats.api.models.record.Record;
 
 import java.util.Collection;
 import java.util.List;

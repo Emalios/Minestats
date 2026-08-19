@@ -1,9 +1,9 @@
 package minestats.api.storage.migrations;
 
-import fr.emalios.mystats.impl.storage.db.Database;
-import fr.emalios.mystats.impl.storage.db.migrations.Migration;
-import fr.emalios.mystats.impl.storage.db.migrations.MigrationLoader;
-import fr.emalios.mystats.impl.storage.db.migrations.MigrationRunner;
+import fr.emalios.minestats.impl.storage.db.Database;
+import fr.emalios.minestats.impl.storage.db.migrations.Migration;
+import fr.emalios.minestats.impl.storage.db.migrations.MigrationLoader;
+import fr.emalios.minestats.impl.storage.db.migrations.MigrationRunner;
 import org.junit.jupiter.api.*;
 import org.slf4j.LoggerFactory;
 

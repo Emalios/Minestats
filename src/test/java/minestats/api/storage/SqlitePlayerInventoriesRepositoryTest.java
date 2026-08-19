@@ -1,25 +1,24 @@
 package minestats.api.storage;
 
-import fr.emalios.mystats.api.models.inventory.Inventory;
-import fr.emalios.mystats.api.models.inventory.Position;
-import fr.emalios.mystats.api.models.StatPlayer;
-import fr.emalios.mystats.api.storage.InventoryRepository;
-import fr.emalios.mystats.api.storage.PlayerInventoryRepository;
-import fr.emalios.mystats.api.storage.PlayerRepository;
-import fr.emalios.mystats.impl.storage.dao.InventoryDao;
-import fr.emalios.mystats.impl.storage.dao.InventoryPositionsDao;
-import fr.emalios.mystats.impl.storage.dao.PlayerDao;
-import fr.emalios.mystats.impl.storage.dao.PlayerInventoryDao;
-import fr.emalios.mystats.impl.storage.db.Database;
-import fr.emalios.mystats.impl.storage.db.migrations.MigrationLoader;
-import fr.emalios.mystats.impl.storage.repository.SqliteInventoryRepository;
-import fr.emalios.mystats.impl.storage.repository.SqlitePlayerInventoryRepository;
-import fr.emalios.mystats.impl.storage.repository.SqlitePlayerRepository;
+import fr.emalios.minestats.api.models.inventory.Inventory;
+import fr.emalios.minestats.api.models.inventory.Position;
+import fr.emalios.minestats.api.models.StatPlayer;
+import fr.emalios.minestats.api.storage.InventoryRepository;
+import fr.emalios.minestats.api.storage.PlayerInventoryRepository;
+import fr.emalios.minestats.api.storage.PlayerRepository;
+import fr.emalios.minestats.impl.storage.dao.InventoryDao;
+import fr.emalios.minestats.impl.storage.dao.InventoryPositionsDao;
+import fr.emalios.minestats.impl.storage.dao.PlayerDao;
+import fr.emalios.minestats.impl.storage.dao.PlayerInventoryDao;
+import fr.emalios.minestats.impl.storage.db.Database;
+import fr.emalios.minestats.impl.storage.db.migrations.MigrationLoader;
+import fr.emalios.minestats.impl.storage.repository.SqliteInventoryRepository;
+import fr.emalios.minestats.impl.storage.repository.SqlitePlayerInventoryRepository;
+import fr.emalios.minestats.impl.storage.repository.SqlitePlayerRepository;
 import org.junit.jupiter.api.*;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 

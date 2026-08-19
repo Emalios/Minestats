@@ -1,0 +1,19 @@
+{
+  "itemGroup.minestats": "Example Mod Tab",
+  "block.minestats.example_block": "Example Block",
+  "block.minestats.log_chest_block": "Log block",
+  "item.minestats.example_item": "Example Item",
+  "item.minestats.recorder_item": "Recorder",
+
+  "minestats.configuration.title": "MineStats Configs",
+  "minestats.configuration.section.minestats.common.toml": "MineStats Configs",
+  "minestats.configuration.section.minestats.common.toml.title": "MineStats Configs",
+  "minestats.configuration.items": "Item List",
+  "minestats.configuration.logDirtBlock": "Log Dirt Block",
+  "minestats.configuration.magicNumberIntroduction": "Magic Number Text",
+  "minestats.configuration.magicNumber": "Magic Number",
+
+  "key.minestats.monitor_mapping": "Open Menu",
+  "menu.minestats.monitor": "MineStats",
+  "key.categories.minestats.minestats_category": "MineStats"
+}

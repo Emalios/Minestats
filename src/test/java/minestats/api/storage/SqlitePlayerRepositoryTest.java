@@ -1,12 +1,12 @@
 package minestats.api.storage;
 
-import fr.emalios.mystats.api.models.StatPlayer;
-import fr.emalios.mystats.impl.storage.dao.PlayerDao;
-import fr.emalios.mystats.impl.storage.dao.PlayerInventoryDao;
-import fr.emalios.mystats.impl.storage.db.Database;
-import fr.emalios.mystats.impl.storage.db.migrations.MigrationLoader;
-import fr.emalios.mystats.impl.storage.repository.SqlitePlayerInventoryRepository;
-import fr.emalios.mystats.impl.storage.repository.SqlitePlayerRepository;
+import fr.emalios.minestats.api.models.StatPlayer;
+import fr.emalios.minestats.impl.storage.dao.PlayerDao;
+import fr.emalios.minestats.impl.storage.dao.PlayerInventoryDao;
+import fr.emalios.minestats.impl.storage.db.Database;
+import fr.emalios.minestats.impl.storage.db.migrations.MigrationLoader;
+import fr.emalios.minestats.impl.storage.repository.SqlitePlayerInventoryRepository;
+import fr.emalios.minestats.impl.storage.repository.SqlitePlayerRepository;
 import org.junit.jupiter.api.*;
 import org.slf4j.LoggerFactory;
 

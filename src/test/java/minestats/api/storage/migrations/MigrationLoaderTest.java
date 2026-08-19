@@ -1,12 +1,10 @@
 package minestats.api.storage.migrations;
 
-import fr.emalios.mystats.impl.storage.db.Database;
-import fr.emalios.mystats.impl.storage.db.migrations.MigrationLoader;
+import fr.emalios.minestats.impl.storage.db.Database;
+import fr.emalios.minestats.impl.storage.db.migrations.MigrationLoader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
 
 import static minestats.utils.Const.pathToMigrations;
 

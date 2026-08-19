@@ -1,10 +1,10 @@
 package minestats.api.service;
 
-import fr.emalios.mystats.api.StatsAPI;
-import fr.emalios.mystats.api.models.inventory.Inventory;
-import fr.emalios.mystats.api.models.inventory.Position;
-import fr.emalios.mystats.api.services.InventoryService;
-import fr.emalios.mystats.api.services.StatPlayerService;
+import fr.emalios.minestats.api.StatsAPI;
+import fr.emalios.minestats.api.models.inventory.Inventory;
+import fr.emalios.minestats.api.models.inventory.Position;
+import fr.emalios.minestats.api.services.InventoryService;
+import fr.emalios.minestats.api.services.StatPlayerService;
 import minestats.api.TestStatsAPI;
 import org.junit.jupiter.api.*;
 

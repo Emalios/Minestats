@@ -1,18 +1,17 @@
 package minestats.api.storage;
 
-import fr.emalios.mystats.api.models.inventory.Inventory;
-import fr.emalios.mystats.api.models.inventory.Position;
-import fr.emalios.mystats.api.storage.*;
-import fr.emalios.mystats.impl.storage.dao.*;
-import fr.emalios.mystats.impl.storage.db.Database;
-import fr.emalios.mystats.impl.storage.db.migrations.MigrationLoader;
-import fr.emalios.mystats.impl.storage.repository.*;
+import fr.emalios.minestats.api.models.inventory.Inventory;
+import fr.emalios.minestats.api.models.inventory.Position;
+import fr.emalios.minestats.api.storage.*;
+import fr.emalios.minestats.impl.storage.dao.*;
+import fr.emalios.minestats.impl.storage.db.Database;
+import fr.emalios.minestats.impl.storage.db.migrations.MigrationLoader;
+import fr.emalios.minestats.impl.storage.repository.*;
 import org.junit.jupiter.api.*;
 import org.slf4j.LoggerFactory;
 import org.sqlite.SQLiteException;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Optional;
 import java.util.Set;
 

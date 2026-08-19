@@ -1,6 +1,6 @@
 package minestats.impl;
 
-import fr.emalios.mystats.impl.storage.db.migrations.MigrationParser;
+import fr.emalios.minestats.impl.storage.db.migrations.MigrationParser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,8 +8,6 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @DisplayName("Migrations parser test")

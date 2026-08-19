@@ -1,12 +1,12 @@
 package minestats.api.models;
 
-import fr.emalios.mystats.api.models.inventory.Snapshot;
-import fr.emalios.mystats.api.models.record.CountUnit;
-import fr.emalios.mystats.api.models.record.Record;
-import fr.emalios.mystats.api.models.inventory.IHandler;
-import fr.emalios.mystats.api.models.inventory.Inventory;
-import fr.emalios.mystats.api.models.inventory.Position;
-import fr.emalios.mystats.api.models.record.RecordType;
+import fr.emalios.minestats.api.models.inventory.Snapshot;
+import fr.emalios.minestats.api.models.record.CountUnit;
+import fr.emalios.minestats.api.models.record.Record;
+import fr.emalios.minestats.api.models.inventory.IHandler;
+import fr.emalios.minestats.api.models.inventory.Inventory;
+import fr.emalios.minestats.api.models.inventory.Position;
+import fr.emalios.minestats.api.models.record.RecordType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

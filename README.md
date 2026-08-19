@@ -15,6 +15,11 @@ I'll try to create one issue for each task and keep them updated as I start work
 
 ## Problems/Bugs
 
+- Inventory duplicating handlers
+- Test same handlers for double chest
+- ConnectorScanner for eveything?
+- double chets proba²bly duplicate
+
 Use either github issue or the [discord](https://discord.gg/mbyetvK8Rf)
 
 ## Download
