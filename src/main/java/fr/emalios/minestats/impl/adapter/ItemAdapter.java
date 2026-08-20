@@ -16,9 +16,11 @@ import java.util.*;
 public class ItemAdapter implements IHandler {
 
     private final BlockCapabilityCache<IItemHandler, @Nullable Direction> capabilityCache;
+    private final IItemHandler cachedIItemHandler;
 
     public ItemAdapter(BlockCapabilityCache<IItemHandler, @Nullable Direction> capabilityCache) {
         this.capabilityCache = capabilityCache;
+        this.cachedIItemHandler = capabilityCache.getCapability();
     }
 
     @Override
@@ -53,6 +55,11 @@ public class ItemAdapter implements IHandler {
     @Override
     public boolean exists() {
         return this.capabilityCache.getCapability() != null;
+    }
+
+    @Override
+    public boolean hasChanged() {
+        return !Objects.equals(this.capabilityCache.getCapability(), this.cachedIItemHandler);
     }
 
     @Override

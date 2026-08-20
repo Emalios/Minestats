@@ -10,17 +10,16 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class FluidAdapter implements IHandler {
 
     private final BlockCapabilityCache<IFluidHandler, @Nullable Direction> capabilityCache;
+    private final IFluidHandler cachedFluidHandler;
 
     public FluidAdapter(BlockCapabilityCache<IFluidHandler, @Nullable Direction> capabilityCache) {
         this.capabilityCache = capabilityCache;
+        this.cachedFluidHandler = capabilityCache.getCapability();
     }
 
     @Override
@@ -36,6 +35,11 @@ public class FluidAdapter implements IHandler {
             stacks.merge(current.getFluid().toString(), curRecord, Record::mergeWith);
         }
         return stacks.values();
+    }
+
+    @Override
+    public boolean hasChanged() {
+        return !Objects.equals(this.capabilityCache.getCapability(), this.cachedFluidHandler);
     }
 
     @Override

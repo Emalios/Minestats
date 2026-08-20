@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 public class Inventory extends Persistable {
 
-    private final List<IHandler> handlers = new ArrayList<>();
+    private List<IHandler> handlers = new ArrayList<>();
     private final Set<Position> invPositions = new HashSet<>();
 
     public Inventory() { }
@@ -30,13 +30,26 @@ public class Inventory extends Persistable {
     }
 
     /**
-     * Test if the inventory is still valid by testing is IHandler
+     * Test if the inventory is still valid, to be valid all handlers needs to be existing and needs to not have changed
+     * @return true if all handlers are existing and their capability has not changed
+     */
+    public boolean isValid() {
+        for (IHandler handler : this.handlers) {
+            if (!handler.exists() || handler.hasChanged()) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Test if the inventory has at least one handler. Update list of handlers by filtering existing one
      * @return true if it has at least one valid IHandler, else false
      */
     public boolean hasHandlers() {
-        return !this.getHandlers().isEmpty();
+        this.handlers = this.handlers.stream().filter(IHandler::exists).toList();
+        return !this.handlers.isEmpty();
     }
 
+    //TODO: throw error if handler does not exists
     public void addHandler(IHandler handler) {
         this.handlers.add(handler);
     }

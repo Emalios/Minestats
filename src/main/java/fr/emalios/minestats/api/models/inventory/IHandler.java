@@ -10,6 +10,7 @@ import java.util.Collection;
 public interface IHandler {
 
     boolean exists();
+    boolean hasChanged();
     Collection<Record> getContent();
 
 }

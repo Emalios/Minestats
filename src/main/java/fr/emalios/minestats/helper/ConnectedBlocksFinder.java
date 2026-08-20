@@ -1,5 +1,6 @@
 package fr.emalios.minestats.helper;
 
+import fr.emalios.minestats.MineStats;
 import fr.emalios.minestats.api.models.inventory.IHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -20,7 +21,6 @@ public class ConnectedBlocksFinder {
             if (!handlersMatch(referenceHandlers, handlers)) {
                 continue;
             }
-
             visited.add(current);
 
             for (BlockPos neighbor : getAdjacentPositions(current)) {

@@ -19,6 +19,7 @@ I'll try to create one issue for each task and keep them updated as I start work
 - Test same handlers for double chest
 - ConnectorScanner for eveything?
 - double chets proba²bly duplicate
+- refactor BlockConnector to have it in API?
 
 Use either github issue or the [discord](https://discord.gg/mbyetvK8Rf)
 

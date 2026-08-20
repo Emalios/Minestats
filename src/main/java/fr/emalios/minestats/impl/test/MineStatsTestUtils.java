@@ -3,6 +3,7 @@ package fr.emalios.minestats.impl.test;
 import fr.emalios.minestats.MineStats;
 import fr.emalios.minestats.api.models.inventory.Inventory;
 import fr.emalios.minestats.api.models.inventory.Position;
+import fr.emalios.minestats.helper.Utils;
 import fr.emalios.minestats.impl.test.snippet.RegistriesTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -19,6 +20,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import static fr.emalios.minestats.helper.ConnectedBlocksFinder.getConnectedBlocks;
 
 public class MineStatsTestUtils {
 
@@ -58,10 +62,11 @@ public class MineStatsTestUtils {
     }
 
     public Inventory buildInvFromPos(Level level, BlockPos pos) {
-        return new Inventory(Set.of(new Position(
-                level.dimension().location().toString(),
-                pos.getX(), pos.getY(), pos.getZ()
-        )));
+        Set<BlockPos> blockPoses = getConnectedBlocks(level, pos, Utils.getIHandlers(level, pos));
+        Set<Position> positions = blockPoses.stream().map(blockPos -> new Position(
+                level.dimension().location().toString(), blockPos.getX(), blockPos.getY(), blockPos.getZ()
+        )).collect(Collectors.toSet());
+        return new Inventory(positions);
     }
 
     public Player getPlayer(GameTestHelper helper) {

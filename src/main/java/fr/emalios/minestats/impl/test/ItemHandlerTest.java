@@ -31,10 +31,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
+/**
+ * Test if IItemHandlers are gotten rightly
+ */
 @GameTestHolder(MineStats.MODID)
 public class ItemHandlerTest {
 
-    private static final MineStatsTestUtils utils = MineStatsTestUtils.getInstance();
     private static final StatsAPI statsApi = McStatsAPI.getInstance();
 
     // C:B:C
@@ -68,9 +70,7 @@ public class ItemHandlerTest {
         helper.assertTrue(chestBlockEntity != null, "BlockEntity should exist");
 
         var barrelHandlers = Utils.getIHandlers(level, barrelAbsolute);
-        MineStats.LOGGER.info("[Minestats] Found handlers for position: " + barrel + " : " + barrelAbsolute);
         helper.assertValueEqual(barrelHandlers.size(), 1, "barrel handlers should have one handler");
-        MineStats.LOGGER.info("[Minestats] Found handlers for position: " + barrelHandlers);
         helper.assertTrue(barrelHandlers.get(0) instanceof ItemAdapter, "barrel handlers should only has ItemHandler");
 
         var chestHandlers = Utils.getIHandlers(level, chestAbsolute);
@@ -108,6 +108,7 @@ public class ItemHandlerTest {
         helper.assertValueEqual(barrelInv.getHandlers().size(), 1, "barrel handlers should have one handler");
         helper.assertValueEqual(chestInv.getHandlers().size(), 1, "chest handlers should have one handler");
 
+        statsApi.getInventoryService().deleteAll();
         helper.succeed();
     }
 

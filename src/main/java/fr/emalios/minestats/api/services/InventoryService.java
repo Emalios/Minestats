@@ -42,7 +42,7 @@ public class InventoryService {
 
     /**
      * TODO: maybe a system to detect if the inventory has changed since last scan is possible
-     * Method responsible to scan the content of every monitored blocks
+     * Method responsible to scan the content of every monitored blocks. Also delete loaded inventories that does not have at least one valid handler
      * for each block we:
      * - create an inventory snapshot
      * - scan inventory content
@@ -52,16 +52,18 @@ public class InventoryService {
         List<Integer> toRemove = new ArrayList<>();
         for (Integer id : this.loadedInventories.keySet()) {
             var inventory = this.loadedInventories.get(id);
+            MineStats.LOGGER.debug("Condition: " + inventory.isValid());
             if(!inventory.isPersisted()) {
                 MineStats.LOGGER.debug("A non persisted inventory was found [{}]", id);
                 toRemove.add(id);
                 continue;
             }
-            if(!inventory.hasHandlers()) {
+            if(!inventory.isValid()) {
                 toRemove.add(id);
                 this.inventoryRepository.delete(inventory);
             } else this.recordInventoryContent(inventory);
         }
+        MineStats.LOGGER.debug("To remove: " + toRemove);
         toRemove.forEach(id -> this.loadedInventories.remove(id));
     }
 

@@ -1,17 +1,16 @@
 package fr.emalios.minestats.api.models;
 
+import fr.emalios.minestats.MineStats;
 import fr.emalios.minestats.api.models.inventory.Inventory;
 import fr.emalios.minestats.api.storage.Persistable;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class StatPlayer extends Persistable {
 
     private final String name;
-    private Set<Inventory> inventories = new HashSet<>();
+    private List<Inventory> inventories = new ArrayList<>();
 
     public StatPlayer(String name) {
         this.name = name;
@@ -29,10 +28,9 @@ public class StatPlayer extends Persistable {
         return this.inventories.remove(inventory);
     }
 
-    public Set<Inventory> getInventories() {
-        var filteredInv = this.inventories.stream().filter(Inventory::isPersisted).collect(Collectors.toSet());
-        this.inventories = filteredInv;
-        return filteredInv;
+    public List<Inventory> getInventories() {
+        this.inventories = this.inventories.stream().filter(Inventory::isPersisted).toList();
+        return this.inventories;
     }
 
     public String getName() {
@@ -53,6 +51,14 @@ public class StatPlayer extends Persistable {
         if (this == o) return true;
         if (!(o instanceof StatPlayer that)) return false;
         return name.equals(that.name);
+    }
+
+    @Override
+    public String toString() {
+        return "StatPlayer{" +
+                "name='" + name + '\'' +
+                ", inventories=" + inventories +
+                '}';
     }
 
     @Override
