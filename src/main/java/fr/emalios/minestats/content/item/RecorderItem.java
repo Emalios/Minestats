@@ -62,6 +62,7 @@ public class RecorderItem extends Item {
         var mode = stack.get(StatDataComponent.RECORDER_COMPONENT).mode();
         if (!player.isShiftKeyDown()) {
             mode = mode.next();
+            if(mode == RecorderDataComponent.RecorderMode.DEBUG && !player.isCreative()) mode = mode.next();
             stack.set(StatDataComponent.RECORDER_COMPONENT, new RecorderDataComponent.RecorderData(mode));
             this.sendMessage("Set to '" + mode + "' mode.", player);
             return InteractionResultHolder.consume(stack);
@@ -85,8 +86,9 @@ public class RecorderItem extends Item {
             //if not shift click, new config
             if(!player.isShiftKeyDown()) {
                 mode = mode.next();
-                this.sendMessage("Set to '" + mode + "' mode.", player);
+                if(mode == RecorderDataComponent.RecorderMode.DEBUG && !player.isCreative()) mode = mode.next();
                 itemStack.set(StatDataComponent.RECORDER_COMPONENT, new RecorderDataComponent.RecorderData(mode));
+                this.sendMessage("Set to '" + mode + "' mode.", player);
                 return InteractionResult.CONSUME;
             }
             return InteractionResult.FAIL;

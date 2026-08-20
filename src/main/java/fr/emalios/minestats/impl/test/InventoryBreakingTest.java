@@ -57,7 +57,7 @@ public class InventoryBreakingTest {
 
     @PrefixGameTestTemplate(false)
     @GameTest(template = "create_vault", batch = "db-interact", setupTicks = 10L)
-    public static void breakMultiblockInventoryTest(GameTestHelper helper) {
+    public static void breakMultiblockItemInventoryTest(GameTestHelper helper) {
         var level = helper.getLevel();
 
         var multiblockVaultPos = List.of(
@@ -74,7 +74,7 @@ public class InventoryBreakingTest {
 
         var player = utils.getPlayer(helper);
         StatPlayer statPlayer = statsApi.getPlayerService().getOrCreateByName(player.getName().getString());
-        //sanitize player
+        //void player's inventories
         statPlayer.loadInventories(Set.of());
 
         InteractionResult result = utils.makePlayerRecordOn(helper, player, multiblockVaultPos.getFirst());
@@ -83,6 +83,50 @@ public class InventoryBreakingTest {
         Inventory inventory = statPlayer.getInventories().getFirst();
 
         helper.assertValueEqual(inventory.getInvPositions().size(), 9,"Builded inventory should have every positions");
+        helper.assertTrue(statPlayer.hasInventory(inventory), "Player should still have inventory before scan");
+        helper.assertTrue(statsApi.getInventoryService().isLoaded(inventory), "Inventory should still be loaded before scan");
+
+        //delete block
+        helper.getLevel().destroyBlock(multiblockVaultPos.getFirst(), false);
+
+        statsApi.getInventoryService().scan();
+
+        //assert deleted after next scan
+        helper.assertFalse(statPlayer.hasInventory(inventory), "Player should not have inventory after scan");
+        helper.assertFalse(statsApi.getInventoryService().isLoaded(inventory), "Inventory should not be loaded after scan");
+        statPlayer = statsApi.getPlayerService().getOrCreateByName(player.getName().getString());
+        helper.assertFalse(statPlayer.hasInventory(inventory), "Player should not have inventory after reloading statPlayer");
+
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "tank_multi", batch = "db-interact", setupTicks = 10L)
+    public static void breakMultiblockFluidInventoryTest(GameTestHelper helper) {
+        var level = helper.getLevel();
+
+        var multiblockVaultPos = List.of(
+                helper.absolutePos(new BlockPos(0, 1, 0)),
+                helper.absolutePos(new BlockPos(1, 1, 0)),
+                helper.absolutePos(new BlockPos(0, 2, 0)),
+                helper.absolutePos(new BlockPos(1, 2, 0)),
+                helper.absolutePos(new BlockPos(0, 1, 1)),
+                helper.absolutePos(new BlockPos(1, 1, 1)),
+                helper.absolutePos(new BlockPos(1, 2, 1)),
+                helper.absolutePos(new BlockPos(0, 2, 1))
+        );
+
+        var player = utils.getPlayer(helper);
+        StatPlayer statPlayer = statsApi.getPlayerService().getOrCreateByName(player.getName().getString());
+        //void player's inventories
+        statPlayer.loadInventories(Set.of());
+
+        InteractionResult result = utils.makePlayerRecordOn(helper, player, multiblockVaultPos.getFirst());
+        //Inventory inventory = utils.buildInvFromPos(helper.getLevel(), multiblockVaultPos.getFirst());
+
+        Inventory inventory = statPlayer.getInventories().getFirst();
+
+        helper.assertValueEqual(inventory.getInvPositions().size(), 8,"Builded inventory should have every positions");
         helper.assertTrue(statPlayer.hasInventory(inventory), "Player should still have inventory before scan");
         helper.assertTrue(statsApi.getInventoryService().isLoaded(inventory), "Inventory should still be loaded before scan");
 
