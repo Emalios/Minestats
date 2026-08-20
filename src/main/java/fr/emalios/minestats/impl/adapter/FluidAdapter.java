@@ -38,6 +38,20 @@ public class FluidAdapter implements IHandler {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        FluidAdapter that = (FluidAdapter) o;
+        return Objects.equals(capabilityCache.getCapability(), that.capabilityCache.getCapability());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(
+                capabilityCache.getCapability()
+        );
+    }
+
+    @Override
     public boolean hasChanged() {
         if(this.capabilityCache.getCapability() == null) return true;
         return !Objects.equals(this.capabilityCache.getCapability(), this.cachedFluidHandler);

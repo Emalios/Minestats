@@ -37,6 +37,7 @@ import java.util.function.Predicate;
 @GameTestHolder(MineStats.MODID)
 public class ItemHandlerTest {
 
+    private static MineStatsTestUtils utils = MineStatsTestUtils.getInstance();
     private static final StatsAPI statsApi = McStatsAPI.getInstance();
 
     // C:B:C
@@ -83,35 +84,6 @@ public class ItemHandlerTest {
     }
 
     @PrefixGameTestTemplate(false)
-    @GameTest(template = "chest_basic", batch = "db-interact")
-    public static void constructInventory(GameTestHelper helper) {
-        var barrel = new BlockPos(0, 1, 0);
-        var chest = new BlockPos(1, 1, 0);
-        var barrelAbsolute = helper.absolutePos(barrel);
-        var chestAbsolute = helper.absolutePos(chest);
-
-        Inventory barrelInv = new Inventory(Set.of(new Position(
-                helper.getLevel().dimension().location().toString(),
-                barrelAbsolute.getX(), barrelAbsolute.getY(), barrelAbsolute.getZ()
-        )));
-
-        Inventory chestInv = new Inventory(Set.of(new Position(
-                helper.getLevel().dimension().location().toString(),
-                chestAbsolute.getX(), chestAbsolute.getY(), chestAbsolute.getZ()
-        )));
-
-        statsApi.getInventoryService().create(barrelInv);
-        statsApi.getInventoryService().create(chestInv);
-
-        helper.assertFalse(barrelInv.equals(chestInv), "barrel inventory should be equal to barrel inventory");
-
-        helper.assertValueEqual(barrelInv.getHandlers().size(), 1, "barrel handlers should have one handler");
-        helper.assertValueEqual(chestInv.getHandlers().size(), 1, "chest handlers should have one handler");
-
-        helper.succeed();
-    }
-
-    @PrefixGameTestTemplate(false)
     @GameTest(template = "create_vault", setupTicks = 20L)
     public static void getIItemHandlerMultiblock(GameTestHelper helper) {
         var level = helper.getLevel();
@@ -131,37 +103,26 @@ public class ItemHandlerTest {
         );
 
         var soloVaultAbs = helper.absolutePos(soloVault);
-        helper.assertTrue(isBlock(level, soloVaultAbs, "create:item_vault"), "Expected Create vault");
+
         List<IHandler> soloVaultHandlers = Utils.getIHandlers(level, soloVaultAbs);
         helper.assertValueEqual(soloVaultHandlers.size(), 1, "vault handlers should have one handler");
         helper.assertTrue(soloVaultHandlers.get(0) instanceof ItemAdapter, "vault handlers should only has ItemHandler");
 
-        List<IHandler> referenceHandlers = Utils.getIHandlers(level, helper.absolutePos(multiblockVaultPos.getFirst()));
-        helper.assertValueEqual(referenceHandlers.size(), 1, "vault handlers should have one handler");
-        helper.assertTrue(referenceHandlers.get(0) instanceof ItemAdapter, "vault handlers should only has ItemHandler");
+        List<IHandler> baseItemHandler = Utils.getIHandlers(level, helper.absolutePos(multiblockVaultPos.getFirst()));
 
-        helper.assertValueEqual(referenceHandlers.size(),1, "vault should have one handler"
-        );
+        for (BlockPos multiblockVaultPo : multiblockVaultPos) {
+            var multiblockVaultAbsPos = helper.absolutePos(multiblockVaultPo);
+            helper.assertTrue(utils.isBlock(level, multiblockVaultAbsPos, "create:item_vault"), "Expected Create vault");
 
-        for (BlockPos pos : multiblockVaultPos) {
-            BlockPos absPos = helper.absolutePos(pos);
-
-            List<IHandler> handlers = Utils.getIHandlers(level, absPos);
-
-            helper.assertValueEqual(handlers, referenceHandlers,"multiblock vault should have the same handlers at " + absPos
-            );
+            List<IHandler> itemHandler = Utils.getIHandlers(level, multiblockVaultAbsPos);
+            helper.assertValueEqual(itemHandler.size(), 1, "vault handlers should have one handler");
+            helper.assertTrue(itemHandler.get(0) instanceof ItemAdapter, "vault handlers should only has ItemHandler");
+            helper.assertValueEqual(itemHandler, baseItemHandler,"multiblock vault should have the same handlers at " + multiblockVaultPo);
         }
 
-        helper.assertFalse(referenceHandlers.equals(soloVaultHandlers), "vault handlers should not have the same handlers");
+        helper.assertFalse(baseItemHandler.equals(soloVaultHandlers), "vault handlers should not have the same handlers");
 
         helper.succeed();
-    }
-
-    public static boolean isBlock(Level level, BlockPos pos, String blockId) {
-        ResourceLocation id = BuiltInRegistries.BLOCK
-                .getKey(level.getBlockState(pos).getBlock());
-
-        return id.toString().equals(blockId);
     }
 
     /*

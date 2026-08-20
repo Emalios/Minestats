@@ -7,7 +7,9 @@ import fr.emalios.minestats.helper.Utils;
 import fr.emalios.minestats.impl.test.snippet.RegistriesTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -42,6 +44,13 @@ public class MineStatsTestUtils {
         Item recorder = RegistriesTest.loadItem(recorderId);
         helper.assertValueEqual(recorder.toString(), recorderId, "recorder item should be loaded");
         return new ItemStack(recorder);
+    }
+
+    public boolean isBlock(Level level, BlockPos pos, String blockId) {
+        ResourceLocation id = BuiltInRegistries.BLOCK
+                .getKey(level.getBlockState(pos).getBlock());
+
+        return id.toString().equals(blockId);
     }
 
     public InteractionResult makePlayerRecordOn(GameTestHelper helper, Player player, BlockPos absolutePos) {
