@@ -1,5 +1,6 @@
 package fr.emalios.minestats.api.services;
 
+import fr.emalios.minestats.MineStats;
 import fr.emalios.minestats.api.models.inventory.Inventory;
 import fr.emalios.minestats.api.models.StatPlayer;
 import fr.emalios.minestats.api.storage.PlayerInventoryRepository;
@@ -24,8 +25,9 @@ public class StatPlayerService {
     }
 
     public StatPlayer getOrCreateByName(String playerName) {
-        if(this.loadedPlayers.containsKey(playerName)) return this.loadedPlayers.get(playerName);
-
+        if(this.loadedPlayers.containsKey(playerName)) {
+            return this.loadedPlayers.get(playerName);
+        }
         StatPlayer statPlayer = this.playerRepository.getOrCreate(playerName);
         this.loadPlayer(playerName, statPlayer);
         return statPlayer;
@@ -54,11 +56,17 @@ public class StatPlayerService {
 
     public void addInventoryToPlayer(StatPlayer statPlayer, Inventory inventory) {
         this.playerInventoryRepository.addInventory(statPlayer, inventory);
-        statPlayer.addInventory(inventory);
     }
 
     public boolean removeInventoryFromPlayer(StatPlayer statPlayer, Inventory inventory) {
         return this.playerInventoryRepository.removeInventory(statPlayer, inventory);
+    }
+
+    /**
+     * Delete all loaded players TODO: delete all players in db
+     */
+    public void deleteAll() {
+        this.loadedPlayers.clear();
     }
 
 }

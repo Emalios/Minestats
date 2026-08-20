@@ -46,7 +46,6 @@ public class MineStatsTestUtils {
 
     public InteractionResult makePlayerRecordOn(GameTestHelper helper, Player player, BlockPos absolutePos) {
         ItemStack recorder = getRecorder(helper);
-        MineStats.LOGGER.info("[Minestats] Recorder item loaded." + recorder.toString());
         player.setItemInHand(InteractionHand.MAIN_HAND, recorder);
         helper.assertValueEqual(recorder, player.getItemInHand(InteractionHand.MAIN_HAND), "item in hand should be recorder item");
 

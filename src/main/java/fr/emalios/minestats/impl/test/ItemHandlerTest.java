@@ -108,7 +108,6 @@ public class ItemHandlerTest {
         helper.assertValueEqual(barrelInv.getHandlers().size(), 1, "barrel handlers should have one handler");
         helper.assertValueEqual(chestInv.getHandlers().size(), 1, "chest handlers should have one handler");
 
-        statsApi.getInventoryService().deleteAll();
         helper.succeed();
     }
 

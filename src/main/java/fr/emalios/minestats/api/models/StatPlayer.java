@@ -3,6 +3,7 @@ package fr.emalios.minestats.api.models;
 import fr.emalios.minestats.MineStats;
 import fr.emalios.minestats.api.models.inventory.Inventory;
 import fr.emalios.minestats.api.storage.Persistable;
+import net.minecraft.server.MinecraftServer;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,7 +18,8 @@ public class StatPlayer extends Persistable {
     }
 
     public boolean hasInventory(Inventory inventory) {
-        return this.inventories.contains(inventory);
+        return this.inventories.stream()
+                .filter(Inventory::isPersisted).toList().contains(inventory);
     }
 
     public void addInventory(Inventory inventory) {
@@ -29,8 +31,16 @@ public class StatPlayer extends Persistable {
     }
 
     public List<Inventory> getInventories() {
-        this.inventories = this.inventories.stream().filter(Inventory::isPersisted).toList();
-        return this.inventories;
+        return this.inventories.stream()
+                .filter(Inventory::isPersisted)
+                .toList();
+    }
+
+    /**
+     * Clear all inventories that are not valid
+     */
+    public void sanitize() {
+        this.inventories.removeIf(inventory -> !inventory.isPersisted());
     }
 
     public String getName() {

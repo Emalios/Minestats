@@ -93,7 +93,6 @@ public final class Database {
     public void close() {
         try {
             if (connection != null && !connection.isClosed()) {
-                //MyStats.LOGGER.info("[Minestats] Closing DB connection.");
                 connection.close();
             }
         } catch (Exception ignored) {}

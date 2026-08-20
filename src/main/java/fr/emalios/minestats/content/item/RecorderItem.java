@@ -117,8 +117,6 @@ public class RecorderItem extends Item {
         Optional<Inventory> optInv = statsAPI.getInventoryService().findByPos(new Position(
                 world, pos.getX(), pos.getY(), pos.getZ()
         ));
-        MineStats.LOGGER.info("[Minestats] Recorder item loaded." + statPlayer.getName());
-        MineStats.LOGGER.info("[Minestats] Recorder item mode:" + mode);
         switch (mode) {
             case REMOVE:
                 if(optInv.isEmpty()) {
@@ -143,9 +141,8 @@ public class RecorderItem extends Item {
                     return InteractionResult.SUCCESS;
                 }
                 Inventory inventory = new Inventory(positions);
+                MineStats.LOGGER.info("Adding inventory " + inventory + " to database.");
                 this.statsAPI.getInventoryService().create(inventory);
-                MineStats.LOGGER.info("Create new inventory: " + inventory);
-                MineStats.LOGGER.info("Loaded handlers: " + inventory);
                 this.addInventoryToPlayer(inventory, statPlayer, player);
                 return InteractionResult.SUCCESS;
             case DEBUG:
@@ -158,8 +155,7 @@ public class RecorderItem extends Item {
                 }
                 Inventory inv = new Inventory(positions);
                 this.statsAPI.getInventoryService().addHandlersToInventory(inv);
-                MineStats.LOGGER.info("[Minestats] Inventory: " + inv.toString());
-                MineStats.LOGGER.info("[Minestats] Inventory: " + inv.getHandlers());
+                MineStats.LOGGER.info("[Minestats] Inventory: " + inv);
                 return InteractionResult.SUCCESS;
         }
         System.err.println("UNKNOW MODE '" + mode + "'");

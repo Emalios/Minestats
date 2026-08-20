@@ -52,7 +52,6 @@ public class InventoryService {
         List<Integer> toRemove = new ArrayList<>();
         for (Integer id : this.loadedInventories.keySet()) {
             var inventory = this.loadedInventories.get(id);
-            MineStats.LOGGER.debug("Condition: " + inventory.isValid());
             if(!inventory.isPersisted()) {
                 MineStats.LOGGER.debug("A non persisted inventory was found [{}]", id);
                 toRemove.add(id);
@@ -63,7 +62,6 @@ public class InventoryService {
                 this.inventoryRepository.delete(inventory);
             } else this.recordInventoryContent(inventory);
         }
-        MineStats.LOGGER.debug("To remove: " + toRemove);
         toRemove.forEach(id -> this.loadedInventories.remove(id));
     }
 
@@ -153,13 +151,19 @@ public class InventoryService {
     }
 
     public void create(Inventory inventory) {
+        MineStats.LOGGER.info("Saving inventory " + inventory + " to database.");
         this.inventoryRepository.save(inventory);
+        MineStats.LOGGER.info("Done.");
         this.loadedInventories.put(inventory.getId(), inventory);
         this.addHandlersToInventory(inventory);
     }
 
     public boolean isLoaded(Inventory inventory) {
         return this.loadedInventories.containsValue(inventory);
+    }
+
+    public Map<Integer, Inventory> getLoadedInventories() {
+        return loadedInventories;
     }
 
     /**
@@ -183,5 +187,9 @@ public class InventoryService {
         if(!inventory.hasHandlers()) {
             this.deleteInventory(inventory);
         }
+    }
+
+    public InventoryRepository getInventoryRepository() {
+        return inventoryRepository;
     }
 }

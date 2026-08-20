@@ -35,6 +35,24 @@ public class InventoryConstructionTest {
     private static final StatsAPI statsApi = McStatsAPI.getInstance();
 
     @PrefixGameTestTemplate(false)
+    @GameTest(template = "chest_basic")
+    public static void chestInventoryConstruction(GameTestHelper helper) {
+        var level = helper.getLevel();
+
+        var chestPos = new BlockPos(1, 1, 0);
+        var chestAbsPos = helper.absolutePos(chestPos);
+
+        Inventory soloVaultInv = utils.buildInvFromPos(level, chestAbsPos);
+        statsApi.getInventoryService().addHandlersToInventory(soloVaultInv);
+
+        helper.assertValueEqual(soloVaultInv.getHandlers().size(), 1, "Inventory should only has one handler");
+        helper.assertValueEqual(soloVaultInv.getInvPositions().size(), 1, "Inventory should only has one position");
+        helper.assertTrue(soloVaultInv.containsPosition(new Position(level.dimension().location().toString(), chestAbsPos.getX(), chestAbsPos.getY(), chestAbsPos.getZ())), "Inventory should contain position");
+
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
     @GameTest(template = "create_vault")
     public static void singleVaultInventoryConstruction(GameTestHelper helper) {
         var level = helper.getLevel();

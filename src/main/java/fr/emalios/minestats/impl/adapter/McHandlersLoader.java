@@ -40,8 +40,6 @@ public class McHandlersLoader implements IHandlerLoader {
         Level level = levels.get(position.getWorld());
         //load block in world to be able to get capabilities
         level.getBlockState(pos);
-        var handlers = Utils.getIHandlers(level, pos);
-        MineStats.LOGGER.info("[Minestats] Found handlers [" + handlers.size() + "] for position: " + pos);
-        return handlers;
+        return Utils.getIHandlers(level, pos);
     }
 }

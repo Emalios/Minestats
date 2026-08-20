@@ -5,10 +5,7 @@ import fr.emalios.minestats.api.models.inventory.Position;
 import fr.emalios.minestats.impl.storage.db.Database;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Link a player and his inventories
@@ -52,6 +49,21 @@ public class PlayerInventoryDao {
             }
         }
         return inventoryIds;
+    }
+
+    public void showAll() throws SQLException {
+        String sql = "SELECT player_id, inventory_id, added_at FROM player_inventories;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            System.out.println("=== player_inventories ===");
+            while (rs.next()) {
+                System.out.println(
+                        "player_id=" + rs.getInt("player_id") +
+                                ", inventory_id=" + rs.getInt("inventory_id") +
+                                ", added_at=" + rs.getString("added_at")
+                );
+            }
+        }
     }
 
     private void debugPlayerInventories(int playerId) throws SQLException {

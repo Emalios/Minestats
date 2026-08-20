@@ -13,6 +13,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.List;
+import java.util.Set;
 
 @GameTestHolder(MineStats.MODID)
 public class InventoryBreakingTest {
@@ -29,37 +30,28 @@ public class InventoryBreakingTest {
         var player = utils.getPlayer(helper);
 
         StatPlayer statPlayer = statsApi.getPlayerService().getOrCreateByName(player.getName().getString());
-        MineStats.LOGGER.info("Player: " + statPlayer);
+        MineStats.LOGGER.info(statPlayer.toString());
 
-        MineStats.LOGGER.info("CC 0");
         InteractionResult result = utils.makePlayerRecordOn(helper, player, chestAbs);
-        MineStats.LOGGER.info("CC 01");
         Inventory inventory = utils.buildInvFromPos(helper.getLevel(), chestAbs);
-        MineStats.LOGGER.info("CC 02");
         statsApi.getInventoryService().addHandlersToInventory(inventory);
-
-        MineStats.LOGGER.info("CC 1");
 
 
         helper.assertTrue(statPlayer.hasInventory(inventory), "Player should still have inventory before scan");
         helper.assertTrue(statsApi.getInventoryService().isLoaded(inventory), "Inventory should still be loaded before scan");
-        MineStats.LOGGER.info("CC 2");
 
         //delete block
+        MineStats.LOGGER.info(inventory.getHandlers().toString());
         helper.getLevel().destroyBlock(chestAbs, false);
         statsApi.getInventoryService().scan();
-        MineStats.LOGGER.info("CC 3");
 
         //assert deleted after next scan
         helper.assertFalse(statsApi.getInventoryService().isLoaded(inventory), "Inventory should not be loaded");
         helper.assertFalse(statPlayer.hasInventory(inventory), "Player should not have inventory after scan");
-        MineStats.LOGGER.info("CC 4");
 
         statPlayer = statsApi.getPlayerService().getOrCreateByName(player.getName().getString());
         helper.assertFalse(statPlayer.hasInventory(inventory), "Player should not have inventory after reloading statPlayer");
-        MineStats.LOGGER.info("CC 5");
 
-        statsApi.getInventoryService().deleteAll();
         helper.succeed();
     }
 
@@ -81,10 +73,12 @@ public class InventoryBreakingTest {
         );
 
         var player = utils.getPlayer(helper);
+        StatPlayer statPlayer = statsApi.getPlayerService().getOrCreateByName(player.getName().getString());
+        //sanitize player
+        statPlayer.loadInventories(Set.of());
 
         InteractionResult result = utils.makePlayerRecordOn(helper, player, multiblockVaultPos.getFirst());
         //Inventory inventory = utils.buildInvFromPos(helper.getLevel(), multiblockVaultPos.getFirst());
-        StatPlayer statPlayer = statsApi.getPlayerService().getOrCreateByName(player.getName().getString());
 
         Inventory inventory = statPlayer.getInventories().getFirst();
 
@@ -103,7 +97,6 @@ public class InventoryBreakingTest {
         statPlayer = statsApi.getPlayerService().getOrCreateByName(player.getName().getString());
         helper.assertFalse(statPlayer.hasInventory(inventory), "Player should not have inventory after reloading statPlayer");
 
-        statsApi.getInventoryService().deleteAll();
         helper.succeed();
     }
 

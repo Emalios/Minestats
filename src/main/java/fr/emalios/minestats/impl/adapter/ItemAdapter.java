@@ -59,11 +59,15 @@ public class ItemAdapter implements IHandler {
 
     @Override
     public boolean hasChanged() {
+        if(this.capabilityCache.getCapability() == null) return true;
         return !Objects.equals(this.capabilityCache.getCapability(), this.cachedIItemHandler);
     }
 
     @Override
     public String toString() {
-        return this.capabilityCache.getCapability().toString();
+        return "ItemAdapter{" +
+                "capability=" + capabilityCache.getCapability() +
+                ", cachedCapa=" + cachedIItemHandler +
+                '}';
     }
 }

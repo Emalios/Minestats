@@ -35,18 +35,17 @@ public class Inventory extends Persistable {
      */
     public boolean isValid() {
         for (IHandler handler : this.handlers) {
-            if (!handler.exists() || handler.hasChanged()) return true;
+            if (!handler.exists() || handler.hasChanged()) return false;
         }
-        return false;
+        return true;
     }
 
     /**
-     * Test if the inventory has at least one handler. Update list of handlers by filtering existing one
+     * Test if the inventory has at least one handler.
      * @return true if it has at least one valid IHandler, else false
      */
     public boolean hasHandlers() {
-        this.handlers = this.handlers.stream().filter(IHandler::exists).toList();
-        return !this.handlers.isEmpty();
+        return !this.handlers.stream().filter(IHandler::exists).toList().isEmpty();
     }
 
     //TODO: throw error if handler does not exists
@@ -102,6 +101,7 @@ public class Inventory extends Persistable {
     public String toString() {
         return "Inventory{" +
                 "invPositions=" + invPositions +
+                ", handlers=" + handlers +
                 ", nb handlers=" + handlers.size() +
                 '}';
     }

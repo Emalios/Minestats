@@ -1,5 +1,6 @@
 package fr.emalios.minestats.impl;
 
+import fr.emalios.minestats.MineStats;
 import fr.emalios.minestats.api.StatsAPI;
 import fr.emalios.minestats.api.models.inventory.IHandlerLoader;
 import fr.emalios.minestats.api.storage.*;
@@ -9,6 +10,8 @@ import fr.emalios.minestats.impl.storage.db.Database;
 import fr.emalios.minestats.impl.storage.db.migrations.MigrationLoader;
 import fr.emalios.minestats.impl.storage.repository.*;
 import net.minecraft.server.MinecraftServer;
+
+import java.sql.SQLException;
 
 import static fr.emalios.minestats.MineStats.LOGGER;
 

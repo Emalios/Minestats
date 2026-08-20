@@ -1,5 +1,6 @@
 package fr.emalios.minestats.impl.storage.repository;
 
+import fr.emalios.minestats.MineStats;
 import fr.emalios.minestats.api.models.inventory.Inventory;
 import fr.emalios.minestats.api.models.StatPlayer;
 import fr.emalios.minestats.api.storage.PlayerInventoryRepository;
@@ -22,6 +23,7 @@ public class SqlitePlayerInventoryRepository implements PlayerInventoryRepositor
             this.dao.insertIfNotExists(statPlayer.getId(), inventory.getId());
             statPlayer.addInventory(inventory);
         } catch (SQLException e) {
+            MineStats.LOGGER.info(e.getMessage());
             throw new RuntimeException(e);
         }
     }

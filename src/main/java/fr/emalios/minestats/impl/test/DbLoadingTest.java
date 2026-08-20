@@ -33,12 +33,14 @@ public class DbLoadingTest {
     @BeforeBatch(batch = "db-interact")
     public static void setup(ServerLevel level) {
         MineStats.LOGGER.debug("[SETUP-TEST] Remove all inventories");
+        statsApi.getPlayerService().deleteAll();
         statsApi.getInventoryService().deleteAll();
     }
 
     @AfterBatch(batch = "db-interact")
     public static void teardown(ServerLevel level) {
         MineStats.LOGGER.debug("[TEARING DOWN-TEST] Remove all inventories");
+        statsApi.getPlayerService().deleteAll();
         statsApi.getInventoryService().deleteAll();
     }
 
@@ -55,25 +57,24 @@ public class DbLoadingTest {
         var chest = new BlockPos(1, 1, 0);
         var chestAbs = helper.absolutePos(chest);
 
+        StatPlayer statPlayer = statsApi.getPlayerService().getOrCreateByName(player.getName().getString());
+
+        int numberOfInventories = statPlayer.getInventories().size();
+
         InteractionResult result = utils.makePlayerRecordOn(helper, player, chestAbs);
         helper.assertTrue(result.consumesAction(), "Recorder should interact with chest");
 
-        StatPlayer statPlayer = statsApi.getPlayerService().getOrCreateByName(player.getName().getString());
+        helper.assertValueEqual(statPlayer.getInventories().size(), numberOfInventories + 1, "player should have registered the inventory");
 
-        helper.assertValueEqual(1, statPlayer.getInventories().size(), "player should have registered the inventory");
-        Inventory inventory = new Inventory(Set.of(new Position(
-                helper.getLevel().dimension().location().toString(),
-                chestAbs.getX(), chestAbs.getY(), chestAbs.getZ()
-        )));
+        Inventory inventory = utils.buildInvFromPos(helper.getLevel(), chestAbs);
         statsApi.getInventoryService().addHandlersToInventory(inventory);
         helper.assertTrue(statPlayer.hasInventory(inventory), "player should have inventory");
         //fake reload of the world to test persistency
         restartDb(helper.getLevel().getServer());
 
         statPlayer = statsApi.getPlayerService().getOrCreateByName(player.getName().getString());
-        helper.assertTrue(statPlayer.hasInventory(inventory), "player should have inventory");
+        helper.assertTrue(statPlayer.hasInventory(inventory), "player should have inventory after reloading database");
 
-        statsApi.getInventoryService().deleteAll();
         helper.succeed();
     }
 

@@ -39,6 +39,7 @@ public class FluidAdapter implements IHandler {
 
     @Override
     public boolean hasChanged() {
+        if(this.capabilityCache.getCapability() == null) return true;
         return !Objects.equals(this.capabilityCache.getCapability(), this.cachedFluidHandler);
     }
 
