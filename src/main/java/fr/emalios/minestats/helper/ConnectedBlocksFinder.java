@@ -2,13 +2,15 @@ package fr.emalios.minestats.helper;
 
 import fr.emalios.minestats.MineStats;
 import fr.emalios.minestats.api.models.inventory.IHandler;
+import fr.emalios.minestats.api.models.inventory.IPosition;
+import fr.emalios.minestats.impl.McStatsAPI;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import java.util.*;
 
 public class ConnectedBlocksFinder {
 
-    public static Set<BlockPos> getConnectedBlocks(Level level, BlockPos startPos, List<IHandler> referenceHandlers) {
+    public static Set<BlockPos> getConnectedBlocks(Level level, BlockPos startPos, Collection<IHandler> referenceHandlers) {
         Set<BlockPos> visited = new HashSet<>();
         Deque<BlockPos> stack = new ArrayDeque<>();
         stack.push(startPos);
@@ -33,6 +35,31 @@ public class ConnectedBlocksFinder {
         return visited;
     }
 
+    public static Set<IPosition> getConnectedBlocks(Level level, IPosition startPos, Collection<IHandler> referenceHandlers) {
+        Set<IPosition> visited = new HashSet<>();
+        Deque<IPosition> stack = new ArrayDeque<>();
+        stack.push(startPos);
+
+        while (!stack.isEmpty()) {
+            IPosition current = stack.pop();
+            if (visited.contains(current)) continue;
+
+            List<IHandler> handlers = McStatsAPI.getInstance().getIHandlerLoader().loadHandlers(current);
+            if (!handlersMatch(referenceHandlers, handlers)) {
+                continue;
+            }
+            visited.add(current);
+
+            for (IPosition neighbor : current.getAdjacentPositions()) {
+                if (!visited.contains(neighbor)) {
+                    stack.push(neighbor);
+                }
+            }
+        }
+
+        return visited;
+    }
+
     private static List<BlockPos> getAdjacentPositions(BlockPos pos) {
         return List.of(
                 pos.north(), pos.south(),
@@ -41,7 +68,7 @@ public class ConnectedBlocksFinder {
         );
     }
 
-    private static boolean handlersMatch(List<IHandler> reference, List<IHandler> other) {
+    private static boolean handlersMatch(Collection<IHandler> reference, List<IHandler> other) {
         if (reference.size() != other.size()) return false;
         return reference.containsAll(other) && other.containsAll(reference);
     }

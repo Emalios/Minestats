@@ -9,11 +9,11 @@ import java.util.stream.Collectors;
 public class Inventory extends Persistable {
 
     private List<IHandler> handlers = new ArrayList<>();
-    private final Set<Position> invPositions = new HashSet<>();
+    private final Set<IPosition> invPositions = new HashSet<>();
 
     public Inventory() { }
 
-    public Inventory(Set<Position> invPositions) {
+    public Inventory(Set<IPosition> invPositions) {
         this.invPositions.addAll(invPositions);
     }
 
@@ -65,11 +65,11 @@ public class Inventory extends Persistable {
         return this.handlers.stream().filter(IHandler::exists).toList();
     }
 
-    public void addPosition(Position position) {
+    public void addPosition(IPosition position) {
         this.invPositions.add(position);
     }
 
-    public void addPositions(Collection<Position> position) {
+    public void addPositions(Collection<IPosition> position) {
         position.forEach(this::addPosition);
     }
 
@@ -81,7 +81,7 @@ public class Inventory extends Persistable {
         return this.invPositions.contains(position);
     }
 
-    public Set<Position> getInvPositions() {
+    public Set<IPosition> getInvPositions() {
         return invPositions;
     }
 

@@ -1,5 +1,6 @@
 package fr.emalios.minestats.helper;
 
+import fr.emalios.minestats.api.models.inventory.Position;
 import fr.emalios.minestats.api.models.inventory.Snapshot;
 import fr.emalios.minestats.api.models.inventory.IHandler;
 import fr.emalios.minestats.api.models.record.Record;
@@ -27,8 +28,6 @@ public class Utils {
             long t1 = snapshots.get(i).getTimestamp();
             long t2 = snapshots.get(i + 1).getTimestamp();
             double deltaTime = (double) (t2 - t1);
-
-
         }
 
     }
@@ -75,6 +74,13 @@ public class Utils {
         }
 
         return avgRate;
+    }
+
+    public static Position buildPositionFromBlockPos(Level level, BlockPos pos) {
+        return new Position(
+                level.dimension().location().toString(),
+                pos.getX(), pos.getY(), pos.getZ()
+        );
     }
 
     /**

@@ -1,6 +1,5 @@
 package fr.emalios.minestats.api.services;
 
-import fr.emalios.minestats.MineStats;
 import fr.emalios.minestats.api.models.*;
 import fr.emalios.minestats.api.models.inventory.*;
 import fr.emalios.minestats.api.storage.*;
@@ -15,7 +14,7 @@ public class InventoryService {
     private final IHandlerLoader iHandlerLoader;
     private final InventoryPositionsRepository inventoryPositionsRepository;
 
-    private Map<Integer, Inventory> loadedInventories = new HashMap<>();
+    private final Map<Integer, Inventory> loadedInventories = new HashMap<>();
 
     public InventoryService(InventoryRepository inventoryRepository, PlayerInventoryRepository playerInventoryRepository,
                             InventorySnapshotRepository inventorySnapshotRepository, IHandlerLoader iHandlerLoader, InventoryPositionsRepository inventoryPositionsRepository) {
@@ -53,7 +52,6 @@ public class InventoryService {
         for (Integer id : this.loadedInventories.keySet()) {
             var inventory = this.loadedInventories.get(id);
             if(!inventory.isPersisted()) {
-                MineStats.LOGGER.debug("A non persisted inventory was found [{}]", id);
                 toRemove.add(id);
                 continue;
             }
@@ -75,7 +73,7 @@ public class InventoryService {
 
     public Inventory getOrCreate(Position position) {
         //either scan all loadedInvs to check if position is in one inventory
-        //or ask db to get optional associated id. This for the moment
+        //or ask db to get optional associated id.
         var inv = this.inventoryRepository.getOrCreate(position);
         //check if need to be loaded
         if(this.loadedInventories.containsKey(inv.getId())) {
@@ -85,6 +83,15 @@ public class InventoryService {
             this.addHandlersToInventory(inv);
             return inv;
         }
+    }
+
+    /**
+     * Build an inventory with all his positions from a base position
+     * @param pos base position must contain a valid IHandler
+     * @return inventory with all correct positions and handlers
+     */
+    public Inventory buildInventoryFromPos(Position pos) {
+        Inventory inv = this.inventoryRepository.getOrCreate(pos);
     }
 
     public List<Snapshot> getSnapshots(Inventory inventory) {
@@ -111,7 +118,7 @@ public class InventoryService {
         return this.loadedInventories.values();
     }
 
-    public void removePositionFromInventory(Inventory inventory, Position position) {
+    public void removePositionFromInventory(Inventory inventory, IPosition position) {
         //get the loaded inventory
         var localInv = this.loadedInventories.get(inventory.getId());
         this.inventoryPositionsRepository.removePosition(localInv, position);
@@ -136,7 +143,7 @@ public class InventoryService {
     }
 
     /**
-     * Only look in loaded inventories
+     * Only look in loaded inventories. Return the inventory containing the given position
      * @param position to get inventory from
      * @return inventory who has the associated position
      */
@@ -151,9 +158,7 @@ public class InventoryService {
     }
 
     public void create(Inventory inventory) {
-        MineStats.LOGGER.info("Saving inventory " + inventory + " to database.");
         this.inventoryRepository.save(inventory);
-        MineStats.LOGGER.info("Done.");
         this.loadedInventories.put(inventory.getId(), inventory);
         this.addHandlersToInventory(inventory);
     }
@@ -176,7 +181,7 @@ public class InventoryService {
 
         //ensure every position have the same handlers
         Collection<IHandler> first = this.iHandlerLoader.loadHandlers(allPositions.iterator().next());
-        for (Position invPosition : inventory.getInvPositions()) {
+        for (IPosition invPosition : inventory.getInvPositions()) {
             Collection<IHandler> handlers = this.iHandlerLoader.loadHandlers(invPosition);
             if(handlers.isEmpty() || !handlers.equals(first)) {
                 this.removePositionFromInventory(inventory, invPosition);
@@ -189,7 +194,4 @@ public class InventoryService {
         }
     }
 
-    public InventoryRepository getInventoryRepository() {
-        return inventoryRepository;
-    }
 }

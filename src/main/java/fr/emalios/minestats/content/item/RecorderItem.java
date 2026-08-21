@@ -95,23 +95,23 @@ public class RecorderItem extends Item {
         }
 
         //Test if block has at least one Capability
-        List<IHandler> handlers = Utils.getIHandlers(level, pos);
+        Collection<IHandler> handlers = statsAPI.getIHandlerLoader().loadHandlers(Utils.buildPositionFromBlockPos(level, pos));
         if(handlers.isEmpty()) {
             return InteractionResult.PASS;
         }
-        return this.processClick(mode, player, level, pos);
+        return this.processClick(mode, player, handlers, level, pos);
     }
 
     private void sendMessage(String txt, Player player) {
         player.displayClientMessage(Component.literal(txt), true);
     }
 
-    private InteractionResult processClick(RecorderDataComponent.RecorderMode mode, Player player, Level level, BlockPos pos) {
+    private InteractionResult processClick(RecorderDataComponent.RecorderMode mode, Player player, Collection<IHandler> handlers, Level level, BlockPos pos) {
         String playerName = player.getName().getString();
         String world = level.dimension().location().toString();
         StatPlayer statPlayer = statsAPI.getPlayerService().getOrCreateByName(playerName);
         //use refence handlers to assert that all block has the same
-        Set<BlockPos> connected = ConnectedBlocksFinder.getConnectedBlocks(level, pos, Utils.getIHandlers(level, pos));
+        Set<BlockPos> connected = ConnectedBlocksFinder.getConnectedBlocks(level, pos, handlers);
         Set<Position> positions = connected.stream().map(blockPos -> new Position(
                 world, blockPos.getX(), blockPos.getY(), blockPos.getZ()
         )).collect(Collectors.toSet());
@@ -134,7 +134,6 @@ public class RecorderItem extends Item {
                 return InteractionResult.SUCCESS;
             case ADD:
                 if(optInv.isPresent()) {
-                    MineStats.LOGGER.info("Inventory already exists");
                     if(statPlayer.hasInventory(optInv.get())) {
                         this.sendMessage("Already monitored.", player);
                         return InteractionResult.PASS;
@@ -143,7 +142,6 @@ public class RecorderItem extends Item {
                     return InteractionResult.SUCCESS;
                 }
                 Inventory inventory = new Inventory(positions);
-                MineStats.LOGGER.info("Adding inventory " + inventory + " to database.");
                 this.statsAPI.getInventoryService().create(inventory);
                 this.addInventoryToPlayer(inventory, statPlayer, player);
                 return InteractionResult.SUCCESS;

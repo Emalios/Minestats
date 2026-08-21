@@ -5,6 +5,6 @@ import java.util.Collection;
 @FunctionalInterface
 public interface IHandlerLoader {
 
-    Collection<IHandler> loadHandlers(Position position);
+    Collection<IHandler> loadHandlers(IPosition position);
 
 }
